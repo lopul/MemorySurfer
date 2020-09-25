@@ -4,8 +4,9 @@ A program to memorize flashcards.
 
 ## Screenshots
 
-[![alt](screenshot-open.png)](https://www.lorenz-pullwitt.de/MemorySurfer/en/)
-
+a
+[![screenshot-open](screenshot-open.png)](https://www.lorenz-pullwitt.de/MemorySurfer/en/)
+pic
 
 ## Online
 
