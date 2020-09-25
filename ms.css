@@ -1,0 +1,56 @@
+/*
+	Author: Lorenz Pullwitt <memorysurfer@lorenz-pullwitt.de>
+	Copyright 2016-2020
+
+	This file is part of MemorySurfer.
+
+	MemorySurfer is free software; you can redistribute it and/or
+	modify it under the terms of the GNU General Public License
+	as published by the Free Software Foundation; either version 2
+	of the License, or (at your option) any later version.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with this program; if not, you can find it here:
+	https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+*/
+textarea {
+	width: 100%;
+	max-width: 80ex;
+}
+ul {
+	list-style-type: none;
+	margin: 0 0 0 2ex;
+	padding: 0;
+}
+td {
+	min-width: 19ex;
+}
+svg {
+	width: 100%;
+	max-width: 50ex;
+}
+p {
+	margin: 1.1ex 0 1ex 0;
+}
+label {
+	padding: 0;
+}
+input[type=submit] {
+	padding: 0.5ex 0.4ex 0.5ex 0.4ex;
+	min-width: 6.5ex;
+}
+code {
+	color: #ccc;
+}
+cite {
+	display: block;
+	width: 94%;
+	max-width: 76ex;
+	padding: 0.2ex 1ex 0 1ex;
+	margin: 0.2ex 0 2ex 2ex;
+}
