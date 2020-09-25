@@ -10,4 +10,4 @@ To check out the software - it's installed on my
 ## Setup
 
 The setup is described
-[here](https://www.lorenz-pullwitt.de/MemorySurfer/setup.html "title")
+[here](https://www.lorenz-pullwitt.de/MemorySurfer/en/setup.html "title")
