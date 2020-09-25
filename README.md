@@ -6,7 +6,7 @@ A program to memorize flashcards.
 
 To check out the software - it's installed on my
 [vps]:
-https://vps.lorenz-pullwitt.de/cgi-bin/memorysurfer.cgi
+/https://vps.lorenz-pullwitt.de/cgi-bin/memorysurfer.cgi
 
 [vps]
 
@@ -14,6 +14,6 @@ https://vps.lorenz-pullwitt.de/cgi-bin/memorysurfer.cgi
 
 The setup is described
 [here]:
-https://www.lorenz-pullwitt.de/MemorySurfer/setup.html
+/https://www.lorenz-pullwitt.de/MemorySurfer/setup.html
 
 [here]
