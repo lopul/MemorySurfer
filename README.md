@@ -2,6 +2,11 @@
 
 A program to memorize flashcards.
 
+## Screenshots
+
+[![alt](screenshot-open.png)](https://www.lorenz-pullwitt.de/MemorySurfer/en/)
+
+
 ## Online
 
 To check out the software - it's installed on my
