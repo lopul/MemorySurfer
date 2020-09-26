@@ -19,5 +19,5 @@ The setup is described
 
 ## Features
 
-- XML export / import (for backup)
-- hierarchical decks
+ - XML export / import (for backup)
+ - hierarchical decks
