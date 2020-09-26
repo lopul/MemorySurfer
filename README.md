@@ -16,3 +16,8 @@ To check out the software - it's installed on my
 
 The setup is described
 [here](https://www.lorenz-pullwitt.de/MemorySurfer/en/setup.html "setup").
+
+## Features
+
+XML export / import (for backup)
+hierarchical decks
