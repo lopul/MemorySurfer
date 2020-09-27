@@ -1,6 +1,6 @@
 # MemorySurfer
 
-A (webserver) program to memorize (text-based) flashcards.
+A (web-server) program to memorize (text-based) flashcards.
 
 ## Screenshots
 
@@ -21,10 +21,11 @@ The setup is described
 
  - XML export / import (for backup)
  - hierarchical decks
+ - passphrase (session / file access control)
 
 ## Requirements
 
  - gcc
  - make
 
-Every Linux system capable of running a webserver (eg. Apache) should also be capable of running MemorySurfer (tested on Raspbian, Fedora, Debian, Ubuntu).
+Every Linux system capable of running a web-server (eg. Apache) should also be capable of running MemorySurfer (tested on Raspbian, Fedora, Debian, Ubuntu).
