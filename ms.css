@@ -18,6 +18,18 @@
 	along with this program; if not, you can find it here:
 	https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 */
+body {
+	width: 100%;
+	max-width: 80ex;
+	margin: 0 auto 0 auto;
+	overflow-y: scroll;
+}
+h1 {
+	margin: 0 0 0 0;
+	padding: 0 0 0 0;
+	font-size: inherit;
+	font-weight: bolder;
+}
 textarea {
 	width: 100%;
 	max-width: 80ex;
