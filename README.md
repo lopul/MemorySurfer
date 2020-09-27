@@ -21,7 +21,8 @@ The setup is described
 
  - XML export / import (for backup)
  - hierarchical decks
- - passphrase (session / file access control)
+ - passphrase (access control of session / file)
+ - searching
 
 ## Requirements
 
