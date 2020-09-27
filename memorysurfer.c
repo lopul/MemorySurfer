@@ -37,7 +37,7 @@
 #include <errno.h>
 
 enum Field { F_UNKNOWN, F_FILENAME, F_FILE_TITLE, F_START_ACTION, F_FILE_ACTION, F_ARRANGE, F_CAT_NAME, F_MOVED_CAT, F_EDIT_ACTION, F_LEARN_ACTION, F_SEARCH_TXT, F_SEARCH_ACTION, F_CAT, F_CARD, F_MOV_CARD, F_LVL, F_Q, F_A, F_MSG_ACTION, F_TODO_MAIN, F_TODO_ALT, F_MTIME, F_PASSWORD, F_NEW_PASSWORD, F_TOKEN, F_EVENT, F_PAGE, F_MODE, F_TIMEOUT };
-enum Action { A_END, A_NONE, A_FILE, A_WARNING, A_CREATE, A_NEW, A_FILELIST, A_OPEN, A_CHANGE_PASSWD, A_WRITE_PASSWD, A_READ_PASSWD, A_CHECK_PASSWORD, A_AUTH_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_CHECK_RESUME, A_SLASH, A_VOID, A_FILE_EXTENSION, A_GATHER, A_UPLOAD, A_UPLOAD_REPORT, A_EXPORT, A_REMOVE, A_ERASE, A_CLOSE, A_START_CAT, A_SELECT_CREATE_CAT, A_SELECT_CAT, A_SELECT_SEND_CAT, A_SELECT_ARRANGE, A_CAT_NAME, A_CREATE_CAT, A_RENAME_CAT, A_ASK_DELETE_CAT, A_DELETE_CAT, A_TOGGLE, A_MOVE_CAT, A_SELECT_EDIT_CAT, A_EDIT, A_SYNC_QA, A_INSERT, A_APPEND, A_DELETE, A_DELETE_ASK, A_PREVIOUS, A_NEXT, A_SCHEDULE, A_SET, A_ARRANGE, A_MOVE_CARD, A_SEND_CARD, A_SELECT_LEARN_CAT, A_SELECT_SEARCH_CAT, A_PREFERENCES, A_ABOUT, A_APPLY, A_SEARCH, A_QUESTION, A_SHOW, A_PROCEED, A_SUSPEND, A_RESUME, A_CHECK_FILE, A_LOGIN, A_HISTOGRAM, A_RETRIEVE_MTIME, A_MTIME_TEST, A_CARD_TEST, A_TEST_CAT };
+enum Action { A_END, A_NONE, A_FILE, A_WARNING, A_CREATE, A_NEW, A_OPEN_DLG, A_FILELIST, A_OPEN, A_CHANGE_PASSWD, A_WRITE_PASSWD, A_READ_PASSWD, A_CHECK_PASSWORD, A_AUTH_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_CHECK_RESUME, A_SLASH, A_VOID, A_FILE_EXTENSION, A_GATHER, A_UPLOAD, A_UPLOAD_REPORT, A_EXPORT, A_REMOVE, A_ERASE, A_CLOSE, A_START_CAT, A_SELECT_CREATE_CAT, A_SELECT_CAT, A_SELECT_SEND_CAT, A_SELECT_ARRANGE, A_CAT_NAME, A_CREATE_CAT, A_RENAME_CAT, A_ASK_DELETE_CAT, A_DELETE_CAT, A_TOGGLE, A_MOVE_CAT, A_SELECT_EDIT_CAT, A_EDIT, A_SYNC_QA, A_INSERT, A_APPEND, A_DELETE, A_DELETE_ASK, A_PREVIOUS, A_NEXT, A_SCHEDULE, A_SET, A_ARRANGE, A_MOVE_CARD, A_SEND_CARD, A_SELECT_LEARN_CAT, A_SELECT_SEARCH_CAT, A_PREFERENCES, A_ABOUT, A_APPLY, A_SEARCH, A_QUESTION, A_SHOW, A_PROCEED, A_SUSPEND, A_RESUME, A_CHECK_FILE, A_LOGIN, A_HISTOGRAM, A_RETRIEVE_MTIME, A_MTIME_TEST, A_CARD_TEST, A_TEST_CAT };
 enum Page { P_START, P_FILE, P_PASSWORD, P_NEW, P_OPEN, P_UPLOAD, P_UPLOAD_REPORT, P_EXPORT, P_START_CAT, P_CAT_NAME, P_SELECT_CREATE_CAT, P_SELECT_CAT, P_SELECT_SEND_CAT, P_SELECT_ARRANGE, P_SELECT_CARD_ARRANGE, P_SELECT_EDIT_CAT, P_EDIT, P_SELECT_LEARN_CAT, P_SELECT_SEARCH_CAT, P_SEARCH, P_PREFERENCES, P_ABOUT, P_ASK, P_RATE, P_MSG, P_HISTOGRAM };
 enum Block { B_END, B_START_HTML, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_START, B_FILE, B_PASSWORD, B_NEW, B_OPEN, B_UPLOAD, B_UPLOAD_REPORT, B_EXPORT, B_START_CAT, B_CAT_NAME, B_SELECT_CREATE_CAT, B_SELECT_CAT, B_SELECT_SEND_CAT, B_SELECT_ARRANGE, B_SELECT_CARD_ARRANGE, B_SELECT_EDIT_CAT, B_EDIT, B_SELECT_LEARN_CAT, B_SELECT_SEARCH_CAT, B_SEARCH, B_PREFERENCES, B_ABOUT, B_ASK, B_RATE, B_MSG, B_HISTOGRAM };
 enum Mode { M_UNDEFINED = -1, M_DEFAULT, M_PW_CHANGE, M_MAX };
@@ -58,7 +58,7 @@ static enum Action action_seq[S_END+1][13] = {
 	{ A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_ABOUT, A_END }, // S_ABOUT
 	{ A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_APPLY, A_GEN_TOK, A_END }, // S_APPLY
 	{ A_FILELIST, A_NEW, A_END }, // S_NEW
-	{ A_FILELIST, A_END }, // S_FILELIST
+	{ A_FILELIST, A_OPEN_DLG, A_END }, // S_FILELIST
 	{ A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_WARNING, A_END }, // S_WARNING
 	{ A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_UPLOAD, A_END }, // S_UPLOAD
 	{ A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_PASSWD, A_GEN_TOK, A_NONE, A_END }, // S_LOGIN
@@ -462,7 +462,7 @@ static int sa_set(struct StringArray *sa, int16_t sa_i, char *sa_str)
 	return e;
 }
 
-int multi_delim (struct Multi *mult)
+static int multi_delim (struct Multi *mult)
 {
 	int e;
 	int i;
@@ -471,9 +471,8 @@ int multi_delim (struct Multi *mult)
 	size_t post_n;
 	int cmp_i;
 	int post_tp; // test pointer
-	assert ((mult->post_lp == NULL && mult->post_n == 0) || (mult->post_lp != NULL && mult->post_n > 0));
-	for (i = 0; i < 2; i++)
-	{
+	assert((mult->post_lp == NULL && mult->post_n == 0) || (mult->post_lp != NULL && mult->post_n > 0));
+	for (i = 0; i < 2; i++) {
 		if (mult->delim_str[i] != NULL)
 			mult->delim_len[i] = strlen (mult->delim_str[i]);
 		else
@@ -487,7 +486,7 @@ int multi_delim (struct Multi *mult)
 	do
 	{
 		if (mult->post_wp + 1 >= mult->post_n) {
-			post_n = mult->post_wp + 2;
+			post_n = mult->post_wp + 120;
 			e = post_n >= INT_MAX;
 			if (e == 0) {
 				post_lp = (char *) realloc(mult->post_lp, post_n);
@@ -503,8 +502,7 @@ int multi_delim (struct Multi *mult)
 			if (ch != EOF) {
 				mult->post_lp[mult->post_wp] = ch;
 				mult->post_wp++;
-				for (i = 0; i < 2; i++)
-				{
+				for (i = 0; i < 2; i++) {
 					post_tp = mult->post_wp - mult->delim_len[i];
 					if (post_tp >= 0)
 						cmp_i = memcmp(mult->post_lp + post_tp, mult->delim_str[i], mult->delim_len[i]);
@@ -2322,7 +2320,7 @@ static int gen_html(struct WebMemorySurfer *wms)
 	if (e == 0) {
 		size = sizeof(title_str);
 		assert(size >= 13);
-		strcpy(title_str, "MemorySurfer");
+		strcpy(title_str, "MemorySurfer - Welcome");
 		if (wms->file_title_str != NULL) {
 			e = xml_escape(&wms->html_lp, &wms->html_n, wms->file_title_str, ESC_AMP | ESC_LT);
 			if (e == 0) {
@@ -2350,6 +2348,7 @@ static int gen_html(struct WebMemorySurfer *wms)
 										"\t\t<meta charset=\"utf-8\">\n"
 										"\t\t<title>%s</title>\n"
 										"\t\t<meta name=\"viewport\" content=\"width=device-width\">\n"
+										"\t\t<meta name=\"description\" content=\"Open source software to efficiently memorize flashcards.\">\n"
 										"\t\t<link rel=\"shortcut icon\" href=\"/favicon.ico\">\n"
 										"\t\t<link rel=\"stylesheet\" type=\"text/css\" href=\"/ms.css\">\n"
 										"\t\t<link rel=\"license\" href=\"https://www.gnu.org/licenses/old-licenses/gpl-2.0.html\">\n"
@@ -2425,7 +2424,7 @@ static int gen_html(struct WebMemorySurfer *wms)
 			case B_START:
 				dis_str = wms->file_title_str != NULL ? "" : " disabled";
 				attr_str = wms->ms.n_first != -1 ? "" : " disabled";
-				printf("\t\t\t<p>Start</p>\n"
+				printf("\t\t\t<h1>Start</h1>\n"
 							 "\t\t\t<p><input type=\"submit\" name=\"start_action\" value=\"File\"></p>\n"
 							 "\t\t\t<p><input type=\"submit\" name=\"start_action\" value=\"Categories\"%s></p>\n"
 							 "\t\t\t<p><input type=\"submit\" name=\"start_action\" value=\"Edit\"%s></p>\n"
@@ -2453,7 +2452,7 @@ static int gen_html(struct WebMemorySurfer *wms)
 					dis_str = " disabled";
 					attr_str = "";
 				}
-				printf("\t\t\t<p>File</p>\n"
+				printf("\t\t\t<h1>File</h1>\n"
 							 "\t\t\t<p><input type=\"submit\" name=\"file_action\" value=\"New\"%s></p>\n"
 							 "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Open\"%s></p>\n"
 							 "\t\t\t<p><input type=\"submit\" name=\"file_action\" value=\"Password\"%s></p>\n"
@@ -2494,7 +2493,7 @@ static int gen_html(struct WebMemorySurfer *wms)
 					submit_str = "Enter";
 				assert(wms->mode != M_UNDEFINED);
 				if (notice_str != NULL) {
-					printf("\t\t\t<p>%s</p>\n"
+					printf("\t\t\t<h1>%s</h1>\n"
 								 "\t\t\t<p><input type=\"text\" name=\"password\" value=\"\" size=25></p>\n",
 							notice_str);
 				}
@@ -2534,7 +2533,7 @@ static int gen_html(struct WebMemorySurfer *wms)
 						ext_str = rindex(str, '.');
 						assert(ext_str != NULL);
 						*ext_str = '\0';
-						printf("\t\t\t<p>Create a New file</p>\n"
+						printf("\t\t\t<h1>Create a New file</h1>\n"
 									 "\t\t\t<p><input type=\"text\" name=\"file-title\" value=\"%s\" size=25>.imsf</p>\n"
 									 "\t\t\t<p><input type=\"submit\" name=\"file_action\" value=\"Create\">\n"
 									 "\t\t\t<input type=\"submit\" name=\"file_action\" value=\"Stop\"></p>\n"
@@ -2549,7 +2548,7 @@ static int gen_html(struct WebMemorySurfer *wms)
 				}
 				break;
 			case B_OPEN:
-				rv = printf("\t\t\t<p>Open file</p>\n"
+				rv = printf("\t\t\t<h1>Open file</h1>\n"
 										"\t\t\t<ul>\n");
 				e = rv < 0;
 				for (i = 0; e == 0 && i < wms->fl_c; i++) {
@@ -2592,7 +2591,8 @@ static int gen_html(struct WebMemorySurfer *wms)
 							 "\t\t\t\t<input type=\"hidden\" name=\"file-title\" value=\"%s\">\n"
 							 "\t\t\t\t<input type=\"hidden\" name=\"token\" value=\"%s\">\n"
 							 "\t\t\t</div>\n"
-							 "\t\t\t<p>Select a (previously exported .XML) File to upload (which should be used for the Import)</p>\n"
+							 "\t\t\t<h1>Upload</h1>\n"
+							 "\t\t\t<p>Choose a (previously exported .XML) File to upload (which will be used for the Import)</p>\n"
 							 "\t\t\t<p><input type=\"file\" name=\"file_action\"></p>\n"
 							 "\t\t\t<p><input type=\"submit\" name=\"file_action\" value=\"Upload\">\n"
 							 "\t\t\t\t<input type=\"submit\" name=\"file_action\" value=\"Stop\"></p>\n"
@@ -2604,7 +2604,7 @@ static int gen_html(struct WebMemorySurfer *wms)
 					wms->tok_str);
 				break;
 			case B_UPLOAD_REPORT:
-				printf("\t\t\t<p>XML File imported</p>\n"
+				printf("\t\t\t<h1>XML File imported</h1>\n"
 							 "\t\t\t<p><input type=\"submit\" name=\"file_action\" value=\"OK\"></p>\n"
 							 "\t\t</form>\n"
 							 "\t\t<code>%s; chunks=%d, swaps=%d, avg=%d</code>\n"
@@ -2660,7 +2660,7 @@ static int gen_html(struct WebMemorySurfer *wms)
 			case B_START_CAT:
 				assert(wms->file_title_str != NULL && strlen(wms->tok_str) == 40);
 				dis_str = wms->ms.n_first >= 0 ? "" : " disabled";
-				printf("\t\t\t<p>Categories</p>\n"
+				printf("\t\t\t<h1>Categories</h1>\n"
 							 "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Create\"></p>\n"
 							 "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Rename\"%s></p>\n"
 							 "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Move\"%s></p>\n"
@@ -2720,7 +2720,7 @@ static int gen_html(struct WebMemorySurfer *wms)
 				}
 				assert(strlen(mtime_str) == 16);
 				printf("\t\t\t</div>\n"
-							 "\t\t\t<p>Select the category %s</p>\n",
+							 "\t\t\t<h1>Select the category %s</h1>\n",
 					notice_str);
 				gen_html_cat(wms->ms.n_first, 3, H_CHILD, wms);
 				printf("\t\t\t<p><input type=\"submit\" name=\"event\" value=\"%s\">\n"
@@ -2751,7 +2751,7 @@ static int gen_html(struct WebMemorySurfer *wms)
 					submit_str = "Move";
 				}
 				printf("\t\t\t</div>\n"
-							 "\t\t\t<p>Select how to arrange</p>\n"
+							 "\t\t\t<h1>Select how to arrange</h1>\n"
 							 "\t\t\t<p>\n");
 				for (i = 0; i < 3; i++)
 					if (wms->seq != S_ARRANGE || i != 1)
@@ -2782,7 +2782,7 @@ static int gen_html(struct WebMemorySurfer *wms)
 					text_str = sa_get(&wms->ms.cat_sa, wms->ms.cat_i);
 					submit_str = "Rename";
 				}
-				printf("\t\t\t<p>%s</p>\n"
+				printf("\t\t\t<h1>%s</h1>\n"
 							 "\t\t\t<p><input type=\"text\" name=\"cat_name\" value=\"%s\" size=25></p>\n"
 							 "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"%s\">\n"
 							 "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Stop\"></p>\n"
@@ -2797,7 +2797,7 @@ static int gen_html(struct WebMemorySurfer *wms)
 				break;
 			case B_SELECT_EDIT_CAT:
 				assert(wms->file_title_str != NULL && strlen(wms->tok_str) == 40);
-				printf("\t\t\t<p>Select a category to edit</p>\n");
+				printf("\t\t\t<h1>Select a category to edit</h1>\n");
 				gen_html_cat (wms->ms.n_first, 3, H_CHILD, wms);
 				printf("\t\t\t<p><input type=\"submit\" name=\"edit_action\" value=\"Edit\">\n"
 							 "\t\t\t\t<input type=\"submit\" name=\"learn_action\" value=\"Learn\">\n"
@@ -2861,7 +2861,7 @@ static int gen_html(struct WebMemorySurfer *wms)
 				break;
 			case B_SELECT_LEARN_CAT:
 				assert(wms->file_title_str != NULL && strlen(wms->tok_str) == 40);
-				printf("\t\t\t<p>Select a category to learn</p>\n");
+				printf("\t\t\t<h1>Select a category to learn</h1>\n");
 				gen_html_cat(wms->ms.n_first, 3, H_CHILD, wms);
 				printf("\t\t\t<p><input type=\"submit\" name=\"learn_action\" value=\"Learn\">\n"
 							 "\t\t\t<input type=\"submit\" name=\"edit_action\" value=\"Edit\">\n"
@@ -2874,7 +2874,7 @@ static int gen_html(struct WebMemorySurfer *wms)
 				break;
 			case B_SELECT_SEARCH_CAT:
 				assert(wms->file_title_str != NULL && strlen(wms->tok_str) == 40);
-				printf("\t\t\t<p>Select a category to search</p>\n");
+				printf("\t\t\t<h1>Select a category to search</h1>\n");
 				gen_html_cat (wms->ms.n_first, 3, H_CHILD, wms);
 				printf("\t\t\t<p><input type=\"submit\" name=\"search_action\" value=\"Search\">\n"
 							 "\t\t\t<input type=\"submit\" name=\"search_action\" value=\"Cancel\"></p>\n"
@@ -2920,7 +2920,7 @@ static int gen_html(struct WebMemorySurfer *wms)
 				break;
 			case B_PREFERENCES:
 				assert(wms->file_title_str != NULL && strlen(wms->tok_str) == 40);
-				printf("\t\t\t<p>Preferences</p>\n"
+				printf("\t\t\t<h1>Preferences</h1>\n"
 							 "\t\t\t<p>Timeout</p>\n"
 							 "\t\t\t<div>\n");
 				j = -1;
@@ -2946,7 +2946,7 @@ static int gen_html(struct WebMemorySurfer *wms)
 					sw_info_str);
 				break;
 			case B_ABOUT:
-				printf("\t\t\t<p>MemorySurfer 1.0.0.1</p>\n"
+				printf("\t\t\t<h1>About MemorySurfer v1.0.0.2</h1>\n"
 							 "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
 							 "\t\t\t<p>Copyright 2016-2020</p>\n"
 							 "\t\t\t<p>Send bugs and suggestions to\n"
@@ -2958,7 +2958,7 @@ static int gen_html(struct WebMemorySurfer *wms)
 							 "\t\t\t<cite>This program is distributed in the hope that it will be useful,\n"
 							 "but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
 							 "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the\n"
-							 "<a href=\"https://www.gnu.org/licenses/\">GNU General Public License</a> for more details.</cite>\n"
+							 "<a href=\"https://www.gnu.org/licenses/\">GNU\302\240General\302\240Public\302\240License</a> for more details.</cite>\n"
 							 "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"OK\"></p>\n"
 							 "\t\t</form>\n"
 							 "\t\t<code>%s</code>\n"
@@ -3088,7 +3088,7 @@ static int gen_html(struct WebMemorySurfer *wms)
 						wms->todo_alt);
 				}
 				printf("\t\t\t</div>\n"
-							 "\t\t\t<p>%s</p>\n"
+							 "\t\t\t<h1>%s</h1>\n"
 							 "\t\t\t<p>\n"
 							 "\t\t\t\t<input type=\"submit\" name=\"msg_action\" value=\"%s\">\n",
 					wms->static_msg,
@@ -3129,7 +3129,7 @@ static int gen_html(struct WebMemorySurfer *wms)
 				}
 				e = imf_info_gaps(&wms->ms.imf);
 				notice_str = e == 0 ? wms->ms.imf.stats_gaps_str : "error";
-				printf("\t\t\t<p>Retention</p>\n"
+				printf("\t\t\t<h1>Retention</h1>\n"
 							 "\t\t\t<svg viewbox=\"0 0 101 62\">\n"
 							 "\t\t\t\t<path d=\"%s\" />\n"
 							 "\t\t\t</svg>\n"
@@ -3721,6 +3721,9 @@ int main(int argc, char *argv[])
 							case A_NEW:
 								wms->page = P_NEW;
 								break;
+							case A_OPEN_DLG:
+								wms->page = P_OPEN;
+								break;
 							case A_FILELIST:
 								dirp = opendir(DATA_PATH);
 								e = dirp == NULL;
@@ -3764,11 +3767,9 @@ int main(int argc, char *argv[])
 											}
 										}
 									} while (dirent != NULL && e == 0);
+									free(fl_pn);
 									e = closedir(dirp);
 								}
-								free(fl_pn);
-								if (e == 0)
-									wms->page = P_OPEN;
 								break;
 							case A_OPEN:
 								if (wms->ms.imf_filename != NULL) {
@@ -4463,6 +4464,7 @@ int main(int argc, char *argv[])
 								}
 								break;
 							case A_SELECT_EDIT_CAT:
+								wms->ms.card_i = -1;
 								wms->page = P_SELECT_EDIT_CAT;
 								break;
 							case A_EDIT:
@@ -4854,9 +4856,11 @@ int main(int argc, char *argv[])
 								}
 								break;
 							case A_SELECT_LEARN_CAT:
+								wms->ms.card_i = -1;
 								wms->page = P_SELECT_LEARN_CAT;
 								break;
 							case A_SELECT_SEARCH_CAT:
+								wms->ms.card_i = -1;
 								wms->page = P_SELECT_SEARCH_CAT;
 								break;
 							case A_PREFERENCES:
