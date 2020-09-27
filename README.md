@@ -1,6 +1,6 @@
 # MemorySurfer
 
-A program to memorize flashcards.
+A (webserver) program to memorize (text-based) flashcards.
 
 ## Screenshots
 
