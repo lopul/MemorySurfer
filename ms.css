@@ -47,7 +47,7 @@ svg {
 	max-width: 50ex;
 }
 p {
-	margin: 1.1ex 0 1ex 0;
+	margin: 1.1ex 0 1ex 0.5ex;
 }
 label {
 	padding: 0;
@@ -57,7 +57,7 @@ input[type=submit] {
 	min-width: 6.5ex;
 }
 code {
-	color: #ccc;
+	opacity: 0.2;
 }
 cite {
 	display: block;
