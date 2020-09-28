@@ -1824,24 +1824,22 @@ int parse_post (struct WebMemorySurfer *wms)
   return e;
 }
 
-static char *
-sa_get (struct StringArray *sa, int16_t sa_i)
+static char *sa_get(struct StringArray *sa, int16_t sa_i)
 {
-  assert (sa_i >= 0);
+  assert(sa_i >= 0);
   char *ret_str;
   char ch;
   int pos_g; // get
   int i;
   ret_str = NULL;
-  if (sa_i < sa->sa_c)
-  {
+  if (sa_i < sa->sa_c) {
     pos_g = 0;
-    for (i = 0; i != sa_i ; i++)
-    {
+    for (i = 0; i != sa_i; i++) {
       do {
         ch = sa->sa_d[pos_g++];
       } while (ch != '\0');
     }
+    assert(pos_g < sa->sa_n);
     ret_str = sa->sa_d + pos_g;
   }
   return ret_str;
@@ -2968,7 +2966,7 @@ static int gen_html(struct WebMemorySurfer *wms)
         break;
       case B_ASK:
         q_str = sa_get(&wms->ms.card_sa, 0);
-        dis_str = q_str != NULL ? "" : " disabled";
+        assert(q_str != NULL);
         e = xml_escape(&wms->html_lp, &wms->html_n, q_str, ESC_AMP | ESC_LT);
         if (e == 0) {
           assert(wms->file_title_str != NULL && strlen(wms->tok_str) == 40);
@@ -2982,14 +2980,12 @@ static int gen_html(struct WebMemorySurfer *wms)
             wms->ms.can_resume != 0 ? "" : " disabled",
             q_str != NULL ? " readonly" : " disabled",
             wms->html_lp);
-          printf("\t\t\t<p><input type=\"submit\" name=\"learn_action\" value=\"Show\"%s>\n"
-//                 "\t\t\t\t<input type=\"submit\" name=\"learn_action\" value=\"Reveal\"%s>\n"
+          printf("\t\t\t<p><input type=\"submit\" name=\"learn_action\" value=\"Show\">\n"
+                 "\t\t\t\t<input type=\"submit\" name=\"learn_action\" value=\"Reveal\">\n"
                  "\t\t\t\t<input type=\"submit\" name=\"learn_action\" value=\"Proceed\" disabled>\n"
                  "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Histogram\"></p>\n"
                  "\t\t\t<div><textarea rows=\"10\" cols=\"46\" disabled></textarea></div>\n"
-                 "\t\t\t<table>\n",
-//            dis_str,
-            dis_str);
+                 "\t\t\t<table>\n");
           for (y = 0; y < 3; y++) {
             printf ("\t\t\t\t<tr>\n");
             for (x = 0; x < 2; x++)
