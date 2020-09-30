@@ -236,7 +236,7 @@ struct WebMemorySurfer {
   enum Sequence seq;
   enum Page page;
   int from_page;
-  enum Mode mode;
+  int mode;
   int saved_mode;
   int timeout;
   struct Multi mult;
