@@ -40,7 +40,7 @@ enum Field { F_UNKNOWN, F_FILENAME, F_FILE_TITLE, F_START_ACTION, F_FILE_ACTION,
 enum Action { A_END, A_NONE, A_FILE, A_WARNING, A_CREATE, A_NEW, A_OPEN_DLG, A_FILELIST, A_OPEN, A_CHANGE_PASSWD, A_WRITE_PASSWD, A_READ_PASSWD, A_CHECK_PASSWORD, A_AUTH_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_CHECK_RESUME, A_SLASH, A_VOID, A_FILE_EXTENSION, A_GATHER, A_UPLOAD, A_UPLOAD_REPORT, A_EXPORT, A_REMOVE, A_ERASE, A_CLOSE, A_START_CAT, A_SELECT_CREATE_CAT, A_SELECT_CAT, A_SELECT_SEND_CAT, A_SELECT_ARRANGE, A_CAT_NAME, A_CREATE_CAT, A_RENAME_CAT, A_ASK_DELETE_CAT, A_DELETE_CAT, A_TOGGLE, A_MOVE_CAT, A_SELECT_EDIT_CAT, A_EDIT, A_SYNC_QA, A_INSERT, A_APPEND, A_DELETE, A_DELETE_ASK, A_PREVIOUS, A_NEXT, A_SCHEDULE, A_SET, A_ARRANGE, A_MOVE_CARD, A_SEND_CARD, A_SELECT_LEARN_CAT, A_SELECT_SEARCH_CAT, A_PREFERENCES, A_ABOUT, A_APPLY, A_SEARCH, A_QUESTION, A_SHOW, A_PROCEED, A_SUSPEND, A_RESUME, A_CHECK_FILE, A_LOGIN, A_HISTOGRAM, A_RETRIEVE_MTIME, A_MTIME_TEST, A_CARD_TEST, A_TEST_CAT };
 enum Page { P_START, P_FILE, P_PASSWORD, P_NEW, P_OPEN, P_UPLOAD, P_UPLOAD_REPORT, P_EXPORT, P_START_CAT, P_CAT_NAME, P_SELECT_CREATE_CAT, P_SELECT_CAT, P_SELECT_SEND_CAT, P_SELECT_ARRANGE, P_SELECT_CARD_ARRANGE, P_SELECT_EDIT_CAT, P_EDIT, P_SELECT_LEARN_CAT, P_SELECT_SEARCH_CAT, P_SEARCH, P_PREFERENCES, P_ABOUT, P_ASK, P_RATE, P_MSG, P_HISTOGRAM };
 enum Block { B_END, B_START_HTML, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_START, B_FILE, B_PASSWORD, B_NEW, B_OPEN, B_UPLOAD, B_UPLOAD_REPORT, B_EXPORT, B_START_CAT, B_CAT_NAME, B_SELECT_CREATE_CAT, B_SELECT_CAT, B_SELECT_SEND_CAT, B_SELECT_ARRANGE, B_SELECT_CARD_ARRANGE, B_SELECT_EDIT_CAT, B_EDIT, B_SELECT_LEARN_CAT, B_SELECT_SEARCH_CAT, B_SEARCH, B_PREFERENCES, B_ABOUT, B_ASK, B_RATE, B_MSG, B_HISTOGRAM };
-enum Mode { M_DEFAULT, M_PW_CHANGE, M_MAX };
+enum Mode { M_NONE = -1, M_DEFAULT, M_PW_CHANGE };
 enum Sequence { S_FILE, S_START_CAT, S_SELECT_CREATE_CAT, S_SELECT_ARRANGE, S_SELECT_MOVE_ARRANGE, S_CAT_NAME, S_SELECT_EDIT_CAT, S_SELECT_LEARN_CAT, S_SELECT_SEARCH_CAT, S_PREFERENCES, S_ABOUT, S_APPLY, S_NEW, S_FILELIST, S_WARNING, S_UPLOAD, S_LOGIN, S_ENTER, S_CHANGE, S_START, S_UPLOAD_REPORT, S_EXPORT, S_REMOVE, S_ERASE, S_CLOSE, S_NONE, S_CREATE, S_GO_LOGIN, S_GO_CHANGE, S_SELECT_RENAME_CAT, S_RENAME_ENTER, S_RENAME_CAT, S_SELECT_MOVE_CAT, S_SELECT_DEST_CAT, S_MOVE_CAT, S_CREATE_CAT, S_SELECT_DELETE_CAT, S_ASK_DELETE_CAT, S_DELETE_CAT, S_SELECT_TOGGLE_CAT, S_TOGGLE, S_EDIT, S_INSERT, S_APPEND, S_DELETE_ASK, S_DELETE, S_PREVIOUS, S_NEXT, S_SCHEDULE, S_SET, S_ARRANGE, S_MOVE_CARD, S_SELECT_SEND_CAT, S_SEND_CARD, S_SEARCH_SYNCED, S_QUESTION, S_SHOW, S_PROCEED, S_SUSPEND, S_RESUME, S_SEARCH, S_HISTOGRAM, S_END };
 enum Stage { T_NULL, T_URLENCODE, T_BOUNDARY_INIT, T_CONTENT, T_NAME, T_BOUNDARY_BEGIN, T_BOUNDARY_CHECK };
 
@@ -236,8 +236,8 @@ struct WebMemorySurfer {
   enum Sequence seq;
   enum Page page;
   int from_page;
-  int mode;
-  int saved_mode;
+  enum Mode mode;
+  enum Mode saved_mode;
   int timeout;
   struct Multi mult;
   struct XML xml;
@@ -1569,10 +1569,10 @@ int parse_post (struct WebMemorySurfer *wms)
                 assert(wms->from_page >= P_START && wms->todo_main <= P_HISTOGRAM);
                 break;
               case F_MODE:
-                assert(wms->saved_mode == -1);
+                assert(wms->saved_mode == M_NONE);
                 a_n = sscanf(wms->mult.post_lp, "%d", &wms->saved_mode);
                 e = a_n != 1;
-                assert(wms->saved_mode >= 0 && wms->saved_mode < M_MAX);
+                assert(wms->saved_mode >= M_DEFAULT && wms->saved_mode <= M_PW_CHANGE);
                 break;
               case F_TIMEOUT:
                 e = wms->from_page != P_PREFERENCES;
@@ -2330,7 +2330,7 @@ static int gen_html(struct WebMemorySurfer *wms)
             title_str,
             wms->page);
         e = rv < 0;
-        if (e == 0 && wms->mode >= 0) {
+        if (e == 0 && wms->mode >= M_DEFAULT && wms->mode <= M_PW_CHANGE) {
           rv = printf("\t\t\t\t<input type=\"hidden\" name=\"mode\" value=\"%d\">\n", wms->mode);
           e = rv < 0;
         }
@@ -2458,7 +2458,7 @@ static int gen_html(struct WebMemorySurfer *wms)
         }
         else
           submit_str = "Enter";
-        assert(wms->mode != -1);
+        assert(wms->mode != M_NONE);
         if (notice_str != NULL) {
           printf("\t\t\t<h1>%s</h1>\n"
                  "\t\t\t<p><input type=\"text\" name=\"password\" value=\"\" size=25></p>\n",
@@ -3173,8 +3173,8 @@ int wms_init (struct WebMemorySurfer *wms)
     wms->seq = S_END;
     wms->page = P_START;
     wms->from_page = -1;
-    wms->mode = -1;
-    wms->saved_mode = -1;
+    wms->mode = M_NONE;
+    wms->saved_mode = M_NONE;
     wms->timeout = -1;
     wms->mult.post_lp = NULL;
     wms->mult.post_n = 0;
