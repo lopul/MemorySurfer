@@ -30,4 +30,4 @@ The setup is described
  - make
 
 Every Linux system capable of running a web-server (eg. Apache) should also be capable of running MemorySurfer (tested on
-[Raspbian](https://www.lorenz-pullwitt.de/MemorySurfer/en/setup.html "setup"), Fedora, Debian, Ubuntu).
+[Raspbian](https://www.lorenz-pullwitt.de/MemorySurfer/en/raspbian.html "setup"), Fedora, Debian, Ubuntu).
