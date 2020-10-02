@@ -2254,7 +2254,8 @@ static int gen_html(struct WebMemorySurfer *wms)
   char *str;
   const char *dis_str; // disabled
   const char *attr_str; // attribute
-  const char *notice_str;
+  const char *header_str;
+  const char *notice_str[2];
   const char *submit_str;
   const char *text_str;
   char *ext_str;
@@ -2445,35 +2446,35 @@ static int gen_html(struct WebMemorySurfer *wms)
         break;
       case B_PASSWORD:
         assert(wms->ms.passwd.pw_flag >= 0);
-        notice_str = NULL;
-        text_str = NULL;
+        header_str = NULL;
+        notice_str[0] = NULL;
+        notice_str[1] = NULL;
+        x = 0;
         if (wms->ms.passwd.pw_flag > 0) {
+          x = 1;
           if (wms->mode != M_PW_CHANGE) {
-            text_str = "Check password";
-            notice_str = "Enter the password to login";
+            header_str = "Enter the password to login";
             submit_str = "Login";
           }
           else {
-            text_str = "Change password";
-            notice_str = "Enter the current password";
+            header_str = "Change password";
+            notice_str[0] = "Enter the current password";
+            notice_str[1] = "Enter a new password";
             submit_str = "Change";
           }
         }
         else {
-          text_str = "Define a password";
+          header_str = "Define a password";
           submit_str = "Enter";
         }
-        assert(wms->mode != M_NONE && text_str != NULL);
-        printf("\t\t\t<h1>%s</h1>\n", text_str);
-        if (notice_str != NULL) {
-          printf("\t\t\t<p>%s</p>\n"
-                 "\t\t\t<p><input type=\"text\" name=\"password\" value=\"\" size=25></p>\n",
-              notice_str);
-        }
-        if (wms->ms.passwd.pw_flag == 0 || wms->seq == S_GO_CHANGE) {
-          printf("\t\t\t<p>Enter a new password</p>\n"
-                 "\t\t\t<p><input type=\"text\" name=\"new-password\" value=\"\" size=25></p>\n");
-        }
+        assert(wms->mode != M_NONE && header_str != NULL);
+        printf("\t\t\t<h1>%s</h1>\n", header_str);
+        if (notice_str[0] != NULL) printf("\t\t\t<p>%s</p>\n", notice_str[0]);
+        if (x != 0)
+          printf("\t\t\t<p><input type=\"text\" name=\"password\" value=\"\" size=25></p>\n");
+        if (notice_str[1] != NULL) printf("\t\t\t<p>%s</p>\n", notice_str[1]);
+        if (wms->ms.passwd.pw_flag == 0 || wms->seq == S_GO_CHANGE)
+          printf("\t\t\t<p><input type=\"text\" name=\"new-password\" value=\"\" size=25></p>\n");
         printf("\t\t\t<p><input type=\"submit\" name=\"file_action\" value=\"%s\">\n"
                "\t\t\t\t<input type=\"submit\" name=\"file_action\" value=\"Stop\"></p>\n"
                "\t\t</form>\n"
@@ -2663,38 +2664,38 @@ static int gen_html(struct WebMemorySurfer *wms)
             wms->ms.card_i);
         }
         if (wms->seq == S_SELECT_CREATE_CAT) {
-          notice_str = "where to create the new category to";
+          notice_str[0] = "where to create the new category to";
           submit_str = "Select";
         }
         else if (wms->seq == S_SELECT_DEST_CAT) {
-          notice_str = "where to move";
+          notice_str[0] = "where to move";
           submit_str = "Select";
         }
         else if (wms->seq == S_SELECT_RENAME_CAT) {
-          notice_str = "to rename";
+          notice_str[0] = "to rename";
           submit_str = "Rename";
         }
         else if (wms->seq == S_SELECT_MOVE_CAT) {
-          notice_str = "to move";
+          notice_str[0] = "to move";
           submit_str = "Move";
         }
         else if (wms->seq == S_SELECT_DELETE_CAT) {
-          notice_str = "to delete";
+          notice_str[0] = "to delete";
           submit_str = "Delete";
         }
         else if (wms->seq == S_SELECT_TOGGLE_CAT) {
-          notice_str = "to Collapse / Expand";
+          notice_str[0] = "to Collapse / Expand";
           submit_str = "Toggle";
         }
         else {
           assert(wms->seq == S_SELECT_SEND_CAT);
-          notice_str = "to move the card to";
+          notice_str[0] = "to move the card to";
           submit_str = "Send";
         }
         assert(strlen(mtime_str) == 16);
         printf("\t\t\t</div>\n"
                "\t\t\t<h1>Select the category %s</h1>\n",
-          notice_str);
+          notice_str[0]);
         gen_html_cat(wms->ms.n_first, 3, H_CHILD, wms);
         printf("\t\t\t<p><input type=\"submit\" name=\"event\" value=\"%s\">\n"
                "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Stop\"></p>\n"
@@ -2745,13 +2746,13 @@ static int gen_html(struct WebMemorySurfer *wms)
       case B_CAT_NAME:
         assert(wms->file_title_str != NULL && strlen(wms->tok_str) == 40);
         if (wms->seq == S_SELECT_CREATE_CAT || wms->seq == S_CAT_NAME) {
-          notice_str = "Enter the name of the category to create.";
+          notice_str[0] = "Enter the name of the category to create.";
           text_str = wms->ms.cat_name != NULL ? wms->ms.cat_name : "new category name";
           submit_str = "Create";
         }
         else {
           assert(wms->seq == S_RENAME_ENTER && wms->ms.cat_i >= 0 && wms->ms.cat_i < wms->ms.cat_a);
-          notice_str = "Enter the name to rename the category to.";
+          notice_str[0] = "Enter the name to rename the category to.";
           text_str = sa_get(&wms->ms.cat_sa, wms->ms.cat_i);
           submit_str = "Rename";
         }
@@ -2763,7 +2764,7 @@ static int gen_html(struct WebMemorySurfer *wms)
                "\t\t<code>%s</code>\n"
                "\t</body>\n"
                "</html>\n",
-          notice_str,
+          notice_str[0],
           text_str,
           submit_str,
           sw_info_str);
@@ -3099,7 +3100,7 @@ static int gen_html(struct WebMemorySurfer *wms)
           strcat (wms->html_lp, "z");
         }
         e = imf_info_gaps(&wms->ms.imf);
-        notice_str = e == 0 ? wms->ms.imf.stats_gaps_str : "error";
+        notice_str[0] = e == 0 ? wms->ms.imf.stats_gaps_str : "error";
         printf("\t\t\t<h1>Histogram and Table</h1>\n"
                "\t\t\t<p>Retention</p>\n"
                "\t\t\t<svg viewbox=\"0 0 101 62\">\n"
@@ -3120,7 +3121,7 @@ static int gen_html(struct WebMemorySurfer *wms)
             sw_info_str,
             wms->ms.imf.stats_gaps,
             wms->ms.imf.stats_gaps_space,
-            notice_str);
+            notice_str[0]);
         break;
       default:
         e = 0x011e23b9; // WMSGHA (Web)MemorySurfer gen_html assert (failed)
