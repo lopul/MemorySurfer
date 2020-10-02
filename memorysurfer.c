@@ -2446,21 +2446,27 @@ static int gen_html(struct WebMemorySurfer *wms)
       case B_PASSWORD:
         assert(wms->ms.passwd.pw_flag >= 0);
         notice_str = NULL;
+        text_str = NULL;
         if (wms->ms.passwd.pw_flag > 0) {
           if (wms->mode != M_PW_CHANGE) {
+            text_str = "Check password";
             notice_str = "Enter the password to login";
             submit_str = "Login";
           }
           else {
+            text_str = "Change password";
             notice_str = "Enter the current password";
             submit_str = "Change";
           }
         }
-        else
+        else {
+          text_str = "Define a password";
           submit_str = "Enter";
-        assert(wms->mode != M_NONE);
+        }
+        assert(wms->mode != M_NONE && text_str != NULL);
+        printf("\t\t\t<h1>%s</h1>\n", text_str);
         if (notice_str != NULL) {
-          printf("\t\t\t<h1>%s</h1>\n"
+          printf("\t\t\t<p>%s</p>\n"
                  "\t\t\t<p><input type=\"text\" name=\"password\" value=\"\" size=25></p>\n",
               notice_str);
         }
