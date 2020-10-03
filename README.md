@@ -14,7 +14,7 @@ Some screenshots could be viewed
 You can try MemorySurfer online without installing anything on your computer.
 [Try MemorySurfer without installing](https://vps.lorenz-pullwitt.de/cgi-bin/memorysurfer.cgi).
 
-## Setup
+## Installing MemorySurfer
 
 The setup is described
 [here](https://www.lorenz-pullwitt.de/MemorySurfer/en/setup.html "setup").
