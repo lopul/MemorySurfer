@@ -11,8 +11,8 @@ Some screenshots could be viewed
 
 ## Try / Online
 
-To check out the software - it's installed on my
-[vps](https://vps.lorenz-pullwitt.de/cgi-bin/memorysurfer.cgi "vps").
+You can try MemorySurfer online without installing anything on your computer.
+[Try MemorySurfer without installing](https://vps.lorenz-pullwitt.de/cgi-bin/memorysurfer.cgi "vps").
 
 ## Setup
 
