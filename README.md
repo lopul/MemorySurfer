@@ -4,6 +4,8 @@ A (web-server) program to memorize (text-based) flashcards.
 
 ## Screenshots
 
+![slideshow](slideshow.gif)
+
 Some screenshots could be viewed
 [here](https://www.lorenz-pullwitt.de/MemorySurfer/en/screenshots.html "screenshots").
 
