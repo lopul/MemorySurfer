@@ -37,11 +37,11 @@
 #include <errno.h>
 
 enum Field { F_UNKNOWN, F_FILENAME, F_FILE_TITLE, F_START_ACTION, F_FILE_ACTION, F_ARRANGE, F_CAT_NAME, F_MOVED_CAT, F_EDIT_ACTION, F_LEARN_ACTION, F_SEARCH_TXT, F_SEARCH_ACTION, F_CAT, F_CARD, F_MOV_CARD, F_LVL, F_Q, F_A, F_MSG_ACTION, F_TODO_MAIN, F_TODO_ALT, F_MTIME, F_PASSWORD, F_NEW_PASSWORD, F_TOKEN, F_EVENT, F_PAGE, F_MODE, F_TIMEOUT };
-enum Action { A_END, A_NONE, A_FILE, A_WARNING, A_CREATE, A_NEW, A_OPEN_DLG, A_FILELIST, A_OPEN, A_CHANGE_PASSWD, A_WRITE_PASSWD, A_READ_PASSWD, A_CHECK_PASSWORD, A_AUTH_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_CHECK_RESUME, A_SLASH, A_VOID, A_FILE_EXTENSION, A_GATHER, A_UPLOAD, A_UPLOAD_REPORT, A_EXPORT, A_REMOVE, A_ERASE, A_CLOSE, A_START_CAT, A_SELECT_CREATE_CAT, A_SELECT_CAT, A_SELECT_SEND_CAT, A_SELECT_ARRANGE, A_CAT_NAME, A_CREATE_CAT, A_RENAME_CAT, A_ASK_DELETE_CAT, A_DELETE_CAT, A_TOGGLE, A_MOVE_CAT, A_SELECT_EDIT_CAT, A_EDIT, A_SYNC_QA, A_INSERT, A_APPEND, A_DELETE, A_DELETE_ASK, A_PREVIOUS, A_NEXT, A_SCHEDULE, A_SET, A_ARRANGE, A_MOVE_CARD, A_SEND_CARD, A_SELECT_LEARN_CAT, A_SELECT_SEARCH_CAT, A_PREFERENCES, A_ABOUT, A_APPLY, A_SEARCH, A_QUESTION, A_SHOW, A_PROCEED, A_SUSPEND, A_RESUME, A_CHECK_FILE, A_LOGIN, A_HISTOGRAM, A_RETRIEVE_MTIME, A_MTIME_TEST, A_CARD_TEST, A_TEST_CAT };
-enum Page { P_START, P_FILE, P_PASSWORD, P_NEW, P_OPEN, P_UPLOAD, P_UPLOAD_REPORT, P_EXPORT, P_START_CAT, P_CAT_NAME, P_SELECT_CREATE_CAT, P_SELECT_CAT, P_SELECT_SEND_CAT, P_SELECT_ARRANGE, P_SELECT_CARD_ARRANGE, P_SELECT_EDIT_CAT, P_EDIT, P_SELECT_LEARN_CAT, P_SELECT_SEARCH_CAT, P_SEARCH, P_PREFERENCES, P_ABOUT, P_ASK, P_RATE, P_MSG, P_HISTOGRAM };
-enum Block { B_END, B_START_HTML, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_START, B_FILE, B_PASSWORD, B_NEW, B_OPEN, B_UPLOAD, B_UPLOAD_REPORT, B_EXPORT, B_START_CAT, B_CAT_NAME, B_SELECT_CREATE_CAT, B_SELECT_CAT, B_SELECT_SEND_CAT, B_SELECT_ARRANGE, B_SELECT_CARD_ARRANGE, B_SELECT_EDIT_CAT, B_EDIT, B_SELECT_LEARN_CAT, B_SELECT_SEARCH_CAT, B_SEARCH, B_PREFERENCES, B_ABOUT, B_ASK, B_RATE, B_MSG, B_HISTOGRAM };
+enum Action { A_END, A_NONE, A_FILE, A_WARNING, A_CREATE, A_NEW, A_OPEN_DLG, A_FILELIST, A_OPEN, A_CHANGE_PASSWD, A_WRITE_PASSWD, A_READ_PASSWD, A_CHECK_PASSWORD, A_AUTH_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_CHECK_RESUME, A_SLASH, A_VOID, A_FILE_EXTENSION, A_GATHER, A_UPLOAD, A_UPLOAD_REPORT, A_EXPORT, A_REMOVE, A_ERASE, A_CLOSE, A_START_CAT, A_SELECT_CREATE_CAT, A_SELECT_CAT, A_SELECT_SEND_CAT, A_SELECT_ARRANGE, A_CAT_NAME, A_CREATE_CAT, A_RENAME_CAT, A_ASK_DELETE_CAT, A_DELETE_CAT, A_TOGGLE, A_MOVE_CAT, A_SELECT_EDIT_CAT, A_EDIT, A_SYNC_QA, A_INSERT, A_APPEND, A_DELETE, A_DELETE_ASK, A_PREVIOUS, A_NEXT, A_SCHEDULE, A_SET, A_ARRANGE, A_MOVE_CARD, A_SEND_CARD, A_SELECT_LEARN_CAT, A_SELECT_SEARCH_CAT, A_PREFERENCES, A_ABOUT, A_APPLY, A_SEARCH, A_QUESTION, A_SHOW, A_REVEAL, A_PROCEED, A_SUSPEND, A_RESUME, A_CHECK_FILE, A_LOGIN, A_HISTOGRAM, A_RETRIEVE_MTIME, A_MTIME_TEST, A_CARD_TEST, A_TEST_CAT };
+enum Page { P_START, P_FILE, P_PASSWORD, P_NEW, P_OPEN, P_UPLOAD, P_UPLOAD_REPORT, P_EXPORT, P_START_CAT, P_CAT_NAME, P_SELECT_CREATE_CAT, P_SELECT_CAT, P_SELECT_SEND_CAT, P_SELECT_ARRANGE, P_SELECT_CARD_ARRANGE, P_SELECT_EDIT_CAT, P_EDIT, P_SELECT_LEARN_CAT, P_SELECT_SEARCH_CAT, P_SEARCH, P_PREFERENCES, P_ABOUT, P_LEARN, P_ASK, P_RATE, P_MSG, P_HISTOGRAM };
+enum Block { B_END, B_START_HTML, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_START, B_FILE, B_PASSWORD, B_NEW, B_OPEN, B_UPLOAD, B_UPLOAD_REPORT, B_EXPORT, B_START_CAT, B_CAT_NAME, B_SELECT_CREATE_CAT, B_SELECT_CAT, B_SELECT_SEND_CAT, B_SELECT_ARRANGE, B_SELECT_CARD_ARRANGE, B_SELECT_EDIT_CAT, B_EDIT, B_SELECT_LEARN_CAT, B_SELECT_SEARCH_CAT, B_SEARCH, B_PREFERENCES, B_ABOUT, B_LEARN, B_ASK, B_RATE, B_MSG, B_HISTOGRAM };
 enum Mode { M_NONE = -1, M_DEFAULT, M_PW_CHANGE };
-enum Sequence { S_FILE, S_START_CAT, S_SELECT_CREATE_CAT, S_SELECT_ARRANGE, S_SELECT_MOVE_ARRANGE, S_CAT_NAME, S_SELECT_EDIT_CAT, S_SELECT_LEARN_CAT, S_SELECT_SEARCH_CAT, S_PREFERENCES, S_ABOUT, S_APPLY, S_NEW, S_FILELIST, S_WARNING, S_UPLOAD, S_LOGIN, S_ENTER, S_CHANGE, S_START, S_UPLOAD_REPORT, S_EXPORT, S_REMOVE, S_ERASE, S_CLOSE, S_NONE, S_CREATE, S_GO_LOGIN, S_GO_CHANGE, S_SELECT_RENAME_CAT, S_RENAME_ENTER, S_RENAME_CAT, S_SELECT_MOVE_CAT, S_SELECT_DEST_CAT, S_MOVE_CAT, S_CREATE_CAT, S_SELECT_DELETE_CAT, S_ASK_DELETE_CAT, S_DELETE_CAT, S_SELECT_TOGGLE_CAT, S_TOGGLE, S_EDIT, S_INSERT, S_APPEND, S_DELETE_ASK, S_DELETE, S_PREVIOUS, S_NEXT, S_SCHEDULE, S_SET, S_ARRANGE, S_MOVE_CARD, S_SELECT_SEND_CAT, S_SEND_CARD, S_SEARCH_SYNCED, S_QUESTION, S_SHOW, S_PROCEED, S_SUSPEND, S_RESUME, S_SEARCH, S_HISTOGRAM, S_END };
+enum Sequence { S_FILE, S_START_CAT, S_SELECT_CREATE_CAT, S_SELECT_ARRANGE, S_SELECT_MOVE_ARRANGE, S_CAT_NAME, S_SELECT_EDIT_CAT, S_SELECT_LEARN_CAT, S_SELECT_SEARCH_CAT, S_PREFERENCES, S_ABOUT, S_APPLY, S_NEW, S_FILELIST, S_WARNING, S_UPLOAD, S_LOGIN, S_ENTER, S_CHANGE, S_START, S_UPLOAD_REPORT, S_EXPORT, S_REMOVE, S_ERASE, S_CLOSE, S_NONE, S_CREATE, S_GO_LOGIN, S_GO_CHANGE, S_SELECT_RENAME_CAT, S_RENAME_ENTER, S_RENAME_CAT, S_SELECT_MOVE_CAT, S_SELECT_DEST_CAT, S_MOVE_CAT, S_CREATE_CAT, S_SELECT_DELETE_CAT, S_ASK_DELETE_CAT, S_DELETE_CAT, S_SELECT_TOGGLE_CAT, S_TOGGLE, S_EDIT, S_INSERT, S_APPEND, S_DELETE_ASK, S_DELETE, S_PREVIOUS, S_NEXT, S_SCHEDULE, S_SET, S_ARRANGE, S_MOVE_CARD, S_SELECT_SEND_CAT, S_SEND_CARD, S_SEARCH_SYNCED, S_QUESTION, S_SHOW, S_REVEAL, S_PROCEED, S_SUSPEND, S_RESUME, S_SEARCH, S_HISTOGRAM, S_END };
 enum Stage { T_NULL, T_URLENCODE, T_BOUNDARY_INIT, T_CONTENT, T_NAME, T_BOUNDARY_BEGIN, T_BOUNDARY_CHECK };
 
 static enum Action action_seq[S_END+1][13] = {
@@ -102,6 +102,7 @@ static enum Action action_seq[S_END+1][13] = {
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_SYNC_QA, A_SEARCH, A_END }, // S_SEARCH_SYNCED
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_CHECK_RESUME, A_SYNC_QA, A_QUESTION, A_END }, // S_QUESTION
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_SHOW, A_CHECK_RESUME, A_END }, // S_SHOW
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_TEST_CAT, A_LOAD_CARDLIST, A_REVEAL, A_CHECK_RESUME, A_END }, // S_REVEAL
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT, A_LOAD_CARDLIST, A_CARD_TEST, A_PROCEED, A_CHECK_RESUME, A_END }, // S_PROCEED
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_SUSPEND, A_CHECK_RESUME, A_END }, // S_SUSPEND
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_RESUME, A_END }, // S_RESUME
@@ -133,6 +134,7 @@ static enum Block block_seq[P_HISTOGRAM+1][8] = {
   { B_START_HTML, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_CLOSE_DIV, B_SEARCH, B_END }, // P_SEARCH
   { B_START_HTML, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_PREFERENCES, B_END }, // P_PREFERENCES
   { B_START_HTML, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_ABOUT, B_END }, // P_ABOUT
+  { B_START_HTML, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_LEARN, B_END }, // P_LEARN
   { B_START_HTML, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_ASK, B_END }, // P_ASK
   { B_START_HTML, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_RATE, B_END }, // P_RATE
   { B_START_HTML, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_MSG, B_END }, // P_MSG
@@ -1283,8 +1285,6 @@ int parse_post (struct WebMemorySurfer *wms)
                   wms->seq = S_SUSPEND;
                 else if (memcmp (wms->mult.post_lp, "Show", 4) == 0)
                   wms->seq = S_SHOW;
-                else if (memcmp (wms->mult.post_lp, "Reveal", 6) == 0)
-                  wms->seq = S_SHOW;
                 else if (memcmp (wms->mult.post_lp, "Stop", 4) == 0)
                   wms->seq = S_SELECT_LEARN_CAT;
                 else if (memcmp (wms->mult.post_lp, "Proceed", 7) == 0)
@@ -1548,6 +1548,8 @@ int parse_post (struct WebMemorySurfer *wms)
                   wms->seq = S_ABOUT;
                 else if (strncmp(wms->mult.post_lp, "Start", 5) == 0)
                   wms->seq = S_NONE;
+                else if (strncmp(wms->mult.post_lp, "Reveal", 6) == 0)
+                  wms->seq = S_REVEAL;
                 else if (strncmp(wms->mult.post_lp, "Histogram", 9) == 0)
                   wms->seq = S_HISTOGRAM;
                 else if (strncmp(wms->mult.post_lp, "Refresh", 7) == 0)
@@ -2450,6 +2452,7 @@ static int gen_html(struct WebMemorySurfer *wms)
         notice_str[0] = NULL;
         notice_str[1] = NULL;
         x = 0;
+        y = 0;
         if (wms->ms.passwd.pw_flag > 0) {
           x = 1;
           if (wms->mode != M_PW_CHANGE) {
@@ -2457,24 +2460,26 @@ static int gen_html(struct WebMemorySurfer *wms)
             submit_str = "Login";
           }
           else {
+            assert(wms->seq == S_GO_CHANGE);
             header_str = "Change password";
             notice_str[0] = "Enter the current password";
             notice_str[1] = "Enter a new password";
             submit_str = "Change";
+            y = 1;
           }
         }
         else {
-          header_str = "Define a password";
+          assert(wms->ms.passwd.pw_flag == 0);
+          header_str = "Define a (initial) password (for this file) (may be empty)";
           submit_str = "Enter";
+          y = 1;
         }
         assert(wms->mode != M_NONE && header_str != NULL);
         printf("\t\t\t<h1>%s</h1>\n", header_str);
         if (notice_str[0] != NULL) printf("\t\t\t<p>%s</p>\n", notice_str[0]);
-        if (x != 0)
-          printf("\t\t\t<p><input type=\"text\" name=\"password\" value=\"\" size=25></p>\n");
+        if (x != 0) printf("\t\t\t<p><input type=\"text\" name=\"password\" value=\"\" size=25></p>\n");
         if (notice_str[1] != NULL) printf("\t\t\t<p>%s</p>\n", notice_str[1]);
-        if (wms->ms.passwd.pw_flag == 0 || wms->seq == S_GO_CHANGE)
-          printf("\t\t\t<p><input type=\"text\" name=\"new-password\" value=\"\" size=25></p>\n");
+        if (y != 0) printf("\t\t\t<p><input type=\"text\" name=\"new-password\" value=\"\" size=25></p>\n");
         printf("\t\t\t<p><input type=\"submit\" name=\"file_action\" value=\"%s\">\n"
                "\t\t\t\t<input type=\"submit\" name=\"file_action\" value=\"Stop\"></p>\n"
                "\t\t</form>\n"
@@ -2940,6 +2945,8 @@ static int gen_html(struct WebMemorySurfer *wms)
                "</html>\n",
           sw_info_str);
         break;
+      case B_LEARN:
+        break;
       case B_ASK:
         q_str = sa_get(&wms->ms.card_sa, 0);
         assert(q_str != NULL);
@@ -2957,7 +2964,7 @@ static int gen_html(struct WebMemorySurfer *wms)
             q_str != NULL ? " readonly" : " disabled",
             wms->html_lp);
           printf("\t\t\t<p><input type=\"submit\" name=\"learn_action\" value=\"Show\">\n"
-                 "\t\t\t\t<input type=\"submit\" name=\"learn_action\" value=\"Reveal\">\n"
+                 "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Reveal\">\n"
                  "\t\t\t\t<input type=\"submit\" name=\"learn_action\" value=\"Proceed\" disabled>\n"
                  "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Histogram\"></p>\n"
                  "\t\t\t<div><textarea rows=\"10\" cols=\"46\" disabled></textarea></div>\n"
@@ -2997,7 +3004,7 @@ static int gen_html(struct WebMemorySurfer *wms)
           e = xml_escape(&wms->html_lp, &wms->html_n, a_str, ESC_AMP | ESC_LT);
           if (e == 0) {
             printf("\t\t\t<p><input type=\"submit\" name=\"learn_action\" value=\"Show\" disabled>\n"
-                   "\t\t\t\t<input type=\"submit\" name=\"learn_action\" value=\"Reveal\" disabled>\n"
+                   "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Reveal\" disabled>\n"
                    "\t\t\t\t<input type=\"submit\" name=\"learn_action\" value=\"Proceed\">\n"
                    "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Histogram\"></p>\n"
                    "\t\t\t<div><textarea rows=\"10\" cols=\"46\" readonly>%s</textarea></div>\n"
@@ -3028,7 +3035,7 @@ static int gen_html(struct WebMemorySurfer *wms)
             for (y = 0; y < 3; y++) {
               printf("\t\t\t\t<tr>\n");
               for (x = 0; x < 2; x++) {
-                i = j + x * 3 + y;
+                i = j + x + y * 2;
                 attr_str = i == lvl_sel ? " checked" : "";
                 set_time_str(time_str, lvl_s[i]);
                 printf("\t\t\t\t\t<td><label><input type=\"radio\" name=\"lvl\" value=\"%d\"%s>Level %d (%s)</label></td>\n",
@@ -3291,22 +3298,19 @@ int ms_create (struct MemorySurfer *ms, int flags_mask)
   return e;
 }
 
-int ms_get_card_sa (struct MemorySurfer *ms)
+static int ms_get_card_sa(struct MemorySurfer *ms)
 {
   int e;
-  struct Card *card_ptr;
-  assert (ms->card_l != NULL);
+  assert(ms->card_l != NULL);
   e = 0;
-  if (ms->card_i != -1)
-  {
-    assert (ms->card_i >= 0 && ms->card_i < ms->card_a);
-    card_ptr = ms->card_l + ms->card_i;
-    e = sa_load (&ms->card_sa, &ms->imf, card_ptr->card_qai);
+  if (ms->card_i != -1) {
+    assert(ms->card_i >= 0 && ms->card_i < ms->card_a);
+    e = sa_load(&ms->card_sa, &ms->imf, ms->card_l[ms->card_i].card_qai);
   }
   return e;
 }
 
-static int RANK = 5;
+static int RANK = 6;
 
 static int ms_determine_card(struct MemorySurfer *ms)
 {
@@ -4956,6 +4960,11 @@ int main(int argc, char *argv[])
                   wms->todo_main = S_SELECT_LEARN_CAT;
                   wms->page = P_MSG;
                 }
+                break;
+              case A_REVEAL:
+                e = ms_get_card_sa(&wms->ms);
+                if (e == 0)
+                  wms->page = P_RATE;
                 break;
               case A_PROCEED:
                 assert(mtime_test != 0);
