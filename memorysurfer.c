@@ -36,11 +36,11 @@
 #include <fcntl.h> // O_TRUNC / O_EXCL
 #include <errno.h>
 
-enum Field { F_UNKNOWN, F_FILENAME, F_FILE_TITLE, F_START_ACTION, F_FILE_ACTION, F_ARRANGE, F_CAT_NAME, F_MOVED_CAT, F_EDIT_ACTION, F_LEARN_ACTION, F_SEARCH_TXT, F_SEARCH_ACTION, F_CAT, F_CARD, F_MOV_CARD, F_LVL, F_Q, F_A, F_MSG_ACTION, F_TODO_MAIN, F_TODO_ALT, F_MTIME, F_PASSWORD, F_NEW_PASSWORD, F_TOKEN, F_EVENT, F_PAGE, F_MODE, F_TIMEOUT };
+enum Field { F_UNKNOWN, F_FILENAME, F_FILE_TITLE, F_START_ACTION, F_FILE_ACTION, F_ARRANGE, F_CAT_NAME, F_MOVED_CAT, F_EDIT_ACTION, F_LEARN_ACTION, F_SEARCH_TXT, F_SEARCH_ACTION, F_CAT, F_CARD, F_MOV_CARD, F_LVL, F_Q, F_A, F_REVEAL_POS, F_MSG_ACTION, F_TODO_MAIN, F_TODO_ALT, F_MTIME, F_PASSWORD, F_NEW_PASSWORD, F_TOKEN, F_EVENT, F_PAGE, F_MODE, F_TIMEOUT };
 enum Action { A_END, A_NONE, A_FILE, A_WARNING, A_CREATE, A_NEW, A_OPEN_DLG, A_FILELIST, A_OPEN, A_CHANGE_PASSWD, A_WRITE_PASSWD, A_READ_PASSWD, A_CHECK_PASSWORD, A_AUTH_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_CHECK_RESUME, A_SLASH, A_VOID, A_FILE_EXTENSION, A_GATHER, A_UPLOAD, A_UPLOAD_REPORT, A_EXPORT, A_REMOVE, A_ERASE, A_CLOSE, A_START_CAT, A_SELECT_CREATE_CAT, A_SELECT_CAT, A_SELECT_SEND_CAT, A_SELECT_ARRANGE, A_CAT_NAME, A_CREATE_CAT, A_RENAME_CAT, A_ASK_DELETE_CAT, A_DELETE_CAT, A_TOGGLE, A_MOVE_CAT, A_SELECT_EDIT_CAT, A_EDIT, A_SYNC_QA, A_INSERT, A_APPEND, A_DELETE, A_DELETE_ASK, A_PREVIOUS, A_NEXT, A_SCHEDULE, A_SET, A_ARRANGE, A_MOVE_CARD, A_SEND_CARD, A_SELECT_LEARN_CAT, A_SELECT_SEARCH_CAT, A_PREFERENCES, A_ABOUT, A_APPLY, A_SEARCH, A_QUESTION, A_SHOW, A_REVEAL, A_PROCEED, A_SUSPEND, A_RESUME, A_CHECK_FILE, A_LOGIN, A_HISTOGRAM, A_RETRIEVE_MTIME, A_MTIME_TEST, A_CARD_TEST, A_TEST_CAT };
 enum Page { P_START, P_FILE, P_PASSWORD, P_NEW, P_OPEN, P_UPLOAD, P_UPLOAD_REPORT, P_EXPORT, P_START_CAT, P_CAT_NAME, P_SELECT_CREATE_CAT, P_SELECT_CAT, P_SELECT_SEND_CAT, P_SELECT_ARRANGE, P_SELECT_CARD_ARRANGE, P_SELECT_EDIT_CAT, P_EDIT, P_SELECT_LEARN_CAT, P_SELECT_SEARCH_CAT, P_SEARCH, P_PREFERENCES, P_ABOUT, P_LEARN, P_ASK, P_RATE, P_MSG, P_HISTOGRAM };
 enum Block { B_END, B_START_HTML, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_START, B_FILE, B_PASSWORD, B_NEW, B_OPEN, B_UPLOAD, B_UPLOAD_REPORT, B_EXPORT, B_START_CAT, B_CAT_NAME, B_SELECT_CREATE_CAT, B_SELECT_CAT, B_SELECT_SEND_CAT, B_SELECT_ARRANGE, B_SELECT_CARD_ARRANGE, B_SELECT_EDIT_CAT, B_EDIT, B_SELECT_LEARN_CAT, B_SELECT_SEARCH_CAT, B_SEARCH, B_PREFERENCES, B_ABOUT, B_LEARN, B_ASK, B_RATE, B_MSG, B_HISTOGRAM };
-enum Mode { M_NONE = -1, M_DEFAULT, M_PW_CHANGE };
+enum Mode { M_NONE = -1, M_DEFAULT, M_CHANGE_PASSWD, M_ASK };
 enum Sequence { S_FILE, S_START_CAT, S_SELECT_CREATE_CAT, S_SELECT_ARRANGE, S_SELECT_MOVE_ARRANGE, S_CAT_NAME, S_SELECT_EDIT_CAT, S_SELECT_LEARN_CAT, S_SELECT_SEARCH_CAT, S_PREFERENCES, S_ABOUT, S_APPLY, S_NEW, S_FILELIST, S_WARNING, S_UPLOAD, S_LOGIN, S_ENTER, S_CHANGE, S_START, S_UPLOAD_REPORT, S_EXPORT, S_REMOVE, S_ERASE, S_CLOSE, S_NONE, S_CREATE, S_GO_LOGIN, S_GO_CHANGE, S_SELECT_RENAME_CAT, S_RENAME_ENTER, S_RENAME_CAT, S_SELECT_MOVE_CAT, S_SELECT_DEST_CAT, S_MOVE_CAT, S_CREATE_CAT, S_SELECT_DELETE_CAT, S_ASK_DELETE_CAT, S_DELETE_CAT, S_SELECT_TOGGLE_CAT, S_TOGGLE, S_EDIT, S_INSERT, S_APPEND, S_DELETE_ASK, S_DELETE, S_PREVIOUS, S_NEXT, S_SCHEDULE, S_SET, S_ARRANGE, S_MOVE_CARD, S_SELECT_SEND_CAT, S_SEND_CARD, S_SEARCH_SYNCED, S_QUESTION, S_SHOW, S_REVEAL, S_PROCEED, S_SUSPEND, S_RESUME, S_SEARCH, S_HISTOGRAM, S_END };
 enum Stage { T_NULL, T_URLENCODE, T_BOUNDARY_INIT, T_CONTENT, T_NAME, T_BOUNDARY_BEGIN, T_BOUNDARY_CHECK };
 
@@ -251,6 +251,7 @@ struct WebMemorySurfer {
   char **fl_v; // filelist vector
   int fl_c; // count
   struct StringArray qa_sa;
+  int reveal_pos;
   int sw_i;
   const char *static_msg;
   char *static_btn_main; // left
@@ -1112,6 +1113,8 @@ int parse_post (struct WebMemorySurfer *wms)
               case 10:
                 if (memcmp(wms->mult.post_lp, "msg_action", 10) == 0)
                   field = F_MSG_ACTION;
+                else if (memcmp(wms->mult.post_lp, "reveal-pos", 10) == 0)
+                  field = F_REVEAL_POS;
                 else if (memcmp(wms->mult.post_lp, "search_txt", 10) == 0)
                   field = F_SEARCH_TXT;
                 else {
@@ -1365,6 +1368,10 @@ int parse_post (struct WebMemorySurfer *wms)
                 if (e == 0)
                   e = sa_set(&wms->qa_sa, 1, wms->mult.post_lp);
                 break;
+              case F_REVEAL_POS:
+                a_n = sscanf(wms->mult.post_lp, "%d", &wms->reveal_pos);
+                e = a_n != 1 || wms->reveal_pos < 0;
+                break;
               case F_MSG_ACTION:
                 if (memcmp (wms->mult.post_lp, "OK", 2) == 0 || memcmp (wms->mult.post_lp, "Retry", 5) == 0 || memcmp (wms->mult.post_lp, "Delete", 6) == 0 || memcmp (wms->mult.post_lp, "Erase", 5) == 0)
                 {
@@ -1574,7 +1581,7 @@ int parse_post (struct WebMemorySurfer *wms)
                 assert(wms->saved_mode == M_NONE);
                 a_n = sscanf(wms->mult.post_lp, "%d", &wms->saved_mode);
                 e = a_n != 1;
-                assert(wms->saved_mode >= M_DEFAULT && wms->saved_mode <= M_PW_CHANGE);
+                assert(wms->saved_mode >= M_DEFAULT && wms->saved_mode <= M_ASK);
                 break;
               case F_TIMEOUT:
                 e = wms->from_page != P_PREFERENCES;
@@ -2310,7 +2317,8 @@ static int gen_html(struct WebMemorySurfer *wms)
   assert(wms->tok_str[0] == '\0' || wms->tok_str[40] == '\0');
   if (e == 0) {
     bl_i = 0;
-    while ((bl = block_seq[wms->page][bl_i++]) != B_END && e == 0) {
+    while ((bl = block_seq[wms->page][bl_i++]) != B_END && e == 0)
+    {
       switch (bl)
       {
       case B_START_HTML:
@@ -2333,7 +2341,7 @@ static int gen_html(struct WebMemorySurfer *wms)
             title_str,
             wms->page);
         e = rv < 0;
-        if (e == 0 && wms->mode >= M_DEFAULT && wms->mode <= M_PW_CHANGE) {
+        if (e == 0 && wms->mode >= M_DEFAULT && wms->mode <= M_ASK) {
           rv = printf("\t\t\t\t<input type=\"hidden\" name=\"mode\" value=\"%d\">\n", wms->mode);
           e = rv < 0;
         }
@@ -2354,6 +2362,10 @@ static int gen_html(struct WebMemorySurfer *wms)
         }
         if (e == 0 && strlen(mtime_str) == 16) {
           rv = printf("\t\t\t\t<input type=\"hidden\" name=\"mtime\" value=\"%s\">\n", mtime_str);
+          e = rv < 0;
+        }
+        if (e == 0 && wms->reveal_pos >= 0) {
+          rv = printf("\t\t\t\t<input type=\"hidden\" name=\"reveal-pos\" value=\"%d\">\n", wms->reveal_pos);
           e = rv < 0;
         }
         break;
@@ -2455,7 +2467,7 @@ static int gen_html(struct WebMemorySurfer *wms)
         y = 0;
         if (wms->ms.passwd.pw_flag > 0) {
           x = 1;
-          if (wms->mode != M_PW_CHANGE) {
+          if (wms->mode != M_CHANGE_PASSWD) {
             header_str = "Enter the password to login";
             submit_str = "Login";
           }
@@ -2946,6 +2958,60 @@ static int gen_html(struct WebMemorySurfer *wms)
           sw_info_str);
         break;
       case B_LEARN:
+        q_str = sa_get(&wms->ms.card_sa, 0);
+        a_str = sa_get(&wms->ms.card_sa, 1);
+        e = q_str == NULL || a_str == NULL || wms->mode != M_ASK || wms->file_title_str == NULL || strlen(wms->tok_str) != 40;
+        if (e == 0) {
+          e = xml_escape(&wms->html_lp, &wms->html_n, q_str, ESC_AMP | ESC_LT);
+          if (e == 0) {
+            rv = printf("\t\t\t<p><input type=\"submit\" name=\"learn_action\" value=\"Show\">\n"
+                        "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Reveal\">\n"
+                        "\t\t\t\t<input type=\"submit\" name=\"learn_action\" value=\"Proceed\" disabled>\n"
+                        "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Histogram\"></p>\n"
+                        "\t\t\t<div><textarea rows=\"10\" cols=\"46\" readonly>%s</textarea></div>\n"
+                        "\t\t\t<table>\n",
+                wms->html_lp);
+            e = rv < 0;
+            if (e == 0) {
+              for (y = 0; y < 3 && e == 0; y++) {
+                rv = printf ("\t\t\t\t<tr>\n");
+                e = rv < 0;
+                for (x = 0; x < 2 && e == 0; x++) {
+                  rv = printf("\t\t\t\t\t<td><label><input type=\"radio\" disabled>Level</label></td>\n");
+                  e = rv < 0;
+                }
+                if (e == 0) {
+                  rv = printf("\t\t\t\t</tr>\n");
+                  e = rv < 0;
+                }
+              }
+              if (e == 0) {
+                e = xml_escape(&wms->html_lp, &wms->html_n, a_str, ESC_AMP | ESC_LT);
+                if (e == 0) {
+                  rv = printf("\t\t\t</table>\n"
+                              "\t\t\t<div><textarea rows=\"10\" cols=\"46\" readonly>%s</textarea></div>\n"
+                              "\t\t\t<p><input type=\"submit\" name=\"edit_action\" value=\"Edit\">\n"
+                              "\t\t\t\t<input type=\"submit\" name=\"search_action\" value=\"Search\">\n"
+                              "\t\t\t\t<input type=\"submit\" name=\"learn_action\" value=\"Stop\">\n"
+                              "\t\t\t\t<input type=\"submit\" name=\"learn_action\" value=\"Suspend\"%s>\n"
+                              "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Resume\"%s></p>\n"
+                              "\t\t</form>\n"
+                              "\t\t<code>%s; nel: %d</code>\n"
+                              "\t</body>\n"
+                              "</html>\n",
+                      wms->html_lp,
+                      wms->ms.card_l[wms->ms.card_i].card_state != STATE_SUSPENDED ? "" : " disabled",
+                      wms->ms.can_resume != 0 ? "" : " disabled",
+                      sw_info_str,
+                      wms->ms.cards_nel);
+                  e = rv < 0;
+                }
+              }
+            }
+          }
+        }
+        if (e != 0)
+          e = 0x0583cf25; // WMSBLN (Web)MemorySurfer B_LEARN failed
         break;
       case B_ASK:
         q_str = sa_get(&wms->ms.card_sa, 0);
@@ -3203,6 +3269,7 @@ int wms_init (struct WebMemorySurfer *wms)
       wms->fl_v = NULL;
       wms->fl_c = 0;
       sa_init(&wms->qa_sa);
+      wms->reveal_pos = -1;
       wms->sw_i = -1;
       wms->static_msg = NULL;
       wms->static_btn_main = NULL;
@@ -3298,8 +3365,7 @@ int ms_create (struct MemorySurfer *ms, int flags_mask)
   return e;
 }
 
-static int ms_get_card_sa(struct MemorySurfer *ms)
-{
+static int ms_get_card_sa(struct MemorySurfer *ms) {
   int e;
   assert(ms->card_l != NULL);
   e = 0;
@@ -4963,8 +5029,35 @@ int main(int argc, char *argv[])
                 break;
               case A_REVEAL:
                 e = ms_get_card_sa(&wms->ms);
-                if (e == 0)
-                  wms->page = P_RATE;
+                if (e == 0) {
+                  qa_str = sa_get(&wms->ms.card_sa, 1);
+                  len = strlen(qa_str);
+                  e = len + wms->reveal_pos + 999 > INT32_MAX;
+                  if (e == 0) {
+                    i = len;
+                    assert(wms->reveal_pos < i);
+                    n = strcspn(qa_str + wms->reveal_pos + 1, ",.\n-");
+                    wms->reveal_pos += n + 1;
+                    if (wms->reveal_pos < i) {
+                      size = wms->reveal_pos + 1 + 10 + 1; // ---more--- + '\0'
+                      str = malloc(size);
+                      e = str == NULL;
+                      if (e == 0) {
+                        strncpy(str, qa_str, wms->reveal_pos + 1);
+                        strcat(str, "---more---");
+                        e = sa_set(&wms->ms.card_sa, 1, str);
+                        free(str);
+                        wms->page = P_LEARN;
+                        wms->mode = M_ASK;
+                      }
+                    }
+                    else {
+                      assert(wms->reveal_pos == len);
+                      wms->reveal_pos = -1;
+                      wms->page = P_RATE;
+                    }
+                  }
+                }
                 break;
               case A_PROCEED:
                 assert(mtime_test != 0);
@@ -5070,7 +5163,7 @@ int main(int argc, char *argv[])
                 break;
               case A_LOGIN:
                 wms->page = P_PASSWORD;
-                wms->mode = wms->seq == S_GO_CHANGE ? M_PW_CHANGE : M_DEFAULT;
+                wms->mode = wms->seq == S_GO_CHANGE ? M_CHANGE_PASSWD : M_DEFAULT;
                 break;
               case A_HISTOGRAM:
                 for (i = 0; i < 100; i++)
