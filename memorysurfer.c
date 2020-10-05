@@ -5046,11 +5046,12 @@ int main(int argc, char *argv[])
                     n = strcspn(qa_str + wms->reveal_pos + 1, ",.\n-");
                     wms->reveal_pos += n + 1;
                     if (wms->reveal_pos < i) {
-                      size = wms->reveal_pos + 1 + 10 + 1 + 99; // ---more--- + '\0'
+                      size = wms->reveal_pos + 1 + 10 + 1; // ---more--- + '\0'
                       str = malloc(size);
                       e = str == NULL;
                       if (e == 0) {
                         strncpy(str, qa_str, wms->reveal_pos + 1);
+                        str[wms->reveal_pos + 1] = '\0';
                         strcat(str, "---more---");
                         e = sa_set(&wms->ms.card_sa, 1, str);
                         free(str);
