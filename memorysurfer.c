@@ -1369,8 +1369,15 @@ int parse_post (struct WebMemorySurfer *wms)
                   e = sa_set(&wms->qa_sa, 1, wms->mult.post_lp);
                 break;
               case F_REVEAL_POS:
-                a_n = sscanf(wms->mult.post_lp, "%d", &wms->reveal_pos);
-                e = a_n != 1 || wms->reveal_pos < 0;
+                e = wms->reveal_pos != -1;
+                if (e == 0) {
+                  a_n = sscanf(wms->mult.post_lp, "%d", &wms->reveal_pos);
+                  e = a_n != 1 || wms->reveal_pos < 0;
+                }
+                if (e == 1) {
+                  e = 0x255dac21; // WMPPRPA WebMemorySurfer parse_post reveal-pos assert (failed)
+                  wms->reveal_pos = -1;
+                }
                 break;
               case F_MSG_ACTION:
                 if (memcmp (wms->mult.post_lp, "OK", 2) == 0 || memcmp (wms->mult.post_lp, "Retry", 5) == 0 || memcmp (wms->mult.post_lp, "Delete", 6) == 0 || memcmp (wms->mult.post_lp, "Erase", 5) == 0)
@@ -5032,14 +5039,14 @@ int main(int argc, char *argv[])
                 if (e == 0) {
                   qa_str = sa_get(&wms->ms.card_sa, 1);
                   len = strlen(qa_str);
-                  e = len + wms->reveal_pos + 999 > INT32_MAX;
+                  e = len > INT32_MAX - 999;
                   if (e == 0) {
                     i = len;
                     assert(wms->reveal_pos < i);
                     n = strcspn(qa_str + wms->reveal_pos + 1, ",.\n-");
                     wms->reveal_pos += n + 1;
                     if (wms->reveal_pos < i) {
-                      size = wms->reveal_pos + 1 + 10 + 1; // ---more--- + '\0'
+                      size = wms->reveal_pos + 1 + 10 + 1 + 1; // ---more--- + '\0'
                       str = malloc(size);
                       e = str == NULL;
                       if (e == 0) {
@@ -5219,7 +5226,9 @@ int main(int argc, char *argv[])
           }
         }
         else {
-          wms->static_msg = "invalid form data";
+          e2str(e, e_str);
+          snprintf(msg, sizeof(msg), "invalid form data (%s)", e_str);
+          wms->static_msg = msg;
           wms->static_btn_main = "OK";
           wms->todo_main = S_NONE;
           wms->page = P_MSG;
