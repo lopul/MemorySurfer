@@ -5046,7 +5046,7 @@ int main(int argc, char *argv[])
                     n = strcspn(qa_str + wms->reveal_pos + 1, ",.\n-");
                     wms->reveal_pos += n + 1;
                     if (wms->reveal_pos < i) {
-                      size = wms->reveal_pos + 1 + 10 + 1 + 1; // ---more--- + '\0'
+                      size = wms->reveal_pos + 1 + 10 + 1 + 99; // ---more--- + '\0'
                       str = malloc(size);
                       e = str == NULL;
                       if (e == 0) {
