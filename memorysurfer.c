@@ -37,7 +37,7 @@
 #include <errno.h>
 
 enum Field { F_UNKNOWN, F_FILENAME, F_FILE_TITLE, F_START_ACTION, F_FILE_ACTION, F_ARRANGE, F_CAT_NAME, F_MOVED_CAT, F_EDIT_ACTION, F_LEARN_ACTION, F_SEARCH_TXT, F_SEARCH_ACTION, F_CAT, F_CARD, F_MOV_CARD, F_LVL, F_Q, F_A, F_REVEAL_POS, F_MSG_ACTION, F_TODO_MAIN, F_TODO_ALT, F_MTIME, F_PASSWORD, F_NEW_PASSWORD, F_TOKEN, F_EVENT, F_PAGE, F_MODE, F_TIMEOUT };
-enum Action { A_END, A_NONE, A_FILE, A_WARNING, A_CREATE, A_NEW, A_OPEN_DLG, A_FILELIST, A_OPEN, A_CHANGE_PASSWD, A_WRITE_PASSWD, A_READ_PASSWD, A_CHECK_PASSWORD, A_AUTH_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_CHECK_RESUME, A_SLASH, A_VOID, A_FILE_EXTENSION, A_GATHER, A_UPLOAD, A_UPLOAD_REPORT, A_EXPORT, A_REMOVE, A_ERASE, A_CLOSE, A_START_CAT, A_SELECT_CREATE_CAT, A_SELECT_CAT, A_SELECT_SEND_CAT, A_SELECT_ARRANGE, A_CAT_NAME, A_CREATE_CAT, A_RENAME_CAT, A_ASK_DELETE_CAT, A_DELETE_CAT, A_TOGGLE, A_MOVE_CAT, A_SELECT_EDIT_CAT, A_EDIT, A_SYNC_QA, A_INSERT, A_APPEND, A_DELETE, A_DELETE_ASK, A_PREVIOUS, A_NEXT, A_SCHEDULE, A_SET, A_ARRANGE, A_MOVE_CARD, A_SEND_CARD, A_SELECT_LEARN_CAT, A_SELECT_SEARCH_CAT, A_PREFERENCES, A_ABOUT, A_APPLY, A_SEARCH, A_QUESTION, A_SHOW, A_REVEAL, A_PROCEED, A_SUSPEND, A_RESUME, A_CHECK_FILE, A_LOGIN, A_HISTOGRAM, A_RETRIEVE_MTIME, A_MTIME_TEST, A_CARD_TEST, A_TEST_CAT };
+enum Action { A_END, A_NONE, A_FILE, A_WARNING, A_CREATE, A_NEW, A_OPEN_DLG, A_FILELIST, A_OPEN, A_CHANGE_PASSWD, A_WRITE_PASSWD, A_READ_PASSWD, A_CHECK_PASSWORD, A_AUTH_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_CHECK_RESUME, A_SLASH, A_VOID, A_FILE_EXTENSION, A_GATHER, A_UPLOAD, A_UPLOAD_REPORT, A_EXPORT, A_REMOVE, A_ERASE, A_CLOSE, A_START_CAT, A_SELECT_CREATE_CAT, A_SELECT_CAT, A_SELECT_SEND_CAT, A_SELECT_ARRANGE, A_CAT_NAME, A_CREATE_CAT, A_RENAME_CAT, A_ASK_DELETE_CAT, A_DELETE_CAT, A_TOGGLE, A_MOVE_CAT, A_SELECT_EDIT_CAT, A_EDIT, A_SYNC_QA, A_INSERT, A_APPEND, A_DELETE, A_DELETE_ASK, A_PREVIOUS, A_NEXT, A_SCHEDULE, A_SET, A_ARRANGE, A_MOVE_CARD, A_SEND_CARD, A_SELECT_LEARN_CAT, A_SELECT_SEARCH_CAT, A_PREFERENCES, A_ABOUT, A_APPLY, A_SEARCH, A_QUESTION, A_SHOW, A_REVEAL, A_PROCEED, A_SUSPEND, A_RESUME, A_CHECK_FILE, A_LOGIN, A_HISTOGRAM, A_RETRIEVE_MTIME, A_MTIME_TEST, A_CARD_TEST, A_TEST_CAT_SELECTED, A_TEST_CAT_VALID, A_TEST_CAT };
 enum Page { P_START, P_FILE, P_PASSWORD, P_NEW, P_OPEN, P_UPLOAD, P_UPLOAD_REPORT, P_EXPORT, P_START_CAT, P_CAT_NAME, P_SELECT_CREATE_CAT, P_SELECT_CAT, P_SELECT_SEND_CAT, P_SELECT_ARRANGE, P_SELECT_CARD_ARRANGE, P_SELECT_EDIT_CAT, P_EDIT, P_SELECT_LEARN_CAT, P_SELECT_SEARCH_CAT, P_SEARCH, P_PREFERENCES, P_ABOUT, P_LEARN, P_ASK, P_RATE, P_MSG, P_HISTOGRAM };
 enum Block { B_END, B_START_HTML, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_START, B_FILE, B_PASSWORD, B_NEW, B_OPEN, B_UPLOAD, B_UPLOAD_REPORT, B_EXPORT, B_START_CAT, B_CAT_NAME, B_SELECT_CREATE_CAT, B_SELECT_CAT, B_SELECT_SEND_CAT, B_SELECT_ARRANGE, B_SELECT_CARD_ARRANGE, B_SELECT_EDIT_CAT, B_EDIT, B_SELECT_LEARN_CAT, B_SELECT_SEARCH_CAT, B_SEARCH, B_PREFERENCES, B_ABOUT, B_LEARN, B_ASK, B_RATE, B_MSG, B_HISTOGRAM };
 enum Mode { M_NONE = -1, M_DEFAULT, M_CHANGE_PASSWD, M_ASK };
@@ -101,7 +101,7 @@ static enum Action action_seq[S_END+1][13] = {
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_LOAD_CARDLIST, A_SEND_CARD, A_END }, // S_SEND_CARD
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_SYNC_QA, A_SEARCH, A_END }, // S_SEARCH_SYNCED
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_CHECK_RESUME, A_SYNC_QA, A_QUESTION, A_END }, // S_QUESTION
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_SHOW, A_CHECK_RESUME, A_END }, // S_SHOW
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_TEST_CAT_SELECTED, A_TEST_CAT_VALID, A_LOAD_CARDLIST, A_SHOW, A_CHECK_RESUME, A_END }, // S_SHOW
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_TEST_CAT, A_LOAD_CARDLIST, A_REVEAL, A_CHECK_RESUME, A_END }, // S_REVEAL
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT, A_LOAD_CARDLIST, A_CARD_TEST, A_PROCEED, A_CHECK_RESUME, A_END }, // S_PROCEED
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_SUSPEND, A_CHECK_RESUME, A_END }, // S_SUSPEND
@@ -1286,8 +1286,6 @@ int parse_post (struct WebMemorySurfer *wms)
                   wms->seq = S_QUESTION;
                 else if (memcmp (wms->mult.post_lp, "Suspend", 7) == 0)
                   wms->seq = S_SUSPEND;
-                else if (memcmp (wms->mult.post_lp, "Show", 4) == 0)
-                  wms->seq = S_SHOW;
                 else if (memcmp (wms->mult.post_lp, "Stop", 4) == 0)
                   wms->seq = S_SELECT_LEARN_CAT;
                 else if (memcmp (wms->mult.post_lp, "Proceed", 7) == 0)
@@ -1438,144 +1436,160 @@ int parse_post (struct WebMemorySurfer *wms)
                   e = scan_hex(wms->tok_digest, wms->mult.post_lp, SHA1_HASH_SIZE);
                 break;
               case F_EVENT:
-                if (strncmp(wms->mult.post_lp, "Create", 6) == 0) {
-                  if (wms->from_page == P_START_CAT)
-                    wms->seq = S_SELECT_CREATE_CAT;
-                  else {
-                    e = wms->from_page != P_CAT_NAME;
-                    if (e == 0)
-                      wms->seq = S_CREATE_CAT;
-                  }
-                }
-                else if (strncmp(wms->mult.post_lp, "Cancel", 6) == 0) {
-                  if (wms->from_page == P_PREFERENCES)
-                    wms->seq = S_START;
-                  else {
-                    e = wms->from_page != P_OPEN;
-                    if (e == 0)
-                      wms->seq = S_CLOSE;
-                  }
-                }
-                else if (strncmp(wms->mult.post_lp, "Stop", 4) == 0) {
-                  if (wms->from_page == P_SELECT_CARD_ARRANGE)
-                    wms->seq = S_EDIT;
-                  else if (wms->from_page == P_SELECT_SEND_CAT) {
-                    wms->ms.cat_i = wms->ms.mov_cat_i;
-                    wms->ms.card_i = wms->ms.mov_card_i;
-                    wms->seq = S_EDIT;
-                  }
-                  else
-                    wms->seq = S_START_CAT;
-                }
-                else if (strncmp(wms->mult.post_lp, "Open", 4) == 0) {
-                  if (wms->from_page == P_OPEN)
-                    wms->seq = S_GO_LOGIN;
-                  else {
-                    e = wms->from_page != P_FILE;
-                    if (e == 0)
-                      wms->seq = S_FILELIST;
-                  }
-                }
-                else if (strncmp(wms->mult.post_lp, "Select", 6) == 0) {
-                  if (wms->from_page == P_SELECT_CREATE_CAT)
-                    wms->seq = S_SELECT_ARRANGE;
-                  else if (wms->from_page == P_SELECT_CAT)
-                    wms->seq = S_SELECT_MOVE_ARRANGE;
-                  else {
-                    e = wms->from_page != P_SELECT_ARRANGE;
-                    if (e == 0)
-                      wms->seq = S_CAT_NAME;
-                  }
-                }
-                else if (strncmp(wms->mult.post_lp, "Delete", 6) == 0) {
-                  if (wms->from_page == P_START_CAT)
-                    wms->seq = S_SELECT_DELETE_CAT;
-                  else {
-                    e = wms->from_page != P_SELECT_CAT;
-                    if (e == 0)
-                      wms->seq = S_ASK_DELETE_CAT;
-                  }
-                }
-                else if (strncmp(wms->mult.post_lp, "Rename", 6) == 0) {
-                  if (wms->from_page == P_START_CAT)
-                    wms->seq = S_SELECT_RENAME_CAT;
-                  else if (wms->from_page == P_SELECT_CAT)
-                    wms->seq = S_RENAME_ENTER;
-                  else {
-                    e = wms->from_page != P_CAT_NAME;
-                    if (e == 0)
-                      wms->seq = S_RENAME_CAT;
-                  }
-                }
-                else if (strncmp(wms->mult.post_lp, "Move", 4) == 0) {
-                  if (wms->from_page == P_START_CAT)
-                    wms->seq = S_SELECT_MOVE_CAT;
-                  else if (wms->from_page == P_SELECT_CAT)
-                    wms->seq = S_SELECT_DEST_CAT;
-                  else if (wms->from_page == P_SELECT_ARRANGE)
-                    wms->seq = S_MOVE_CAT;
-                  else if (wms->from_page == P_EDIT)
-                    wms->seq = S_ARRANGE;
-                  else {
-                    e = wms->from_page != P_SELECT_CARD_ARRANGE;
-                    if (e == 0)
-                      wms->seq = S_MOVE_CARD;
-                  }
-                }
-                else if (strncmp(wms->mult.post_lp, "Insert", 6) == 0) {
-                  e = wms->from_page != P_EDIT;
-                  if (e == 0)
-                    wms->seq = S_INSERT;
-                }
-                else if (strncmp(wms->mult.post_lp, "Send", 4) == 0)
-                  if (wms->from_page == P_EDIT)
-                    wms->seq = S_SELECT_SEND_CAT;
-                  else {
-                    e = wms->from_page != P_SELECT_SEND_CAT;
-                    if (e == 0)
-                      wms->seq = S_SEND_CARD;
-                  }
-                else if (strncmp(wms->mult.post_lp, "Toggle", 6) == 0)
-                  if (wms->from_page == P_START_CAT)
-                    wms->seq = S_SELECT_TOGGLE_CAT;
-                  else {
-                    e = wms->from_page != P_SELECT_CAT;
-                    if (e == 0)
-                      wms->seq = S_TOGGLE;
-                  }
-                else if (strncmp(wms->mult.post_lp, "Set", 3) == 0) {
-                  e = wms->from_page != P_EDIT;
-                  if (e == 0)
-                    wms->seq = S_SET;
-                }
-                else if (strncmp(wms->mult.post_lp, "Remove", 6) == 0)
-                  wms->seq = S_REMOVE;
-                else if (strncmp(wms->mult.post_lp, "Apply", 5) == 0)
-                  wms->seq = S_APPLY;
-                else if (strncmp(wms->mult.post_lp, "Erase", 5) == 0)
-                  wms->seq = S_ERASE;
-                else if (strncmp(wms->mult.post_lp, "Resume", 6) == 0)
-                  wms->seq = S_RESUME;
-                else if (strncmp(wms->mult.post_lp, "Preferences", 11) == 0)
-                  wms->seq = S_PREFERENCES;
-                else if (strncmp(wms->mult.post_lp, "About", 5) == 0)
-                  wms->seq = S_ABOUT;
-                else if (strncmp(wms->mult.post_lp, "Start", 5) == 0)
-                  wms->seq = S_NONE;
-                else if (strncmp(wms->mult.post_lp, "Reveal", 6) == 0)
-                  wms->seq = S_REVEAL;
-                else if (strncmp(wms->mult.post_lp, "Histogram", 9) == 0)
-                  wms->seq = S_HISTOGRAM;
-                else if (strncmp(wms->mult.post_lp, "Refresh", 7) == 0)
-                  wms->seq = S_HISTOGRAM;
-                else {
-                  e = strncmp(wms->mult.post_lp, "OK", 2);
-                  if (e == 0) {
-                    if (wms->file_title_str != NULL)
-                      wms->seq = S_START;
+                if (wms->mult.post_fp >= 0)
+                  len = wms->mult.post_fp;
+                else
+                  len = wms->mult.post_wp;
+                switch (len) {
+                case 4:
+                  if (strncmp(wms->mult.post_lp, "Stop", 4) == 0) {
+                    if (wms->from_page == P_SELECT_CARD_ARRANGE)
+                      wms->seq = S_EDIT;
+                    else if (wms->from_page == P_SELECT_SEND_CAT) {
+                      wms->ms.cat_i = wms->ms.mov_cat_i;
+                      wms->ms.card_i = wms->ms.mov_card_i;
+                      wms->seq = S_EDIT;
+                    }
                     else
-                      wms->seq = S_NONE;
+                      wms->seq = S_START_CAT;
                   }
+                  else if (strncmp(wms->mult.post_lp, "Open", 4) == 0) {
+                    if (wms->from_page == P_OPEN)
+                      wms->seq = S_GO_LOGIN;
+                    else {
+                      e = wms->from_page != P_FILE;
+                      if (e == 0)
+                        wms->seq = S_FILELIST;
+                    }
+                  }
+                  else if (strncmp(wms->mult.post_lp, "Move", 4) == 0) {
+                    if (wms->from_page == P_START_CAT)
+                      wms->seq = S_SELECT_MOVE_CAT;
+                    else if (wms->from_page == P_SELECT_CAT)
+                      wms->seq = S_SELECT_DEST_CAT;
+                    else if (wms->from_page == P_SELECT_ARRANGE)
+                      wms->seq = S_MOVE_CAT;
+                    else if (wms->from_page == P_EDIT)
+                      wms->seq = S_ARRANGE;
+                    else {
+                      e = wms->from_page != P_SELECT_CARD_ARRANGE;
+                      if (e == 0)
+                        wms->seq = S_MOVE_CARD;
+                    }
+                  }
+                  else if (strncmp(wms->mult.post_lp, "Send", 4) == 0) {
+                    if (wms->from_page == P_EDIT)
+                      wms->seq = S_SELECT_SEND_CAT;
+                    else {
+                      e = wms->from_page != P_SELECT_SEND_CAT;
+                      if (e == 0)
+                        wms->seq = S_SEND_CARD;
+                    }
+                  }
+                  else {
+                    e = strncmp(wms->mult.post_lp, "Show", 4) != 0;
+                    if (e == 0)
+                      wms->seq = S_SHOW;
+                  }
+                  break;
+                default:
+                  if (strncmp(wms->mult.post_lp, "Create", 6) == 0) {
+                    if (wms->from_page == P_START_CAT)
+                      wms->seq = S_SELECT_CREATE_CAT;
+                    else {
+                      e = wms->from_page != P_CAT_NAME;
+                      if (e == 0)
+                        wms->seq = S_CREATE_CAT;
+                    }
+                  }
+                  else if (strncmp(wms->mult.post_lp, "Cancel", 6) == 0) {
+                    if (wms->from_page == P_PREFERENCES)
+                      wms->seq = S_START;
+                    else {
+                      e = wms->from_page != P_OPEN;
+                      if (e == 0)
+                        wms->seq = S_CLOSE;
+                    }
+                  }
+                  else if (strncmp(wms->mult.post_lp, "Select", 6) == 0) {
+                    if (wms->from_page == P_SELECT_CREATE_CAT)
+                      wms->seq = S_SELECT_ARRANGE;
+                    else if (wms->from_page == P_SELECT_CAT)
+                      wms->seq = S_SELECT_MOVE_ARRANGE;
+                    else {
+                      e = wms->from_page != P_SELECT_ARRANGE;
+                      if (e == 0)
+                        wms->seq = S_CAT_NAME;
+                    }
+                  }
+                  else if (strncmp(wms->mult.post_lp, "Delete", 6) == 0) {
+                    if (wms->from_page == P_START_CAT)
+                      wms->seq = S_SELECT_DELETE_CAT;
+                    else {
+                      e = wms->from_page != P_SELECT_CAT;
+                      if (e == 0)
+                        wms->seq = S_ASK_DELETE_CAT;
+                    }
+                  }
+                  else if (strncmp(wms->mult.post_lp, "Rename", 6) == 0) {
+                    if (wms->from_page == P_START_CAT)
+                      wms->seq = S_SELECT_RENAME_CAT;
+                    else if (wms->from_page == P_SELECT_CAT)
+                      wms->seq = S_RENAME_ENTER;
+                    else {
+                      e = wms->from_page != P_CAT_NAME;
+                      if (e == 0)
+                        wms->seq = S_RENAME_CAT;
+                    }
+                  }
+                  else if (strncmp(wms->mult.post_lp, "Insert", 6) == 0) {
+                    e = wms->from_page != P_EDIT;
+                    if (e == 0)
+                      wms->seq = S_INSERT;
+                  }
+                  else if (strncmp(wms->mult.post_lp, "Toggle", 6) == 0)
+                    if (wms->from_page == P_START_CAT)
+                      wms->seq = S_SELECT_TOGGLE_CAT;
+                    else {
+                      e = wms->from_page != P_SELECT_CAT;
+                      if (e == 0)
+                        wms->seq = S_TOGGLE;
+                    }
+                  else if (strncmp(wms->mult.post_lp, "Set", 3) == 0) {
+                    e = wms->from_page != P_EDIT;
+                    if (e == 0)
+                      wms->seq = S_SET;
+                  }
+                  else if (strncmp(wms->mult.post_lp, "Remove", 6) == 0)
+                    wms->seq = S_REMOVE;
+                  else if (strncmp(wms->mult.post_lp, "Apply", 5) == 0)
+                    wms->seq = S_APPLY;
+                  else if (strncmp(wms->mult.post_lp, "Erase", 5) == 0)
+                    wms->seq = S_ERASE;
+                  else if (strncmp(wms->mult.post_lp, "Resume", 6) == 0)
+                    wms->seq = S_RESUME;
+                  else if (strncmp(wms->mult.post_lp, "Preferences", 11) == 0)
+                    wms->seq = S_PREFERENCES;
+                  else if (strncmp(wms->mult.post_lp, "About", 5) == 0)
+                    wms->seq = S_ABOUT;
+                  else if (strncmp(wms->mult.post_lp, "Start", 5) == 0)
+                    wms->seq = S_NONE;
+                  else if (strncmp(wms->mult.post_lp, "Reveal", 6) == 0)
+                    wms->seq = S_REVEAL;
+                  else if (strncmp(wms->mult.post_lp, "Histogram", 9) == 0)
+                    wms->seq = S_HISTOGRAM;
+                  else if (strncmp(wms->mult.post_lp, "Refresh", 7) == 0)
+                    wms->seq = S_HISTOGRAM;
+                  else {
+                    e = strncmp(wms->mult.post_lp, "OK", 2);
+                    if (e == 0) {
+                      if (wms->file_title_str != NULL)
+                        wms->seq = S_START;
+                      else
+                        wms->seq = S_NONE;
+                    }
+                  }
+                  break;
                 }
                 break;
               case F_PAGE:
@@ -1857,42 +1871,42 @@ static int xml_escape(char **xml_str_ptr, size_t *xml_n_ptr, char *str_text, int
       }
       switch (ch)
       {
-        case '&':
-          if ((escape_mask & ESC_AMP) != 0) {
-            (*xml_str_ptr)[dest++] = '&';
-            (*xml_str_ptr)[dest++] = 'a';
-            (*xml_str_ptr)[dest++] = 'm';
-            (*xml_str_ptr)[dest++] = 'p';
-            (*xml_str_ptr)[dest++] = ';';
-          }
-          else
-            (*xml_str_ptr)[dest++] = '&';
-          break;
-        case '<':
-          if ((escape_mask & ESC_LT) != 0) {
-            (*xml_str_ptr)[dest++] = '&';
-            (*xml_str_ptr)[dest++] = 'l';
-            (*xml_str_ptr)[dest++] = 't';
-            (*xml_str_ptr)[dest++] = ';';
-          }
-          else
-            (*xml_str_ptr)[dest++] = '<';
-          break;
-        case '"':
-          if ((escape_mask & ESC_QUOT) != 0) {
-            (*xml_str_ptr)[dest++] = '&';
-            (*xml_str_ptr)[dest++] = 'q';
-            (*xml_str_ptr)[dest++] = 'u';
-            (*xml_str_ptr)[dest++] = 'o';
-            (*xml_str_ptr)[dest++] = 't';
-            (*xml_str_ptr)[dest++] = ';';
-          }
-          else
-            (*xml_str_ptr)[dest++] = '"';
-          break;
-        default:
-          (*xml_str_ptr)[dest++] = ch;
-          break;
+      case '&':
+        if ((escape_mask & ESC_AMP) != 0) {
+          (*xml_str_ptr)[dest++] = '&';
+          (*xml_str_ptr)[dest++] = 'a';
+          (*xml_str_ptr)[dest++] = 'm';
+          (*xml_str_ptr)[dest++] = 'p';
+          (*xml_str_ptr)[dest++] = ';';
+        }
+        else
+          (*xml_str_ptr)[dest++] = '&';
+        break;
+      case '<':
+        if ((escape_mask & ESC_LT) != 0) {
+          (*xml_str_ptr)[dest++] = '&';
+          (*xml_str_ptr)[dest++] = 'l';
+          (*xml_str_ptr)[dest++] = 't';
+          (*xml_str_ptr)[dest++] = ';';
+        }
+        else
+          (*xml_str_ptr)[dest++] = '<';
+        break;
+      case '"':
+        if ((escape_mask & ESC_QUOT) != 0) {
+          (*xml_str_ptr)[dest++] = '&';
+          (*xml_str_ptr)[dest++] = 'q';
+          (*xml_str_ptr)[dest++] = 'u';
+          (*xml_str_ptr)[dest++] = 'o';
+          (*xml_str_ptr)[dest++] = 't';
+          (*xml_str_ptr)[dest++] = ';';
+        }
+        else
+          (*xml_str_ptr)[dest++] = '"';
+        break;
+      default:
+        (*xml_str_ptr)[dest++] = ch;
+        break;
       }
     } while ((ch != '\0') && (e == 0));
   }
@@ -2971,7 +2985,7 @@ static int gen_html(struct WebMemorySurfer *wms)
         if (e == 0) {
           e = xml_escape(&wms->html_lp, &wms->html_n, q_str, ESC_AMP | ESC_LT);
           if (e == 0) {
-            rv = printf("\t\t\t<p><input type=\"submit\" name=\"learn_action\" value=\"Show\">\n"
+            rv = printf("\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Show\">\n"
                         "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Reveal\">\n"
                         "\t\t\t\t<input type=\"submit\" name=\"learn_action\" value=\"Proceed\" disabled>\n"
                         "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Histogram\"></p>\n"
@@ -3036,7 +3050,7 @@ static int gen_html(struct WebMemorySurfer *wms)
             wms->ms.can_resume != 0 ? "" : " disabled",
             q_str != NULL ? " readonly" : " disabled",
             wms->html_lp);
-          printf("\t\t\t<p><input type=\"submit\" name=\"learn_action\" value=\"Show\">\n"
+          printf("\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Show\">\n"
                  "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Reveal\">\n"
                  "\t\t\t\t<input type=\"submit\" name=\"learn_action\" value=\"Proceed\" disabled>\n"
                  "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Histogram\"></p>\n"
@@ -3076,7 +3090,7 @@ static int gen_html(struct WebMemorySurfer *wms)
               wms->html_lp);
           e = xml_escape(&wms->html_lp, &wms->html_n, a_str, ESC_AMP | ESC_LT);
           if (e == 0) {
-            printf("\t\t\t<p><input type=\"submit\" name=\"learn_action\" value=\"Show\" disabled>\n"
+            printf("\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Show\" disabled>\n"
                    "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Reveal\" disabled>\n"
                    "\t\t\t\t<input type=\"submit\" name=\"learn_action\" value=\"Proceed\">\n"
                    "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Histogram\"></p>\n"
@@ -4010,6 +4024,25 @@ int main(int argc, char *argv[])
                     wms->todo_main = S_NONE;
                     wms->page = P_MSG;
                   }
+                }
+                break;
+              case A_TEST_CAT_SELECTED:
+                e = wms->ms.cat_i < 0;
+                if (e == 1) {
+                  wms->static_msg = "Please select a category to learn";
+                  wms->static_btn_main = "OK";
+                  wms->todo_main = S_SELECT_LEARN_CAT;
+                  wms->page = P_MSG;
+                }
+                break;
+              case A_TEST_CAT_VALID:
+                e = wms->ms.cat_i >= wms->ms.cat_a || wms->ms.cat_t[wms->ms.cat_i].cat_used == 0;
+                if (e == 1) {
+                  wms->ms.cat_i = -1;
+                  wms->static_msg = "Warning: Invalid category";
+                  wms->static_btn_main = "OK";
+                  wms->todo_main = S_SELECT_LEARN_CAT;
+                  wms->page = P_MSG;
                 }
                 break;
               case A_TEST_CAT:
@@ -5000,38 +5033,11 @@ int main(int argc, char *argv[])
                 }
                 break;
               case A_SHOW:
-                if (wms->ms.cat_i >= 0)
-                {
-                  if ((wms->ms.cat_i < wms->ms.cat_a) && (wms->ms.cat_t[wms->ms.cat_i].cat_used != 0))
-                  {
-                    e = ms_load_card_list (&wms->ms);
-                    if (e == 0)
-                    {
-                      assert (wms->ms.card_a > 0);
-                      assert (wms->ms.timestamp > 0);
-                      assert (wms->ms.card_i != -1);
-                      e = ms_get_card_sa (&wms->ms);
-                      if (e == 0)
-                      {
-                        wms->page = P_RATE;
-                      }
-                    }
-                  }
-                  else
-                  {
-                    wms->ms.cat_i = -1;
-                    wms->static_msg = "Warning: Invalid category";
-                    wms->static_btn_main = "OK";
-                    wms->todo_main = S_SELECT_LEARN_CAT;
-                    wms->page = P_MSG;
-                  }
-                }
-                else
-                {
-                  wms->static_msg = "Please select a category to learn";
-                  wms->static_btn_main = "OK";
-                  wms->todo_main = S_SELECT_LEARN_CAT;
-                  wms->page = P_MSG;
+                assert(wms->ms.card_a > 0 && wms->ms.timestamp > 0 && wms->ms.card_i != -1);
+                e = ms_get_card_sa (&wms->ms);
+                if (e == 0) {
+                  wms->reveal_pos = -1;
+                  wms->page = P_RATE;
                 }
                 break;
               case A_REVEAL:
@@ -5039,20 +5045,20 @@ int main(int argc, char *argv[])
                 if (e == 0) {
                   qa_str = sa_get(&wms->ms.card_sa, 1);
                   len = strlen(qa_str);
-                  e = len > INT32_MAX - 999;
+                  e = len > INT32_MAX;
                   if (e == 0) {
                     i = len;
                     assert(wms->reveal_pos < i);
                     n = strcspn(qa_str + wms->reveal_pos + 1, ",.\n-");
                     wms->reveal_pos += n + 1;
                     if (wms->reveal_pos < i) {
-                      size = wms->reveal_pos + 1 + 10 + 1; // ---more--- + '\0'
+                      size = wms->reveal_pos + 1 + 11 + 1; // " ---more---" + '\0'
                       str = malloc(size);
                       e = str == NULL;
                       if (e == 0) {
                         strncpy(str, qa_str, wms->reveal_pos + 1);
                         str[wms->reveal_pos + 1] = '\0';
-                        strcat(str, "---more---");
+                        strcat(str, " ---more---");
                         e = sa_set(&wms->ms.card_sa, 1, str);
                         free(str);
                         wms->page = P_LEARN;
