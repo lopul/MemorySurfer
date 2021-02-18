@@ -1,6 +1,6 @@
 # MemorySurfer
 
-A (web-server) program to memorize (text-based) flashcards.
+A program to memorize (text-based) flashcards. (Runs in a web browser on a web-server).
 
 ## Screenshots
 
