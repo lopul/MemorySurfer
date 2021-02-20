@@ -1,7 +1,7 @@
 
 //
 // Author: Lorenz Pullwitt <memorysurfer@lorenz-pullwitt.de>
-// Copyright 2016-2020
+// Copyright 2016-2021
 //
 // This file is part of MemorySurfer.
 //
@@ -2959,9 +2959,9 @@ static int gen_html(struct WebMemorySurfer *wms)
           sw_info_str);
         break;
       case B_ABOUT:
-        printf("\t\t\t<h1>About MemorySurfer v1.0.0.x</h1>\n"
+        printf("\t\t\t<h1>About MemorySurfer v1.0.0.15</h1>\n"
                "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
-               "\t\t\t<p>Copyright 2016-2020</p>\n"
+               "\t\t\t<p>Copyright 2016-2021</p>\n"
                "\t\t\t<p>Send bugs and suggestions to\n"
                "<a href=\"mailto:memorysurfer@lorenz-pullwitt.de\">memorysurfer@lorenz-pullwitt.de</a></p>\n"
                "\t\t\t<cite>MemorySurfer is free software; you can redistribute it and/or\n"
@@ -3013,8 +3013,7 @@ static int gen_html(struct WebMemorySurfer *wms)
                 }
               }
               else {
-                assert(wms->mode == M_RATE);
-                assert(wms->ms.card_i != -1);
+                assert(wms->mode == M_RATE || wms->ms.card_i != -1);
                 if (wms->ms.card_l[wms->ms.card_i].card_state == STATE_NEW) {
                   time_diff = lvl_s[1];
                   lvl = 0;
@@ -3058,7 +3057,6 @@ static int gen_html(struct WebMemorySurfer *wms)
                    "</html>\n",
                 sw_info_str,
                 wms->html_n);
-
 */
               if (e == 0) {
                 e = xml_escape(&wms->html_lp, &wms->html_n, a_str, ESC_AMP | ESC_LT);
@@ -3728,6 +3726,51 @@ static int gen_err_msg(struct WebMemorySurfer *wms, char *e_str) {
     wms->dbg_wp += len;
   }
   return e;
+}
+
+size_t utf8_char_len(const char *s) {
+  size_t len;
+  const uint8_t *b;
+  b = (const uint8_t *) s;
+  if ((*b & 0x80) == 0)
+    len = 1;
+  else if ((*b & 0xE0) == 0xC0)
+    len = 2;
+  else if ((*b & 0xF0) == 0xE0)
+    len = 3;
+  else if ((*b & 0xF8) == 0xF0)
+    len = 4;
+  else
+    len = 0;
+  return len;
+}
+
+size_t utf8_strcspn(const char *s, const char *reject) {
+  size_t n;
+  size_t len;
+  int i;
+  int j;
+  int found;
+  n = 0;
+  do {
+    i = 0;
+    do {
+      len = utf8_char_len(reject + i);
+      j = 0;
+      found = 1;
+      while (s[n + j] != '\0' && j < len && found == 1) {
+        found = s[n + j] == reject[i + j];
+        j++;
+      }
+      if (reject[i] != '\0')
+        i += len;
+      else
+        found = -1;
+    } while (found == 0);
+    if (found <= 0)
+      n++;
+  } while (found <= 0);
+  return n;
 }
 
 int main(int argc, char *argv[])
@@ -5104,8 +5147,9 @@ int main(int argc, char *argv[])
                   if (e == 0) {
                     i = len;
                     assert(wms->saved_reveal_pos < i);
-                    n = strcspn(qa_str + wms->saved_reveal_pos + 1, ",.\n-");
-                    wms->reveal_pos = wms->saved_reveal_pos + n + 1;
+                    n = utf8_strcspn(qa_str + wms->saved_reveal_pos + 1, ",·.-");
+                    size = utf8_char_len(qa_str + wms->saved_reveal_pos + 1 + n);
+                    wms->reveal_pos = wms->saved_reveal_pos + n + size;
                     if (wms->reveal_pos < i) {
                       size = wms->reveal_pos + 1 + 11 + 1; // " ---more---" + '\0'
                       str = malloc(size);
