@@ -2997,89 +2997,81 @@ static int gen_html(struct WebMemorySurfer *wms)
                 wms->mode != M_ASK ? " disabled" : "",
                 wms->html_lp);
             e = rv < 0;
-            if (e == 0) {
-              if (wms->mode == M_ASK) {
-                for (y = 0; y < 3 && e == 0; y++) {
-                  rv = printf ("\t\t\t\t<tr>\n");
+          }
+          if (e == 0) {
+            if (wms->mode == M_ASK) {
+              for (y = 0; y < 3 && e == 0; y++) {
+                rv = printf ("\t\t\t\t<tr>\n");
+                e = rv < 0;
+                for (x = 0; x < 2 && e == 0; x++) {
+                  rv = printf("\t\t\t\t\t<td><label><input type=\"radio\" disabled>Level</label></td>\n");
                   e = rv < 0;
-                  for (x = 0; x < 2 && e == 0; x++) {
-                    rv = printf("\t\t\t\t\t<td><label><input type=\"radio\" disabled>Level</label></td>\n");
-                    e = rv < 0;
-                  }
-                  if (e == 0) {
-                    rv = printf("\t\t\t\t</tr>\n");
-                    e = rv < 0;
-                  }
                 }
+                if (e == 0) {
+                  rv = printf("\t\t\t\t</tr>\n");
+                  e = rv < 0;
+                }
+              }
+            } else {
+              assert(wms->mode == M_RATE || wms->ms.card_i != -1);
+              if (wms->ms.card_l[wms->ms.card_i].card_state == STATE_NEW) {
+                time_diff = lvl_s[1];
+                lvl = 0;
               }
               else {
-                assert(wms->mode == M_RATE || wms->ms.card_i != -1);
-                if (wms->ms.card_l[wms->ms.card_i].card_state == STATE_NEW) {
-                  time_diff = lvl_s[1];
-                  lvl = 0;
-                }
-                else {
-                  time_diff = wms->ms.timestamp - wms->ms.card_l[wms->ms.card_i].card_time;
-                  for (i = 0; i < 21; i++)
-                    if (lvl_s[i] >= wms->ms.card_l[wms->ms.card_i].card_strength)
-                      break;
-                  lvl = i;
-                }
-                j = lvl - 2;
-                if (j < 0)
-                  j = 0;
+                time_diff = wms->ms.timestamp - wms->ms.card_l[wms->ms.card_i].card_time;
                 for (i = 0; i < 21; i++)
-                  if (lvl_s[i] >= time_diff)
+                  if (lvl_s[i] >= wms->ms.card_l[wms->ms.card_i].card_strength)
                     break;
-                lvl_sel = i;
-                if (lvl_sel > j + 5)
-                  lvl_sel = j + 5;
-                for (y = 0; y < 3; y++) {
-                  printf("\t\t\t\t<tr>\n");
-                  for (x = 0; x < 2; x++) {
-                    i = j + x + y * 2;
-                    attr_str = i == lvl_sel ? " checked" : "";
-                    set_time_str(time_str, lvl_s[i]);
-                    printf("\t\t\t\t\t<td><label><input type=\"radio\" name=\"lvl\" value=\"%d\"%s>Level %d (%s)</label></td>\n",
-                        i,
-                        attr_str,
-                        i,
-                        time_str);
-                  }
-                  printf("\t\t\t\t</tr>\n");
-                }
+                lvl = i;
               }
-/*
-            printf("\t\t\t</table>\n"
-                   "\t\t</form>\n"
-                   "\t\t<code>%s; html_n: %zu</code>\n"
-                   "\t</body>\n"
-                   "</html>\n",
-                sw_info_str,
-                wms->html_n);
-*/
-              if (e == 0) {
-                e = xml_escape(&wms->html_lp, &wms->html_n, a_str, ESC_AMP | ESC_LT);
-                if (e == 0) {
-                  rv = printf("\t\t\t</table>\n"
-                              "\t\t\t<div><textarea rows=\"10\" cols=\"46\" readonly>%s</textarea></div>\n"
-                              "\t\t\t<p><input type=\"submit\" name=\"edit_action\" value=\"Edit\">\n"
-                              "\t\t\t\t<input type=\"submit\" name=\"search_action\" value=\"Search\">\n"
-                              "\t\t\t\t<input type=\"submit\" name=\"learn_action\" value=\"Stop\">\n"
-                              "\t\t\t\t<input type=\"submit\" name=\"learn_action\" value=\"Suspend\"%s>\n"
-                              "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Resume\"%s></p>\n"
-                              "\t\t</form>\n"
-                              "\t\t<code>%s; nel: %d</code>\n"
-                              "\t</body>\n"
-                              "</html>\n",
-                      wms->html_lp,
-                      wms->ms.card_l[wms->ms.card_i].card_state != STATE_SUSPENDED ? "" : " disabled",
-                      wms->ms.can_resume != 0 ? "" : " disabled",
-                      sw_info_str,
-                      wms->ms.cards_nel);
-                  e = rv < 0;
+              j = lvl - 2;
+              if (j < 0)
+                j = 0;
+              for (i = 0; i < 21; i++)
+                if (lvl_s[i] >= time_diff)
+                  break;
+              lvl_sel = i;
+              if (lvl_sel > j + 5)
+                lvl_sel = j + 5;
+              for (y = 0; y < 3; y++) {
+                printf("\t\t\t\t<tr>\n");
+                for (x = 0; x < 2; x++) {
+                  i = j + x + y * 2;
+                  attr_str = i == lvl_sel ? " checked" : "";
+                  set_time_str(time_str, lvl_s[i]);
+                  printf("\t\t\t\t\t<td><label><input type=\"radio\" name=\"lvl\" value=\"%d\"%s>Level %d (%s)</label></td>\n",
+                      i,
+                      attr_str,
+                      i,
+                      time_str);
                 }
+                printf("\t\t\t\t</tr>\n");
               }
+            }
+          }
+          if (e == 0) {
+            assert(wms->mode == M_ASK && wms->reveal_pos == -1 ? wms->ms.cards_nel >= 0 : 1);
+            e = xml_escape(&wms->html_lp, &wms->html_n, a_str, ESC_AMP | ESC_LT);
+            if (e == 0) {
+              rv = printf("\t\t\t</table>\n"
+                          "\t\t\t<div><textarea rows=\"10\" cols=\"46\" readonly>%s</textarea></div>\n"
+                          "\t\t\t<p><input type=\"submit\" name=\"edit_action\" value=\"Edit\">\n"
+                          "\t\t\t\t<input type=\"submit\" name=\"search_action\" value=\"Search\">\n"
+                          "\t\t\t\t<input type=\"submit\" name=\"learn_action\" value=\"Stop\">\n"
+                          "\t\t\t\t<input type=\"submit\" name=\"learn_action\" value=\"Suspend\"%s>\n"
+                          "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Resume\"%s></p>\n"
+                          "\t\t</form>\n"
+                          "\t\t<code>%s; nel: %d; html_n: %zu</code>\n"
+                          "\t</body>\n"
+                          "</html>\n",
+                  wms->mode == M_RATE || wms->reveal_pos > 0 ? wms->html_lp : "",
+                  wms->ms.card_l[wms->ms.card_i].card_state != STATE_SUSPENDED ? "" : " disabled",
+                  wms->ms.can_resume != 0 ? "" : " disabled",
+                  sw_info_str,
+                  wms->ms.cards_nel,
+                  wms->html_n);
+              e = rv < 0;
             }
           }
         }
