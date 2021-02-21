@@ -38,8 +38,8 @@
 
 enum Field { F_UNKNOWN, F_FILENAME, F_FILE_TITLE, F_START_ACTION, F_FILE_ACTION, F_ARRANGE, F_CAT_NAME, F_MOVED_CAT, F_EDIT_ACTION, F_LEARN_ACTION, F_SEARCH_TXT, F_SEARCH_ACTION, F_CAT, F_CARD, F_MOV_CARD, F_LVL, F_Q, F_A, F_REVEAL_POS, F_MSG_ACTION, F_TODO_MAIN, F_TODO_ALT, F_MTIME, F_PASSWORD, F_NEW_PASSWORD, F_TOKEN, F_EVENT, F_PAGE, F_MODE, F_TIMEOUT };
 enum Action { A_END, A_NONE, A_FILE, A_WARNING, A_CREATE, A_NEW, A_OPEN_DLG, A_FILELIST, A_OPEN, A_CHANGE_PASSWD, A_WRITE_PASSWD, A_READ_PASSWD, A_CHECK_PASSWORD, A_AUTH_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_CHECK_RESUME, A_SLASH, A_VOID, A_FILE_EXTENSION, A_GATHER, A_UPLOAD, A_UPLOAD_REPORT, A_EXPORT, A_REMOVE, A_ERASE, A_CLOSE, A_START_CAT, A_SELECT_CREATE_CAT, A_SELECT_CAT, A_SELECT_SEND_CAT, A_SELECT_ARRANGE, A_CAT_NAME, A_CREATE_CAT, A_RENAME_CAT, A_ASK_DELETE_CAT, A_DELETE_CAT, A_TOGGLE, A_MOVE_CAT, A_SELECT_EDIT_CAT, A_EDIT, A_SYNC_QA, A_INSERT, A_APPEND, A_DELETE, A_DELETE_ASK, A_PREVIOUS, A_NEXT, A_SCHEDULE, A_SET, A_ARRANGE, A_MOVE_CARD, A_SEND_CARD, A_SELECT_LEARN_CAT, A_SELECT_SEARCH_CAT, A_PREFERENCES, A_ABOUT, A_APPLY, A_SEARCH, A_QUESTION, A_SHOW, A_REVEAL, A_PROCEED, A_SUSPEND, A_RESUME, A_CHECK_FILE, A_LOGIN, A_HISTOGRAM, A_RETRIEVE_MTIME, A_MTIME_TEST, A_CARD_TEST, A_TEST_CAT_SELECTED, A_TEST_CAT_VALID, A_TEST_CAT };
-enum Page { P_START, P_FILE, P_PASSWORD, P_NEW, P_OPEN, P_UPLOAD, P_UPLOAD_REPORT, P_EXPORT, P_START_CAT, P_CAT_NAME, P_SELECT_CREATE_CAT, P_SELECT_CAT, P_SELECT_SEND_CAT, P_SELECT_ARRANGE, P_SELECT_CARD_ARRANGE, P_SELECT_EDIT_CAT, P_EDIT, P_SELECT_LEARN_CAT, P_SELECT_SEARCH_CAT, P_SEARCH, P_PREFERENCES, P_ABOUT, P_LEARN, P_ASK, P_RATE, P_MSG, P_HISTOGRAM };
-enum Block { B_END, B_START_HTML, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_START, B_FILE, B_PASSWORD, B_NEW, B_OPEN, B_UPLOAD, B_UPLOAD_REPORT, B_EXPORT, B_START_CAT, B_CAT_NAME, B_SELECT_CREATE_CAT, B_SELECT_CAT, B_SELECT_SEND_CAT, B_SELECT_ARRANGE, B_SELECT_CARD_ARRANGE, B_SELECT_EDIT_CAT, B_EDIT, B_SELECT_LEARN_CAT, B_SELECT_SEARCH_CAT, B_SEARCH, B_PREFERENCES, B_ABOUT, B_LEARN, B_ASK, B_RATE, B_MSG, B_HISTOGRAM };
+enum Page { P_START, P_FILE, P_PASSWORD, P_NEW, P_OPEN, P_UPLOAD, P_UPLOAD_REPORT, P_EXPORT, P_START_CAT, P_CAT_NAME, P_SELECT_CREATE_CAT, P_SELECT_CAT, P_SELECT_SEND_CAT, P_SELECT_ARRANGE, P_SELECT_CARD_ARRANGE, P_SELECT_EDIT_CAT, P_EDIT, P_SELECT_LEARN_CAT, P_SELECT_SEARCH_CAT, P_SEARCH, P_PREFERENCES, P_ABOUT, P_LEARN, P_MSG, P_HISTOGRAM };
+enum Block { B_END, B_START_HTML, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_START, B_FILE, B_PASSWORD, B_NEW, B_OPEN, B_UPLOAD, B_UPLOAD_REPORT, B_EXPORT, B_START_CAT, B_CAT_NAME, B_SELECT_CREATE_CAT, B_SELECT_CAT, B_SELECT_SEND_CAT, B_SELECT_ARRANGE, B_SELECT_CARD_ARRANGE, B_SELECT_EDIT_CAT, B_EDIT, B_SELECT_LEARN_CAT, B_SELECT_SEARCH_CAT, B_SEARCH, B_PREFERENCES, B_ABOUT, B_LEARN, B_MSG, B_HISTOGRAM };
 enum Mode { M_NONE = -1, M_DEFAULT, M_CHANGE_PASSWD, M_ASK, M_RATE };
 enum Sequence { S_FILE, S_START_CAT, S_SELECT_CREATE_CAT, S_SELECT_ARRANGE, S_SELECT_MOVE_ARRANGE, S_CAT_NAME, S_SELECT_EDIT_CAT, S_SELECT_LEARN_CAT, S_SELECT_SEARCH_CAT, S_PREFERENCES, S_ABOUT, S_APPLY, S_NEW, S_FILELIST, S_WARNING, S_UPLOAD, S_LOGIN, S_ENTER, S_CHANGE, S_START, S_UPLOAD_REPORT, S_EXPORT, S_REMOVE, S_ERASE, S_CLOSE, S_NONE, S_CREATE, S_GO_LOGIN, S_GO_CHANGE, S_SELECT_RENAME_CAT, S_RENAME_ENTER, S_RENAME_CAT, S_SELECT_MOVE_CAT, S_SELECT_DEST_CAT, S_MOVE_CAT, S_CREATE_CAT, S_SELECT_DELETE_CAT, S_ASK_DELETE_CAT, S_DELETE_CAT, S_SELECT_TOGGLE_CAT, S_TOGGLE, S_EDIT, S_INSERT, S_APPEND, S_DELETE_ASK, S_DELETE, S_PREVIOUS, S_NEXT, S_SCHEDULE, S_SET, S_ARRANGE, S_MOVE_CARD, S_SELECT_SEND_CAT, S_SEND_CARD, S_SEARCH_SYNCED, S_QUESTION, S_SHOW, S_REVEAL, S_PROCEED, S_SUSPEND, S_RESUME, S_SEARCH, S_HISTOGRAM, S_END };
 enum Stage { T_NULL, T_URLENCODE, T_BOUNDARY_INIT, T_CONTENT, T_NAME, T_BOUNDARY_BEGIN, T_BOUNDARY_CHECK };
@@ -135,8 +135,6 @@ static enum Block block_seq[P_HISTOGRAM+1][8] = {
   { B_START_HTML, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_PREFERENCES, B_END }, // P_PREFERENCES
   { B_START_HTML, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_ABOUT, B_END }, // P_ABOUT
   { B_START_HTML, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_LEARN, B_END }, // P_LEARN
-  { B_START_HTML, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_ASK, B_END }, // P_ASK
-  { B_START_HTML, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_RATE, B_END }, // P_RATE
   { B_START_HTML, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_MSG, B_END }, // P_MSG
   { B_START_HTML, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_HISTOGRAM, B_END } // P_HISTOGRAM
 };
@@ -2267,8 +2265,7 @@ static time_t lvl_s[21] = { // level strength
   622080000 // 20Y (20)
 };
 
-static int gen_html(struct WebMemorySurfer *wms)
-{
+static int gen_html(struct WebMemorySurfer *wms) {
   int e;
   int rv;
   int i;
@@ -2277,7 +2274,6 @@ static int gen_html(struct WebMemorySurfer *wms)
   int lvl_sel; // select
   char *q_str;
   char *a_str;
-  struct Card *card_ptr;
   time_t time_diff;
   char time_str[32];
   int x;
@@ -2959,7 +2955,7 @@ static int gen_html(struct WebMemorySurfer *wms)
           sw_info_str);
         break;
       case B_ABOUT:
-        printf("\t\t\t<h1>About MemorySurfer v1.0.0.17</h1>\n"
+        printf("\t\t\t<h1>About MemorySurfer v1.0.0.18</h1>\n"
                "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                "\t\t\t<p>Copyright 2016-2021</p>\n"
                "\t\t\t<p>Send bugs and suggestions to\n"
@@ -2982,7 +2978,7 @@ static int gen_html(struct WebMemorySurfer *wms)
       case B_LEARN:
         q_str = sa_get(&wms->ms.card_sa, 0);
         a_str = sa_get(&wms->ms.card_sa, 1);
-        e = q_str == NULL || a_str == NULL || (wms->mode != M_ASK && wms->mode != M_RATE) || wms->file_title_str == NULL || strlen(wms->tok_str) != 40;
+        e = q_str == NULL || a_str == NULL || (wms->mode != M_ASK && wms->mode != M_RATE) || strlen(mtime_str) != 16 || wms->file_title_str == NULL || strlen(wms->tok_str) != 40;
         if (e == 0) {
           e = xml_escape(&wms->html_lp, &wms->html_n, q_str, ESC_AMP | ESC_LT);
           if (e == 0) {
@@ -2990,11 +2986,12 @@ static int gen_html(struct WebMemorySurfer *wms)
                         "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Show\"%s>\n"
                         "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Reveal\"%s>\n"
                         "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Histogram\"></p>\n"
-                        "\t\t\t<div><textarea rows=\"10\" cols=\"46\" readonly>%s</textarea></div>\n"
+                        "\t\t\t<div><textarea rows=\"10\" cols=\"46\"%s>%s</textarea></div>\n"
                         "\t\t\t<table>\n",
                 wms->mode != M_RATE ? " disabled" : "",
                 wms->mode != M_ASK ? " disabled" : "",
                 wms->mode != M_ASK ? " disabled" : "",
+                q_str != NULL ? " readonly" : " disabled",
                 wms->html_lp);
             e = rv < 0;
           }
@@ -3017,8 +3014,7 @@ static int gen_html(struct WebMemorySurfer *wms)
               if (wms->ms.card_l[wms->ms.card_i].card_state == STATE_NEW) {
                 time_diff = lvl_s[1];
                 lvl = 0;
-              }
-              else {
+              } else {
                 time_diff = wms->ms.timestamp - wms->ms.card_l[wms->ms.card_i].card_time;
                 for (i = 0; i < 21; i++)
                   if (lvl_s[i] >= wms->ms.card_l[wms->ms.card_i].card_strength)
@@ -3034,19 +3030,26 @@ static int gen_html(struct WebMemorySurfer *wms)
               lvl_sel = i;
               if (lvl_sel > j + 5)
                 lvl_sel = j + 5;
-              for (y = 0; y < 3; y++) {
-                printf("\t\t\t\t<tr>\n");
-                for (x = 0; x < 2; x++) {
+              for (y = 0; y < 3 && e == 0; y++) {
+                rv = printf("\t\t\t\t<tr>\n");
+                e = rv < 0;
+                for (x = 0; x < 2 && e == 0; x++) {
                   i = j + x + y * 2;
                   attr_str = i == lvl_sel ? " checked" : "";
                   set_time_str(time_str, lvl_s[i]);
-                  printf("\t\t\t\t\t<td><label><input type=\"radio\" name=\"lvl\" value=\"%d\"%s>Level %d (%s)</label></td>\n",
+                  if (i == lvl)
+                    strcat(time_str, "*");
+                  rv = printf("\t\t\t\t\t<td><label><input type=\"radio\" name=\"lvl\" value=\"%d\"%s>Level %d (%s)</label></td>\n",
                       i,
                       attr_str,
                       i,
                       time_str);
+                  e = rv < 0;
                 }
-                printf("\t\t\t\t</tr>\n");
+                if (e == 0) {
+                  rv = printf("\t\t\t\t</tr>\n");
+                  e = rv < 0;
+                }
               }
             }
           }
@@ -3056,6 +3059,7 @@ static int gen_html(struct WebMemorySurfer *wms)
             if (e == 0) {
               rv = printf("\t\t\t</table>\n"
                           "\t\t\t<div><textarea rows=\"10\" cols=\"46\" readonly>%s</textarea></div>\n"
+//                        "\t\t\t<div><textarea rows=\"10\" cols=\"46\" disabled></textarea></div>\n"
                           "\t\t\t<p><input type=\"submit\" name=\"edit_action\" value=\"Edit\">\n"
                           "\t\t\t\t<input type=\"submit\" name=\"search_action\" value=\"Search\">\n"
                           "\t\t\t\t<input type=\"submit\" name=\"learn_action\" value=\"Stop\">\n"
@@ -3077,115 +3081,6 @@ static int gen_html(struct WebMemorySurfer *wms)
         }
         if (e != 0)
           e = 0x0583cf25; // WMSBLN (Web)MemorySurfer B_LEARN failed
-        break;
-      case B_ASK:
-        q_str = sa_get(&wms->ms.card_sa, 0);
-        assert(q_str != NULL);
-        e = xml_escape(&wms->html_lp, &wms->html_n, q_str, ESC_AMP | ESC_LT);
-        if (e == 0) {
-          assert(wms->file_title_str != NULL && strlen(wms->tok_str) == 40);
-          printf("\t\t\t<p><input type=\"submit\" name=\"edit_action\" value=\"Edit\">\n"
-                 "\t\t\t\t<input type=\"submit\" name=\"search_action\" value=\"Search\">\n"
-                 "\t\t\t\t<input type=\"submit\" name=\"learn_action\" value=\"Stop\">\n"
-                 "\t\t\t\t<input type=\"submit\" name=\"learn_action\" value=\"Suspend\"%s>\n"
-                 "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Resume\"%s></p>\n"
-                 "\t\t\t<div><textarea rows=\"10\" cols=\"46\"%s>%s</textarea></div>\n",
-            wms->ms.card_l[wms->ms.card_i].card_state != STATE_SUSPENDED ? "" : " disabled",
-            wms->ms.can_resume != 0 ? "" : " disabled",
-            q_str != NULL ? " readonly" : " disabled",
-            wms->html_lp);
-          printf("\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Show\">\n"
-                 "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Reveal\">\n"
-                 "\t\t\t\t<input type=\"submit\" name=\"learn_action\" value=\"Proceed\" disabled>\n"
-                 "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Histogram\"></p>\n"
-                 "\t\t\t<div><textarea rows=\"10\" cols=\"46\" disabled></textarea></div>\n"
-                 "\t\t\t<table>\n");
-          for (y = 0; y < 3; y++) {
-            printf ("\t\t\t\t<tr>\n");
-            for (x = 0; x < 2; x++)
-              printf("\t\t\t\t\t<td><label><input type=\"radio\" disabled>Level</label></td>\n");
-            printf("\t\t\t\t</tr>\n");
-          }
-          assert(wms->ms.cards_nel >= 0);
-          printf("\t\t\t</table>\n"
-                 "\t\t</form>\n"
-                 "\t\t<code>%s; nel: %d</code>\n"
-                 "\t</body>\n"
-                 "</html>\n",
-            sw_info_str,
-            wms->ms.cards_nel);
-        }
-        break;
-      case B_RATE:
-        q_str = sa_get(&wms->ms.card_sa, 0);
-        a_str = sa_get(&wms->ms.card_sa, 1);
-        assert(q_str != NULL && a_str != NULL);
-        e = xml_escape(&wms->html_lp, &wms->html_n, q_str, ESC_AMP | ESC_LT);
-        if (e == 0) {
-          assert(strlen(mtime_str) == 16 && wms->file_title_str != NULL && strlen(wms->tok_str) == 40);
-          printf("\t\t\t<p><input type=\"submit\" name=\"edit_action\" value=\"Edit\">\n"
-                 "\t\t\t\t<input type=\"submit\" name=\"search_action\" value=\"Search\">\n"
-                 "\t\t\t\t<input type=\"submit\" name=\"learn_action\" value=\"Stop\">\n"
-                 "\t\t\t\t<input type=\"submit\" name=\"learn_action\" value=\"Suspend\"%s>\n"
-                 "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Resume\"%s></p>\n"
-                 "\t\t\t<div><textarea rows=\"10\" cols=\"46\" readonly>%s</textarea></div>\n",
-              wms->ms.card_l[wms->ms.card_i].card_state != STATE_SUSPENDED ? "" : " disabled",
-              wms->ms.can_resume != 0 ? "" : " disabled",
-              wms->html_lp);
-          e = xml_escape(&wms->html_lp, &wms->html_n, a_str, ESC_AMP | ESC_LT);
-          if (e == 0) {
-            printf("\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Show\" disabled>\n"
-                   "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Reveal\" disabled>\n"
-                   "\t\t\t\t<input type=\"submit\" name=\"learn_action\" value=\"Proceed\">\n"
-                   "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Histogram\"></p>\n"
-                   "\t\t\t<div><textarea rows=\"10\" cols=\"46\" readonly>%s</textarea></div>\n"
-                   "\t\t\t<table>\n",
-                wms->html_lp);
-            assert(wms->ms.card_i != -1);
-            card_ptr = wms->ms.card_l + wms->ms.card_i;
-            if (card_ptr->card_state == STATE_NEW) {
-              time_diff = lvl_s[1];
-              lvl = 0;
-            }
-            else {
-              time_diff = wms->ms.timestamp - card_ptr->card_time;
-              for (i = 0; i < 21; i++)
-                if (lvl_s[i] >= card_ptr->card_strength)
-                  break;
-              lvl = i;
-            }
-            j = lvl - 2;
-            if (j < 0)
-              j = 0;
-            for (i = 0; i < 21; i++)
-              if (lvl_s[i] >= time_diff)
-                break;
-            lvl_sel = i;
-            if (lvl_sel > j + 5)
-              lvl_sel = j + 5;
-            for (y = 0; y < 3; y++) {
-              printf("\t\t\t\t<tr>\n");
-              for (x = 0; x < 2; x++) {
-                i = j + x + y * 2;
-                attr_str = i == lvl_sel ? " checked" : "";
-                set_time_str(time_str, lvl_s[i]);
-                printf("\t\t\t\t\t<td><label><input type=\"radio\" name=\"lvl\" value=\"%d\"%s>Level %d (%s)</label></td>\n",
-                    i,
-                    attr_str,
-                    i,
-                    time_str);
-              }
-              printf("\t\t\t\t</tr>\n");
-            }
-            printf("\t\t\t</table>\n"
-                   "\t\t</form>\n"
-                   "\t\t<code>%s; html_n: %zu</code>\n"
-                   "\t</body>\n"
-                   "</html>\n",
-                sw_info_str,
-                wms->html_n);
-          }
-        }
         break;
       case B_MSG:
         assert(wms->static_msg != NULL && wms->static_btn_main != NULL);
