@@ -2959,7 +2959,7 @@ static int gen_html(struct WebMemorySurfer *wms)
           sw_info_str);
         break;
       case B_ABOUT:
-        printf("\t\t\t<h1>About MemorySurfer v1.0.0.15</h1>\n"
+        printf("\t\t\t<h1>About MemorySurfer v1.0.0.16</h1>\n"
                "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                "\t\t\t<p>Copyright 2016-2021</p>\n"
                "\t\t\t<p>Send bugs and suggestions to\n"
@@ -3745,32 +3745,38 @@ size_t utf8_char_len(const char *s) {
   return len;
 }
 
-size_t utf8_strcspn(const char *s, const char *reject) {
-  size_t n;
+size_t utf8_strcspn(const char *s, const char *reject, size_t *n) {
+  int e;
   size_t len;
   int i;
   int j;
   int found;
-  n = 0;
-  do {
-    i = 0;
+  e = s == NULL || reject == NULL || n == NULL;
+  if (e == 0) {
+    *n = 0;
     do {
-      len = utf8_char_len(reject + i);
-      j = 0;
-      found = 1;
-      while (s[n + j] != '\0' && j < len && found == 1) {
-        found = s[n + j] == reject[i + j];
-        j++;
-      }
-      if (reject[i] != '\0')
-        i += len;
-      else
-        found = -1;
-    } while (found == 0);
-    if (found <= 0)
-      n++;
-  } while (found <= 0);
-  return n;
+      i = 0;
+      do {
+        len = utf8_char_len(reject + i);
+        e = len == 0;
+        if (e == 0) {
+          j = 0;
+          found = 1;
+          while (s[*n + j] != '\0' && j < len && found == 1) {
+            found = s[*n + j] == reject[i + j];
+            j++;
+          }
+          if (reject[i] != '\0')
+            i += len;
+          else
+            found = -1;
+        }
+      } while (found == 0 && e == 0);
+      if (found <= 0)
+        ++*n;
+    } while (found <= 0 && e == 0);
+  }
+  return e;
 }
 
 int main(int argc, char *argv[])
@@ -5145,30 +5151,33 @@ int main(int argc, char *argv[])
                   len = strlen(qa_str);
                   e = len > INT32_MAX;
                   if (e == 0) {
-                    i = len;
-                    assert(wms->saved_reveal_pos < i);
-                    n = utf8_strcspn(qa_str + wms->saved_reveal_pos + 1, ",·.-");
-                    size = utf8_char_len(qa_str + wms->saved_reveal_pos + 1 + n);
-                    wms->reveal_pos = wms->saved_reveal_pos + n + size;
-                    if (wms->reveal_pos < i) {
-                      size = wms->reveal_pos + 1 + 11 + 1; // " ---more---" + '\0'
-                      str = malloc(size);
-                      e = str == NULL;
-                      if (e == 0) {
-                        strncpy(str, qa_str, wms->reveal_pos + 1);
-                        str[wms->reveal_pos + 1] = '\0';
-                        strcat(str, " ---more---");
-                        e = sa_set(&wms->ms.card_sa, 1, str);
-                        free(str);
-                        wms->page = P_LEARN;
-                        wms->mode = M_ASK;
+                    assert(wms->saved_reveal_pos < 0 || wms->saved_reveal_pos <= len);
+                    i = wms->saved_reveal_pos < 0 ? 0 : wms->saved_reveal_pos;
+                    e = utf8_strcspn(qa_str + i, ",·.-", &n);
+                    if (e == 0) {
+                      wms->reveal_pos = i + n;
+                      if (wms->reveal_pos < len) {
+                        len = utf8_char_len(qa_str + wms->reveal_pos);
+                        wms->reveal_pos += len;
+                        size = wms->reveal_pos + 10 + 1; // "---more---" + '\0'
+                        str = malloc(size);
+                        e = str == NULL;
+                        if (e == 0) {
+                          strncpy(str, qa_str, wms->reveal_pos);
+                          str[wms->reveal_pos + 1] = '\0';
+                          strcat(str, "---more---");
+                          e = sa_set(&wms->ms.card_sa, 1, str);
+                          free(str);
+                          wms->page = P_LEARN;
+                          wms->mode = M_ASK;
+                        }
                       }
-                    }
-                    else {
-                      assert(wms->reveal_pos == len);
-                      wms->reveal_pos = -1;
-                      wms->page = P_LEARN;
-                      wms->mode = M_RATE;
+                      else {
+                        assert(wms->reveal_pos == len);
+                        wms->reveal_pos = -1;
+                        wms->page = P_LEARN;
+                        wms->mode = M_RATE;
+                      }
                     }
                   }
                 }
