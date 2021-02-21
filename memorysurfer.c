@@ -5154,23 +5154,25 @@ int main(int argc, char *argv[])
                     assert(wms->saved_reveal_pos < 0 || wms->saved_reveal_pos <= len);
                     i = wms->saved_reveal_pos < 0 ? 0 : wms->saved_reveal_pos;
                     e = utf8_strcspn(qa_str + i, ",·.-", &n);
-//                    n = strcspn(qa_str + i, ",€²³·.-大Ü"); // 
                     if (e == 0) {
                       wms->reveal_pos = i + n;
                       if (wms->reveal_pos < len) {
                         len = utf8_char_len(qa_str + wms->reveal_pos);
-                        wms->reveal_pos += len;
-                        size = wms->reveal_pos + 10 + 1; // "---more---" + '\0'
-                        str = malloc(size);
-                        e = str == NULL;
+                        e = len == 0;
                         if (e == 0) {
-                          strncpy(str, qa_str, wms->reveal_pos);
-                          str[wms->reveal_pos + 1] = '\0';
-                          strcat(str, "---more---");
-                          e = sa_set(&wms->ms.card_sa, 1, str);
-                          free(str);
-                          wms->page = P_LEARN;
-                          wms->mode = M_ASK;
+                          wms->reveal_pos += len;
+                          size = wms->reveal_pos + 10 + 1; // "---more---" + '\0'
+                          str = malloc(size);
+                          e = str == NULL;
+                          if (e == 0) {
+                            strncpy(str, qa_str, wms->reveal_pos);
+                            str[wms->reveal_pos] = '\0';
+                            strcat(str, "---more---");
+                            e = sa_set(&wms->ms.card_sa, 1, str);
+                            free(str);
+                            wms->page = P_LEARN;
+                            wms->mode = M_ASK;
+                          }
                         }
                       }
                       else {
