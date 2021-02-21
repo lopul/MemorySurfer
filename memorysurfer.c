@@ -5153,8 +5153,8 @@ int main(int argc, char *argv[])
                   if (e == 0) {
                     assert(wms->saved_reveal_pos < 0 || wms->saved_reveal_pos <= len);
                     i = wms->saved_reveal_pos < 0 ? 0 : wms->saved_reveal_pos;
-//                    e = utf8_strcspn(qa_str + i, ",·.-", &n);
-                    n = strcspn(qa_str + i, ",€²³·.-大Ü"); // 
+                    e = utf8_strcspn(qa_str + i, ",·.-", &n);
+//                    n = strcspn(qa_str + i, ",€²³·.-大Ü"); // 
                     if (e == 0) {
                       wms->reveal_pos = i + n;
                       if (wms->reveal_pos < len) {
