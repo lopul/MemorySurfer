@@ -2986,15 +2986,15 @@ static int gen_html(struct WebMemorySurfer *wms)
         if (e == 0) {
           e = xml_escape(&wms->html_lp, &wms->html_n, q_str, ESC_AMP | ESC_LT);
           if (e == 0) {
-            rv = printf("\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Show\"%s>\n"
+            rv = printf("\t\t\t<p><input type=\"submit\" name=\"learn_action\" value=\"Proceed\"%s>\n"
+                        "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Show\"%s>\n"
                         "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Reveal\"%s>\n"
-                        "\t\t\t\t<input type=\"submit\" name=\"learn_action\" value=\"Proceed\"%s>\n"
                         "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Histogram\"></p>\n"
                         "\t\t\t<div><textarea rows=\"10\" cols=\"46\" readonly>%s</textarea></div>\n"
                         "\t\t\t<table>\n",
-                wms->mode != M_ASK ? " disabled" : "",
-                wms->mode != M_ASK ? " disabled" : "",
                 wms->mode != M_RATE ? " disabled" : "",
+                wms->mode != M_ASK ? " disabled" : "",
+                wms->mode != M_ASK ? " disabled" : "",
                 wms->html_lp);
             e = rv < 0;
             if (e == 0) {
@@ -3731,7 +3731,7 @@ static int gen_err_msg(struct WebMemorySurfer *wms, char *e_str) {
 size_t utf8_char_len(const char *s) {
   size_t len;
   const uint8_t *b;
-  b = (const uint8_t *) s;
+  b = (const uint8_t *)s;
   if ((*b & 0x80) == 0)
     len = 1;
   else if ((*b & 0xE0) == 0xC0)
@@ -5126,9 +5126,10 @@ int main(int argc, char *argv[])
               case A_QUESTION:
                 if (e == 0) {
                   e = ms_determine_card(&wms->ms);
-                  if (e == 0)
-                    wms->page = P_ASK;
-                  else if (e < 0) {
+                  if (e == 0) {
+                    wms->page = P_LEARN;
+                    wms->mode = M_ASK;
+                  } else if (e < 0) {
                     wms->static_msg = "Notification: No card eligible for repetition.";
                     wms->static_btn_main = "OK";
                     wms->todo_main = S_SELECT_LEARN_CAT;
@@ -5204,9 +5205,10 @@ int main(int argc, char *argv[])
                     e = imf_sync(&wms->ms.imf);
                     if (e == 0) {
                       e = ms_determine_card(&wms->ms);
-                      if (e == 0)
-                        wms->page = P_ASK;
-                      else if (e < 0) {
+                      if (e == 0) {
+                        wms->page = P_LEARN;
+                        wms->mode = M_ASK;
+                      } else if (e < 0) {
                         wms->static_msg = "Notification: No card eligible for repetition.";
                         wms->static_btn_main = "OK";
                         wms->todo_main = S_SELECT_LEARN_CAT;
@@ -5229,9 +5231,10 @@ int main(int argc, char *argv[])
                     e = imf_sync(&wms->ms.imf);
                     if (e == 0) {
                       e = ms_determine_card(&wms->ms);
-                      if (e == 0)
-                        wms->page = P_ASK;
-                      else if (e < 0) {
+                      if (e == 0) {
+                        wms->page = P_LEARN;
+                        wms->mode = M_ASK;
+                      } else if (e < 0) {
                         wms->static_msg = "Notification: No card eligible for repetition.";
                         wms->static_btn_main = "OK";
                         wms->todo_main = S_SELECT_LEARN_CAT;
@@ -5265,9 +5268,10 @@ int main(int argc, char *argv[])
                       e = imf_sync(&wms->ms.imf);
                       if (e == 0) {
                         e = ms_determine_card(&wms->ms);
-                        if (e == 0)
-                          wms->page = P_ASK;
-                        else if (e < 0) {
+                        if (e == 0) {
+                          wms->page = P_LEARN;
+                          wms->mode = M_ASK;
+                        } else if (e < 0) {
                           wms->static_msg = "Notification: No card eligible for repetition.";
                           wms->static_btn_main = "OK";
                           wms->todo_main = S_SELECT_LEARN_CAT;
