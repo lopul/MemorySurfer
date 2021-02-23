@@ -2986,12 +2986,11 @@ static int gen_html(struct WebMemorySurfer *wms) {
                         "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Show\"%s>\n"
                         "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Reveal\"%s>\n"
                         "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Histogram\"></p>\n"
-                        "\t\t\t<div><textarea rows=\"10\" cols=\"46\"%s>%s</textarea></div>\n"
+                        "\t\t\t<div><textarea rows=\"10\" cols=\"46\" readonly>%s</textarea></div>\n"
                         "\t\t\t<table>\n",
                 wms->mode != M_RATE ? " disabled" : "",
                 wms->mode != M_ASK ? " disabled" : "",
                 wms->mode != M_ASK ? " disabled" : "",
-                q_str != NULL ? " readonly" : " disabled",
                 wms->html_lp);
             e = rv < 0;
           }
@@ -3058,8 +3057,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
             e = xml_escape(&wms->html_lp, &wms->html_n, a_str, ESC_AMP | ESC_LT);
             if (e == 0) {
               rv = printf("\t\t\t</table>\n"
-                          "\t\t\t<div><textarea rows=\"10\" cols=\"46\" readonly>%s</textarea></div>\n"
-//                        "\t\t\t<div><textarea rows=\"10\" cols=\"46\" disabled></textarea></div>\n"
+                          "\t\t\t<div><textarea rows=\"10\" cols=\"46\"%s>%s</textarea></div>\n"
                           "\t\t\t<p><input type=\"submit\" name=\"edit_action\" value=\"Edit\">\n"
                           "\t\t\t\t<input type=\"submit\" name=\"search_action\" value=\"Search\">\n"
                           "\t\t\t\t<input type=\"submit\" name=\"learn_action\" value=\"Stop\">\n"
@@ -3069,6 +3067,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
                           "\t\t<code>%s; nel: %d; html_n: %zu</code>\n"
                           "\t</body>\n"
                           "</html>\n",
+                  wms->mode == M_RATE || wms->reveal_pos > 0 ? " readonly" : " disabled",
                   wms->mode == M_RATE || wms->reveal_pos > 0 ? wms->html_lp : "",
                   wms->ms.card_l[wms->ms.card_i].card_state != STATE_SUSPENDED ? "" : " disabled",
                   wms->ms.can_resume != 0 ? "" : " disabled",
