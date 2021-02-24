@@ -2958,7 +2958,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        printf("\t\t\t<h1>About MemorySurfer v1.0.0.21</h1>\n"
+        printf("\t\t\t<h1>About MemorySurfer v1.0.0.22</h1>\n"
                "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                "\t\t\t<p>Copyright 2016-2021</p>\n"
                "\t\t\t<p>Send bugs and suggestions to\n"
@@ -4241,8 +4241,11 @@ int main(int argc, char *argv[])
                 if (e == 0) {
                   if (wms->ms.cat_i >= 0)
                     e = wms->ms.cat_i >= wms->ms.cat_a || wms->ms.cat_t[wms->ms.cat_i].cat_used == 0;
-                  else
+                  else {
                     e = wms->ms.cat_i != -1 || wms->ms.n_first != -1;
+                    if (e == 0)
+                      wms->ms.arrange = -1;
+                  }
                   if (e == 0) {
                     cat_i = 0;
                     while (cat_i < wms->ms.cat_a && wms->ms.cat_t[cat_i].cat_used != 0)
