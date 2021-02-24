@@ -1245,15 +1245,18 @@ int parse_post (struct WebMemorySurfer *wms)
                 e = a_n != 1;
                 break;
               case F_CAT_NAME:
-                assert (wms->ms.cat_name == NULL);
-                wms->ms.cat_name = malloc (wms->mult.nread);
-                e = wms->ms.cat_name == NULL;
-                if (e == 0)
-                {
-                  assert (wms->mult.post_lp[wms->mult.nread - 1] == '&');
-                  memcpy (wms->ms.cat_name, wms->mult.post_lp, wms->mult.nread);
-                  e = percent2c (wms->ms.cat_name, wms->mult.nread - 1);
+                e = wms->ms.cat_name != NULL;
+                if (e == 0) {
+                  wms->ms.cat_name = malloc(wms->mult.nread);
+                  e = wms->ms.cat_name == NULL;
+                  if (e == 0) {
+                    assert(wms->mult.post_lp[wms->mult.nread - 1] == '&');
+                    memcpy(wms->ms.cat_name, wms->mult.post_lp, wms->mult.nread);
+                    e = percent2c(wms->ms.cat_name, wms->mult.nread - 1);
+                  }
                 }
+                if (e != 0)
+                  e = 0x00729d2e; // WPPCN Web(MemorySurfer) parse_post (of) cat-name (failed)
                 break;
               case F_MOVED_CAT:
                 assert (wms->ms.mov_cat_i == -1);
@@ -2955,7 +2958,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        printf("\t\t\t<h1>About MemorySurfer v1.0.0.20</h1>\n"
+        printf("\t\t\t<h1>About MemorySurfer v1.0.0.21</h1>\n"
                "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                "\t\t\t<p>Copyright 2016-2021</p>\n"
                "\t\t\t<p>Send bugs and suggestions to\n"
@@ -3034,14 +3037,15 @@ static int gen_html(struct WebMemorySurfer *wms) {
                 e = rv < 0;
                 for (x = 0; x < 2 && e == 0; x++) {
                   i = j + x + y * 2;
-                  attr_str = i == lvl_sel ? " checked" : "";
+                  attr_str = "";
+                  if (i == lvl)
+                    attr_str = " checked";
+                  if (i == lvl_sel)
+                    attr_str = " autofocus";
                   set_time_str(time_str, lvl_s[i]);
-                  str = i == lvl ? " autofocus" : "";
-                  rv = printf("\t\t\t\t\t<td><label><input type=\"radio\" name=\"lvl\" value=\"%d\"%s%s>Level %d (%s)</label></td>\n",
-                      i,
-                      attr_str, str,
-                      i,
-                      time_str);
+                  rv = printf("\t\t\t\t\t<td><label><input type=\"radio\" name=\"lvl\" value=\"%d\"%s>Level %d (%s)</label></td>\n",
+                      i, attr_str,
+                      i, time_str);
                   e = rv < 0;
                 }
                 if (e == 0) {
@@ -4194,14 +4198,17 @@ int main(int argc, char *argv[])
               case A_ERASE:
                 e = ms_close(&wms->ms);
                 if (e == 0) {
-                  e = ms_create (&wms->ms, O_TRUNC);
-                  if (e == 0)
+                  e = ms_create(&wms->ms, O_TRUNC);
+                  if (e == 0) {
+                    wms->ms.cat_i = -1;
                     wms->page = P_FILE;
+                  }
                 }
                 break;
               case A_CLOSE:
                 free(wms->file_title_str);
                 wms->file_title_str = NULL;
+                wms->ms.cat_i = -1;
                 wms->page = P_FILE;
                 break;
               case A_START_CAT:
