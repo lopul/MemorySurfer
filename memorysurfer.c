@@ -2955,7 +2955,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        printf("\t\t\t<h1>About MemorySurfer v1.0.0.18</h1>\n"
+        printf("\t\t\t<h1>About MemorySurfer v1.0.0.20</h1>\n"
                "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                "\t\t\t<p>Copyright 2016-2021</p>\n"
                "\t\t\t<p>Send bugs and suggestions to\n"
@@ -3036,11 +3036,10 @@ static int gen_html(struct WebMemorySurfer *wms) {
                   i = j + x + y * 2;
                   attr_str = i == lvl_sel ? " checked" : "";
                   set_time_str(time_str, lvl_s[i]);
-                  if (i == lvl)
-                    strcat(time_str, "*");
-                  rv = printf("\t\t\t\t\t<td><label><input type=\"radio\" name=\"lvl\" value=\"%d\"%s>Level %d (%s)</label></td>\n",
+                  str = i == lvl ? " autofocus" : "";
+                  rv = printf("\t\t\t\t\t<td><label><input type=\"radio\" name=\"lvl\" value=\"%d\"%s%s>Level %d (%s)</label></td>\n",
                       i,
-                      attr_str,
+                      attr_str, str,
                       i,
                       time_str);
                   e = rv < 0;
