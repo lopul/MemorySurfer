@@ -575,26 +575,27 @@ int imf_sync(struct IndexedMemoryFile *imf)
   return e;
 }
 
-int imf_close (struct IndexedMemoryFile *imf)
-{
+int imf_close(struct IndexedMemoryFile *imf) {
   int e;
-  assert (imf->filedesc != -1);
-  e = close (imf->filedesc);
-  assert (e == 0);
-  if (e == 0)
-  {
-    imf->filedesc = -1;
-    free (imf->chunks);
-    imf->chunks = NULL;
-    imf->chunk_count = 0;
-    free (imf->chunk_order);
-    imf->chunk_order = NULL;
-    free (imf->delete_mark);
-    imf->delete_mark = NULL;
-    imf->delete_end = 0;
-    free (imf->stats_gaps_str);
-    imf->stats_gaps_str = NULL;
+  e = imf == NULL || imf->filedesc == -1;
+  if (e == 0) {
+    e = close(imf->filedesc);
+    if (e == 0) {
+      imf->filedesc = -1;
+      free(imf->chunks);
+      imf->chunks = NULL;
+      imf->chunk_count = 0;
+      free(imf->chunk_order);
+      imf->chunk_order = NULL;
+      free(imf->delete_mark);
+      imf->delete_mark = NULL;
+      imf->delete_end = 0;
+      free(imf->stats_gaps_str);
+      imf->stats_gaps_str = NULL;
+    }
   }
+  if (e != 0)
+    e = 0x0000f927; // IMFC - imf_close (failed)
   return e;
 }
 
