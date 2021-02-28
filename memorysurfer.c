@@ -37,11 +37,11 @@
 #include <errno.h>
 
 enum Field { F_UNKNOWN, F_FILENAME, F_FILE_TITLE, F_START_ACTION, F_FILE_ACTION, F_ARRANGE, F_CAT_NAME, F_MOVED_CAT, F_EDIT_ACTION, F_LEARN_ACTION, F_SEARCH_TXT, F_SEARCH_ACTION, F_CAT, F_CARD, F_MOV_CARD, F_LVL, F_Q, F_A, F_REVEAL_POS, F_MSG_ACTION, F_TODO_MAIN, F_TODO_ALT, F_MTIME, F_PASSWORD, F_NEW_PASSWORD, F_TOKEN, F_EVENT, F_PAGE, F_MODE, F_TIMEOUT };
-enum Action { A_END, A_NONE, A_FILE, A_WARNING, A_CREATE, A_NEW, A_OPEN_DLG, A_FILELIST, A_OPEN, A_CHANGE_PASSWD, A_WRITE_PASSWD, A_READ_PASSWD, A_CHECK_PASSWORD, A_AUTH_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_CHECK_RESUME, A_SLASH, A_VOID, A_FILE_EXTENSION, A_GATHER, A_UPLOAD, A_UPLOAD_REPORT, A_EXPORT, A_REMOVE, A_ASK_ERASE, A_ERASE, A_CLOSE, A_START_CAT, A_SELECT_CREATE_CAT, A_SELECT_CAT, A_SELECT_SEND_CAT, A_SELECT_ARRANGE, A_CAT_NAME, A_CREATE_CAT, A_RENAME_CAT, A_ASK_DELETE_CAT, A_DELETE_CAT, A_TOGGLE, A_MOVE_CAT, A_SELECT_EDIT_CAT, A_EDIT, A_SYNC_QA, A_INSERT, A_APPEND, A_ASK_DELETE_CARD, A_DELETE_CARD, A_PREVIOUS, A_NEXT, A_SCHEDULE, A_SET, A_ARRANGE, A_MOVE_CARD, A_SEND_CARD, A_SELECT_LEARN_CAT, A_SELECT_SEARCH_CAT, A_PREFERENCES, A_ABOUT, A_APPLY, A_SEARCH, A_QUESTION, A_SHOW, A_REVEAL, A_PROCEED, A_SUSPEND, A_RESUME, A_CHECK_FILE, A_LOGIN, A_HISTOGRAM, A_RETRIEVE_MTIME, A_MTIME_TEST, A_CARD_TEST, A_TEST_CAT_SELECTED, A_TEST_CAT_VALID, A_TEST_CAT };
+enum Action { A_END, A_NONE, A_FILE, A_WARNING, A_CREATE, A_NEW, A_OPEN_DLG, A_FILELIST, A_OPEN, A_CHANGE_PASSWD, A_WRITE_PASSWD, A_READ_PASSWD, A_CHECK_PASSWORD, A_AUTH_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_CHECK_RESUME, A_SLASH, A_VOID, A_FILE_EXTENSION, A_GATHER, A_UPLOAD, A_UPLOAD_REPORT, A_EXPORT, A_ASK_REMOVE, A_REMOVE, A_ASK_ERASE, A_ERASE, A_CLOSE, A_START_CAT, A_SELECT_CREATE_CAT, A_SELECT_CAT, A_SELECT_SEND_CAT, A_SELECT_ARRANGE, A_CAT_NAME, A_CREATE_CAT, A_RENAME_CAT, A_ASK_DELETE_CAT, A_DELETE_CAT, A_TOGGLE, A_MOVE_CAT, A_SELECT_EDIT_CAT, A_EDIT, A_SYNC_QA, A_INSERT, A_APPEND, A_ASK_DELETE_CARD, A_DELETE_CARD, A_PREVIOUS, A_NEXT, A_SCHEDULE, A_SET, A_ARRANGE, A_MOVE_CARD, A_SEND_CARD, A_SELECT_LEARN_CAT, A_SELECT_SEARCH_CAT, A_PREFERENCES, A_ABOUT, A_APPLY, A_SEARCH, A_QUESTION, A_SHOW, A_REVEAL, A_PROCEED, A_SUSPEND, A_RESUME, A_CHECK_FILE, A_LOGIN, A_HISTOGRAM, A_RETRIEVE_MTIME, A_MTIME_TEST, A_CARD_TEST, A_TEST_CAT_SELECTED, A_TEST_CAT_VALID, A_TEST_CAT };
 enum Page { P_START, P_FILE, P_PASSWORD, P_NEW, P_OPEN, P_UPLOAD, P_UPLOAD_REPORT, P_EXPORT, P_START_CAT, P_CAT_NAME, P_SELECT_CREATE_CAT, P_SELECT_CAT, P_SELECT_SEND_CAT, P_SELECT_ARRANGE, P_SELECT_CARD_ARRANGE, P_SELECT_EDIT_CAT, P_EDIT, P_SELECT_LEARN_CAT, P_SELECT_SEARCH_CAT, P_SEARCH, P_PREFERENCES, P_ABOUT, P_LEARN, P_MSG, P_HISTOGRAM };
 enum Block { B_END, B_START_HTML, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_START, B_FILE, B_PASSWORD, B_NEW, B_OPEN, B_UPLOAD, B_UPLOAD_REPORT, B_EXPORT, B_START_CAT, B_CAT_NAME, B_SELECT_CREATE_CAT, B_SELECT_CAT, B_SELECT_SEND_CAT, B_SELECT_ARRANGE, B_SELECT_CARD_ARRANGE, B_SELECT_EDIT_CAT, B_EDIT, B_SELECT_LEARN_CAT, B_SELECT_SEARCH_CAT, B_SEARCH, B_PREFERENCES, B_ABOUT, B_LEARN, B_MSG, B_HISTOGRAM };
 enum Mode { M_NONE = -1, M_DEFAULT, M_CHANGE_PASSWD, M_ASK, M_RATE };
-enum Sequence { S_FILE, S_START_CAT, S_SELECT_CREATE_CAT, S_SELECT_ARRANGE, S_SELECT_MOVE_ARRANGE, S_CAT_NAME, S_SELECT_EDIT_CAT, S_SELECT_LEARN_CAT, S_SELECT_SEARCH_CAT, S_PREFERENCES, S_ABOUT, S_APPLY, S_NEW, S_FILELIST, S_WARNING, S_UPLOAD, S_LOGIN, S_ENTER, S_CHANGE, S_START, S_UPLOAD_REPORT, S_EXPORT, S_REMOVE, S_ASK_ERASE, S_ERASE, S_CLOSE, S_NONE, S_CREATE, S_GO_LOGIN, S_GO_CHANGE, S_SELECT_RENAME_CAT, S_RENAME_ENTER, S_RENAME_CAT, S_SELECT_MOVE_CAT, S_SELECT_DEST_CAT, S_MOVE_CAT, S_CREATE_CAT, S_SELECT_DELETE_CAT, S_ASK_DELETE_CAT, S_DELETE_CAT, S_SELECT_TOGGLE_CAT, S_TOGGLE, S_EDIT, S_INSERT, S_APPEND, S_ASK_DELETE_CARD, S_DELETE_CARD, S_PREVIOUS, S_NEXT, S_SCHEDULE, S_SET, S_ARRANGE, S_MOVE_CARD, S_SELECT_SEND_CAT, S_SEND_CARD, S_SEARCH_SYNCED, S_QUESTION, S_SHOW, S_REVEAL, S_PROCEED, S_SUSPEND, S_RESUME, S_SEARCH, S_HISTOGRAM, S_END };
+enum Sequence { S_FILE, S_START_CAT, S_SELECT_CREATE_CAT, S_SELECT_ARRANGE, S_SELECT_MOVE_ARRANGE, S_CAT_NAME, S_SELECT_EDIT_CAT, S_SELECT_LEARN_CAT, S_SELECT_SEARCH_CAT, S_PREFERENCES, S_ABOUT, S_APPLY, S_NEW, S_FILELIST, S_WARNING, S_UPLOAD, S_LOGIN, S_ENTER, S_CHANGE, S_START, S_UPLOAD_REPORT, S_EXPORT, S_ASK_REMOVE, S_REMOVE, S_ASK_ERASE, S_ERASE, S_CLOSE, S_NONE, S_CREATE, S_GO_LOGIN, S_GO_CHANGE, S_SELECT_RENAME_CAT, S_RENAME_ENTER, S_RENAME_CAT, S_SELECT_MOVE_CAT, S_SELECT_DEST_CAT, S_MOVE_CAT, S_CREATE_CAT, S_SELECT_DELETE_CAT, S_ASK_DELETE_CAT, S_DELETE_CAT, S_SELECT_TOGGLE_CAT, S_TOGGLE, S_EDIT, S_INSERT, S_APPEND, S_ASK_DELETE_CARD, S_DELETE_CARD, S_PREVIOUS, S_NEXT, S_SCHEDULE, S_SET, S_ARRANGE, S_MOVE_CARD, S_SELECT_SEND_CAT, S_SEND_CARD, S_SEARCH_SYNCED, S_QUESTION, S_SHOW, S_REVEAL, S_PROCEED, S_SUSPEND, S_RESUME, S_SEARCH, S_HISTOGRAM, S_END };
 enum Stage { T_NULL, T_URLENCODE, T_BOUNDARY_INIT, T_CONTENT, T_NAME, T_BOUNDARY_BEGIN, T_BOUNDARY_CHECK };
 
 static enum Action action_seq[S_END+1][13] = {
@@ -67,6 +67,7 @@ static enum Action action_seq[S_END+1][13] = {
   { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_NONE, A_END }, // S_START
   { A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_UPLOAD_REPORT, A_END }, // S_UPLOAD_REPORT
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_EXPORT, A_END }, // S_EXPORT
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_ASK_REMOVE, A_END }, // S_ASK_REMOVE
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_REMOVE, A_CLOSE, A_END }, // S_REMOVE
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_ASK_ERASE, A_END }, // S_ASK_ERASE
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_ERASE, A_END }, // S_ERASE
@@ -1381,7 +1382,7 @@ int parse_post (struct WebMemorySurfer *wms)
                 }
                 break;
               case F_MSG_ACTION:
-                if (memcmp (wms->mult.post_lp, "OK", 2) == 0 || memcmp (wms->mult.post_lp, "Retry", 5) == 0 || memcmp (wms->mult.post_lp, "Delete", 6) == 0 || memcmp (wms->mult.post_lp, "Erase", 5) == 0)
+                if (memcmp (wms->mult.post_lp, "OK", 2) == 0 || memcmp (wms->mult.post_lp, "Retry", 5) == 0 || memcmp (wms->mult.post_lp, "Delete", 6) == 0 || memcmp (wms->mult.post_lp, "Erase", 5) == 0 || memcmp (wms->mult.post_lp, "Remove", 6) == 0)
                 {
                   assert (wms->todo_main != -1);
                   wms->seq = wms->todo_main;
@@ -1508,7 +1509,7 @@ int parse_post (struct WebMemorySurfer *wms)
                       wms->seq = S_NONE;
                   }
                   break;
-                default:
+                case 6:
                   if (strncmp(wms->mult.post_lp, "Create", 6) == 0) {
                     if (wms->from_page == P_START_CAT)
                       wms->seq = S_SELECT_CREATE_CAT;
@@ -1571,19 +1572,24 @@ int parse_post (struct WebMemorySurfer *wms)
                       if (e == 0)
                         wms->seq = S_TOGGLE;
                     }
-                  else if (strncmp(wms->mult.post_lp, "Set", 3) == 0) {
+                  else if (strncmp(wms->mult.post_lp, "Remove", 6) == 0)
+                    wms->seq = S_ASK_REMOVE;
+                  else if (strncmp(wms->mult.post_lp, "Resume", 6) == 0)
+                    wms->seq = S_RESUME;
+                  else {
+                    e = strncmp(wms->mult.post_lp, "Reveal", 6); 
+                    if (e == 0)
+                      wms->seq = S_REVEAL;
+                  }
+                  break;
+                default:
+                  if (strncmp(wms->mult.post_lp, "Set", 3) == 0) {
                     e = wms->from_page != P_EDIT;
                     if (e == 0)
                       wms->seq = S_SET;
                   }
-                  else if (strncmp(wms->mult.post_lp, "Remove", 6) == 0)
-                    wms->seq = S_REMOVE;
-                  else if (strncmp(wms->mult.post_lp, "Resume", 6) == 0)
-                    wms->seq = S_RESUME;
                   else if (strncmp(wms->mult.post_lp, "Preferences", 11) == 0)
                     wms->seq = S_PREFERENCES;
-                  else if (strncmp(wms->mult.post_lp, "Reveal", 6) == 0)
-                    wms->seq = S_REVEAL;
                   else if (strncmp(wms->mult.post_lp, "Histogram", 9) == 0)
                     wms->seq = S_HISTOGRAM;
                   else if (strncmp(wms->mult.post_lp, "Refresh", 7) == 0)
@@ -2964,7 +2970,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        printf("\t\t\t<h1>About MemorySurfer v1.0.0.24</h1>\n"
+        printf("\t\t\t<h1>About MemorySurfer v1.0.0.26</h1>\n"
                "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                "\t\t\t<p>Copyright 2016-2021</p>\n"
                "\t\t\t<p>Send bugs and suggestions to\n"
@@ -4187,20 +4193,28 @@ int main(int argc, char *argv[])
                     if (wms->ms.card_l[card_i].card_state == STATE_SUSPENDED)
                       wms->ms.can_resume = 1;
                 break;
+              case A_ASK_REMOVE:
+                wms->static_msg = "Remove file of the file system?";
+                wms->static_btn_main = "Remove";
+                wms->static_btn_alt = "Cancel";
+                wms->todo_main = S_REMOVE;
+                wms->todo_alt = S_START;
+                wms->page = P_MSG;
+                break;
               case A_REMOVE:
-                e = ms_close (&wms->ms);
+                e = ms_close(&wms->ms);
                 if (e == 0) {
-                  e = unlink (wms->ms.imf_filename);
+                  e = unlink(wms->ms.imf_filename);
                   if (e == 0) {
-                    assert (wms->ms.imf_filename != NULL);
-                    free (wms->ms.imf_filename);
+                    assert(wms->ms.imf_filename != NULL);
+                    free(wms->ms.imf_filename);
                     wms->ms.imf_filename = NULL;
                     wms->tok_str[0] = '\0';
                   }
                 }
                 break;
               case A_ASK_ERASE:
-                wms->static_msg = "Erase all data?";
+                wms->static_msg = "Erase all decks & cards?";
                 wms->static_btn_main = "Erase";
                 wms->static_btn_alt = "Cancel";
                 wms->todo_main = S_ERASE;
