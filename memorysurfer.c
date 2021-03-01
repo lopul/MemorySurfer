@@ -36,7 +36,7 @@
 #include <fcntl.h> // O_TRUNC / O_EXCL
 #include <errno.h>
 
-enum Field { F_UNKNOWN, F_FILENAME, F_FILE_TITLE, F_START_ACTION, F_FILE_ACTION, F_ARRANGE, F_CAT_NAME, F_MOVED_CAT, F_EDIT_ACTION, F_LEARN_ACTION, F_SEARCH_TXT, F_SEARCH_ACTION, F_CAT, F_CARD, F_MOV_CARD, F_LVL, F_Q, F_A, F_REVEAL_POS, F_MSG_ACTION, F_TODO_MAIN, F_TODO_ALT, F_MTIME, F_PASSWORD, F_NEW_PASSWORD, F_TOKEN, F_EVENT, F_PAGE, F_MODE, F_TIMEOUT };
+enum Field { F_UNKNOWN, F_FILENAME, F_FILE_TITLE, F_START_ACTION, F_FILE_ACTION, F_ARRANGE, F_CAT_NAME, F_MOVED_CAT, F_EDIT_ACTION, F_LEARN_ACTION, F_SEARCH_TXT, F_SEARCH_ACTION, F_CAT, F_CARD, F_MOV_CARD, F_LVL, F_Q, F_A, F_REVEAL_POS, F_TODO_MAIN, F_TODO_ALT, F_MTIME, F_PASSWORD, F_NEW_PASSWORD, F_TOKEN, F_EVENT, F_PAGE, F_MODE, F_TIMEOUT };
 enum Action { A_END, A_NONE, A_FILE, A_WARNING, A_CREATE, A_NEW, A_OPEN_DLG, A_FILELIST, A_OPEN, A_CHANGE_PASSWD, A_WRITE_PASSWD, A_READ_PASSWD, A_CHECK_PASSWORD, A_AUTH_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_CHECK_RESUME, A_SLASH, A_VOID, A_FILE_EXTENSION, A_GATHER, A_UPLOAD, A_UPLOAD_REPORT, A_EXPORT, A_ASK_REMOVE, A_REMOVE, A_ASK_ERASE, A_ERASE, A_CLOSE, A_START_CAT, A_SELECT_CREATE_CAT, A_SELECT_CAT, A_SELECT_SEND_CAT, A_SELECT_ARRANGE, A_CAT_NAME, A_CREATE_CAT, A_RENAME_CAT, A_ASK_DELETE_CAT, A_DELETE_CAT, A_TOGGLE, A_MOVE_CAT, A_SELECT_EDIT_CAT, A_EDIT, A_SYNC_QA, A_INSERT, A_APPEND, A_ASK_DELETE_CARD, A_DELETE_CARD, A_PREVIOUS, A_NEXT, A_SCHEDULE, A_SET, A_ARRANGE, A_MOVE_CARD, A_SEND_CARD, A_SELECT_LEARN_CAT, A_SELECT_SEARCH_CAT, A_PREFERENCES, A_ABOUT, A_APPLY, A_SEARCH, A_QUESTION, A_SHOW, A_REVEAL, A_PROCEED, A_SUSPEND, A_RESUME, A_CHECK_FILE, A_LOGIN, A_HISTOGRAM, A_RETRIEVE_MTIME, A_MTIME_TEST, A_CARD_TEST, A_TEST_CAT_SELECTED, A_TEST_CAT_VALID, A_TEST_CAT };
 enum Page { P_START, P_FILE, P_PASSWORD, P_NEW, P_OPEN, P_UPLOAD, P_UPLOAD_REPORT, P_EXPORT, P_START_CAT, P_CAT_NAME, P_SELECT_CREATE_CAT, P_SELECT_CAT, P_SELECT_SEND_CAT, P_SELECT_ARRANGE, P_SELECT_CARD_ARRANGE, P_SELECT_EDIT_CAT, P_EDIT, P_SELECT_LEARN_CAT, P_SELECT_SEARCH_CAT, P_SEARCH, P_PREFERENCES, P_ABOUT, P_LEARN, P_MSG, P_HISTOGRAM };
 enum Block { B_END, B_START_HTML, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_START, B_FILE, B_PASSWORD, B_NEW, B_OPEN, B_UPLOAD, B_UPLOAD_REPORT, B_EXPORT, B_START_CAT, B_CAT_NAME, B_SELECT_CREATE_CAT, B_SELECT_CAT, B_SELECT_SEND_CAT, B_SELECT_ARRANGE, B_SELECT_CARD_ARRANGE, B_SELECT_EDIT_CAT, B_EDIT, B_SELECT_LEARN_CAT, B_SELECT_SEARCH_CAT, B_SEARCH, B_PREFERENCES, B_ABOUT, B_LEARN, B_MSG, B_HISTOGRAM };
@@ -1112,9 +1112,7 @@ int parse_post (struct WebMemorySurfer *wms)
                   field = F_TODO_MAIN;
                 break;
               case 10:
-                if (memcmp(wms->mult.post_lp, "msg_action", 10) == 0)
-                  field = F_MSG_ACTION;
-                else if (memcmp(wms->mult.post_lp, "reveal-pos", 10) == 0)
+                if (memcmp(wms->mult.post_lp, "reveal-pos", 10) == 0)
                   field = F_REVEAL_POS;
                 else if (memcmp(wms->mult.post_lp, "search_txt", 10) == 0)
                   field = F_SEARCH_TXT;
@@ -1381,20 +1379,6 @@ int parse_post (struct WebMemorySurfer *wms)
                   wms->saved_reveal_pos = -1;
                 }
                 break;
-              case F_MSG_ACTION:
-                if (memcmp (wms->mult.post_lp, "OK", 2) == 0 || memcmp (wms->mult.post_lp, "Retry", 5) == 0 || memcmp (wms->mult.post_lp, "Delete", 6) == 0 || memcmp (wms->mult.post_lp, "Erase", 5) == 0 || memcmp (wms->mult.post_lp, "Remove", 6) == 0)
-                {
-                  assert (wms->todo_main != -1);
-                  wms->seq = wms->todo_main;
-                }
-                else {
-                  e = memcmp(wms->mult.post_lp, "Cancel", 5);
-                  if (e == 0) {
-                    assert(wms->todo_alt != -1);
-                    wms->seq = wms->todo_alt;
-                  }
-                }
-                break;
               case F_TODO_MAIN:
                 assert (wms->todo_main == -1);
                 a_n = sscanf (wms->mult.post_lp, "%d", &wms->todo_main);
@@ -1500,7 +1484,16 @@ int parse_post (struct WebMemorySurfer *wms)
                   if (strncmp(wms->mult.post_lp, "Apply", 5) == 0)
                     wms->seq = S_APPLY;
                   else if (strncmp(wms->mult.post_lp, "Erase", 5) == 0)
-                    wms->seq = S_ASK_ERASE;
+                    if (wms->from_page == P_FILE)
+                      wms->seq = S_ASK_ERASE;
+                    else {
+                      e = wms->from_page != P_MSG;
+                      if (e == 0) {
+                        e = wms->todo_main == -1;
+                        if (e == 0)
+                          wms->seq = wms->todo_main;
+                      }
+                    }
                   else if (strncmp(wms->mult.post_lp, "About", 5) == 0)
                     wms->seq = S_ABOUT;
                   else {
@@ -1522,6 +1515,11 @@ int parse_post (struct WebMemorySurfer *wms)
                   else if (strncmp(wms->mult.post_lp, "Cancel", 6) == 0) {
                     if (wms->from_page == P_PREFERENCES)
                       wms->seq = S_START;
+                    else if (wms->from_page == P_MSG) {
+                      e = wms->todo_alt == -1;
+                      if (e == 0)
+                        wms->seq = wms->todo_alt;
+                    }
                     else {
                       e = wms->from_page != P_OPEN;
                       if (e == 0)
@@ -1542,6 +1540,11 @@ int parse_post (struct WebMemorySurfer *wms)
                   else if (strncmp(wms->mult.post_lp, "Delete", 6) == 0) {
                     if (wms->from_page == P_START_CAT)
                       wms->seq = S_SELECT_DELETE_CAT;
+                    else if (wms->from_page == P_MSG) {
+                      e = wms->todo_main == -1;
+                      if (e == 0)
+                        wms->seq = wms->todo_main;
+                    }
                     else {
                       e = wms->from_page != P_SELECT_CAT;
                       if (e == 0)
@@ -1573,11 +1576,20 @@ int parse_post (struct WebMemorySurfer *wms)
                         wms->seq = S_TOGGLE;
                     }
                   else if (strncmp(wms->mult.post_lp, "Remove", 6) == 0)
-                    wms->seq = S_ASK_REMOVE;
+                    if (wms->from_page == P_FILE)
+                      wms->seq = S_ASK_REMOVE;
+                    else {
+                      e = wms->from_page != P_MSG;
+                      if (e == 0) {
+                        e = wms->todo_main == -1;
+                        if (e == 0)
+                          wms->seq = wms->todo_main;
+                      }
+                    }
                   else if (strncmp(wms->mult.post_lp, "Resume", 6) == 0)
                     wms->seq = S_RESUME;
                   else {
-                    e = strncmp(wms->mult.post_lp, "Reveal", 6); 
+                    e = strncmp(wms->mult.post_lp, "Reveal", 6);
                     if (e == 0)
                       wms->seq = S_REVEAL;
                   }
@@ -1597,10 +1609,20 @@ int parse_post (struct WebMemorySurfer *wms)
                   else {
                     e = strncmp(wms->mult.post_lp, "OK", 2);
                     if (e == 0) {
-                      if (wms->file_title_str != NULL)
-                        wms->seq = S_START;
-                      else
-                        wms->seq = S_NONE;
+                      if (wms->from_page == P_FILE) {
+                        if (wms->file_title_str != NULL)
+                          wms->seq = S_START;
+                        else
+                          wms->seq = S_NONE;
+                      }
+                      else {
+                        e = wms->from_page != P_MSG;
+                        if (e == 0) {
+                          e = wms->todo_main == -1;
+                          if (e == 0)
+                            wms->seq = wms->todo_main;
+                        }
+                      }
                     }
                   }
                   break;
@@ -2970,7 +2992,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        printf("\t\t\t<h1>About MemorySurfer v1.0.0.26</h1>\n"
+        printf("\t\t\t<h1>About MemorySurfer v1.0.0.27</h1>\n"
                "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                "\t\t\t<p>Copyright 2016-2021</p>\n"
                "\t\t\t<p>Send bugs and suggestions to\n"
@@ -3099,28 +3121,35 @@ static int gen_html(struct WebMemorySurfer *wms) {
       case B_MSG:
         assert(wms->static_msg != NULL && wms->static_btn_main != NULL);
         assert(wms->todo_main >= S_FILE && wms->todo_main <= S_END);
-        printf("\t\t\t\t<input type=\"hidden\" name=\"todo_main\" value=\"%d\">\n",
-          wms->todo_main);
-        if (wms->todo_alt >= S_FILE) {
+        rv = printf("\t\t\t\t<input type=\"hidden\" name=\"todo_main\" value=\"%d\">\n", wms->todo_main);
+        e = rv < 0;
+        if (e == 0 && wms->todo_alt >= S_FILE) {
           assert(wms->todo_alt <= S_END);
-          printf("\t\t\t\t<input type=\"hidden\" name=\"todo_alt\" value=\"%d\">\n",
-            wms->todo_alt);
+          rv = printf("\t\t\t\t<input type=\"hidden\" name=\"todo_alt\" value=\"%d\">\n", wms->todo_alt);
+          e = rv < 0;
         }
-        printf("\t\t\t</div>\n"
-               "\t\t\t<h1>%s</h1>\n"
-               "\t\t\t<p>\n"
-               "\t\t\t\t<input type=\"submit\" name=\"msg_action\" value=\"%s\">\n",
-          wms->static_msg,
-          wms->static_btn_main);
-        if (wms->static_btn_alt != NULL)
-          printf("\t\t\t\t<input type=\"submit\" name=\"msg_action\" value=\"%s\">\n",
-            wms->static_btn_alt);
-        printf("\t\t\t</p>\n"
-               "\t\t</form>\n"
-               "\t\t<code>%s</code>\n"
-               "\t</body>\n"
-               "</html>\n",
-          sw_info_str);
+        if (e == 0) {
+          rv = printf("\t\t\t</div>\n"
+                      "\t\t\t<h1>%s</h1>\n"
+                      "\t\t\t<p>\n"
+                      "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"%s\">\n",
+              wms->static_msg,
+              wms->static_btn_main);
+          e = rv < 0;
+        }
+        if (e == 0 && wms->static_btn_alt != NULL) {
+          rv = printf("\t\t\t\t<input type=\"submit\" name=\"event\" value=\"%s\">\n", wms->static_btn_alt);
+          e = rv < 0;
+        }
+        if (e == 0) {
+          rv = printf("\t\t\t</p>\n"
+                      "\t\t</form>\n"
+                      "\t\t<code>%s</code>\n"
+                      "\t</body>\n"
+                      "</html>\n",
+              sw_info_str);
+          e = rv < 0;
+        }
         break;
       case B_HISTOGRAM:
         assert(e == 0);
