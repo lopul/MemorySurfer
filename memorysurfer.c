@@ -1609,7 +1609,7 @@ int parse_post (struct WebMemorySurfer *wms)
                   else {
                     e = strncmp(wms->mult.post_lp, "OK", 2);
                     if (e == 0) {
-                      if (wms->from_page == P_FILE) {
+                      if (wms->from_page == P_FILE || wms->from_page == P_ABOUT) {
                         if (wms->file_title_str != NULL)
                           wms->seq = S_START;
                         else
@@ -2992,7 +2992,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        printf("\t\t\t<h1>About MemorySurfer v1.0.0.27</h1>\n"
+        printf("\t\t\t<h1>About MemorySurfer v1.0.0.28</h1>\n"
                "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                "\t\t\t<p>Copyright 2016-2021</p>\n"
                "\t\t\t<p>Send bugs and suggestions to\n"
@@ -4227,7 +4227,7 @@ int main(int argc, char *argv[])
                 wms->static_btn_main = "Remove";
                 wms->static_btn_alt = "Cancel";
                 wms->todo_main = S_REMOVE;
-                wms->todo_alt = S_START;
+                wms->todo_alt = S_FILE;
                 wms->page = P_MSG;
                 break;
               case A_REMOVE:
@@ -4247,7 +4247,7 @@ int main(int argc, char *argv[])
                 wms->static_btn_main = "Erase";
                 wms->static_btn_alt = "Cancel";
                 wms->todo_main = S_ERASE;
-                wms->todo_alt = S_START;
+                wms->todo_alt = S_FILE;
                 wms->page = P_MSG;
                 break;
               case A_ERASE:
