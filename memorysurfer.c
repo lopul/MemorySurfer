@@ -1307,26 +1307,18 @@ int parse_post (struct WebMemorySurfer *wms)
                 }
                 break;
               case F_SEARCH_ACTION:
-                if (memcmp (wms->mult.post_lp, "Search", 6) == 0)
-                {
-                  wms->seq = S_SEARCH;
-                }
-                else if (memcmp(wms->mult.post_lp, "Cancel", 6) == 0)
+                if (memcmp(wms->mult.post_lp, "Cancel", 6) == 0)
                   wms->seq = S_START;
-                else if (memcmp (wms->mult.post_lp, "Reverse", 7) == 0)
-                {
+                else if (memcmp (wms->mult.post_lp, "Reverse", 7) == 0) {
                   wms->seq = S_SEARCH;
                   wms->ms.srch_dir = -1;
                 }
-                else if (memcmp (wms->mult.post_lp, "Forward", 7) == 0)
-                {
+                else if (memcmp (wms->mult.post_lp, "Forward", 7) == 0) {
                   wms->seq = S_SEARCH;
                   wms->ms.srch_dir = 1;
                 }
                 else if (memcmp (wms->mult.post_lp, "Stop", 4) == 0)
-                {
                   wms->seq = S_SELECT_SEARCH_CAT;
-                }
                 break;
               case F_CAT:
                 assert (wms->ms.cat_i == -1);
@@ -1588,6 +1580,8 @@ int parse_post (struct WebMemorySurfer *wms)
                     }
                   else if (strncmp(wms->mult.post_lp, "Resume", 6) == 0)
                     wms->seq = S_RESUME;
+                  else if (memcmp (wms->mult.post_lp, "Search", 6) == 0)
+                    wms->seq = S_SEARCH;
                   else {
                     e = strncmp(wms->mult.post_lp, "Reveal", 6);
                     if (e == 0)
@@ -2922,7 +2916,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         assert(wms->file_title_str != NULL && strlen(wms->tok_str) == 40);
         printf("\t\t\t<h1>Select a category to search</h1>\n");
         gen_html_cat (wms->ms.n_first, 3, H_CHILD, wms);
-        printf("\t\t\t<p><input type=\"submit\" name=\"search_action\" value=\"Search\">\n"
+        printf("\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Search\">\n"
                "\t\t\t<input type=\"submit\" name=\"search_action\" value=\"Cancel\"></p>\n"
                "\t\t</form>\n"
                "\t\t<code>%s</code>\n"
@@ -2992,7 +2986,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        printf("\t\t\t<h1>About MemorySurfer v1.0.0.28</h1>\n"
+        printf("\t\t\t<h1>About MemorySurfer v1.0.0.29</h1>\n"
                "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                "\t\t\t<p>Copyright 2016-2021</p>\n"
                "\t\t\t<p>Send bugs and suggestions to\n"
@@ -3096,7 +3090,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
               rv = printf("\t\t\t</table>\n"
                           "\t\t\t<div><textarea rows=\"10\" cols=\"46\"%s>%s</textarea></div>\n"
                           "\t\t\t<p><input type=\"submit\" name=\"edit_action\" value=\"Edit\">\n"
-                          "\t\t\t\t<input type=\"submit\" name=\"search_action\" value=\"Search\">\n"
+                          "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Search\">\n"
                           "\t\t\t\t<input type=\"submit\" name=\"learn_action\" value=\"Stop\">\n"
                           "\t\t\t\t<input type=\"submit\" name=\"learn_action\" value=\"Suspend\"%s>\n"
                           "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Resume\"%s></p>\n"
@@ -3152,52 +3146,58 @@ static int gen_html(struct WebMemorySurfer *wms) {
         }
         break;
       case B_HISTOGRAM:
-        assert(e == 0);
         wms->html_lp[0] = '\0';
-        strcat (wms->html_lp, "M1 61");
+        strcat(wms->html_lp, "M1 61");
         nb = 5;
         y = 0;
         for (i = 0; i < 100 && e == 0; i++) {
-          e = nb + 3 * sizeof (path_str) + 1 > wms->html_n;
+          e = nb + 3 * sizeof(path_str) + 1 > wms->html_n;
           if (e == 0) {
             dy = y - wms->hist_bucket[i];
             if (dy != 0) {
-              nb += sprintf (path_str, "v%d", dy);
-              strcat (wms->html_lp, path_str);
+              nb += sprintf(path_str, "v%d", dy);
+              strcat(wms->html_lp, path_str);
               y -= dy;
             }
-            strcat (wms->html_lp, "h1");
+            strcat(wms->html_lp, "h1");
             nb += 2;
           }
         }
         if (e == 0) {
-          sprintf (path_str, "v%d", y);
-          strcat (wms->html_lp, path_str);
-          strcat (wms->html_lp, "z");
+          sprintf(path_str, "v%d", y);
+          strcat(wms->html_lp, path_str);
+          strcat(wms->html_lp, "z");
         }
         e = imf_info_gaps(&wms->ms.imf);
         notice_str[0] = e == 0 ? wms->ms.imf.stats_gaps_str : "error";
-        printf("\t\t\t<h1>Histogram and Table</h1>\n"
-               "\t\t\t<p>Retention</p>\n"
-               "\t\t\t<svg viewbox=\"0 0 101 62\">\n"
-               "\t\t\t\t<path d=\"%s\" />\n"
-               "\t\t\t</svg>\n"
-               "\t\t\t<p>Strength</p>\n"
-               "\t\t\t<table>\n",
-          wms->html_lp);
-        for (i = 0; i < 21; i++)
-          printf("\t\t\t\t<tr><td>%d</td><td>%d</td></tr>\n", i, wms->lvl_bucket[i]);
-        printf("\t\t\t</table>\n"
-               "\t\t\t<p><input type=\"submit\" name=\"learn_action\" value=\"Learn\">\n"
-               "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Refresh\"></p>\n"
-               "\t\t</form>\n"
-               "\t\t<code>%s; gaps=%d, gaps_size=%d, Details: %s</code>\n"
-               "\t</body>\n"
-               "</html>\n",
-            sw_info_str,
-            wms->ms.imf.stats_gaps,
-            wms->ms.imf.stats_gaps_space,
-            notice_str[0]);
+        rv = printf("\t\t\t<h1>Histogram and Table</h1>\n"
+                    "\t\t\t<p>Retention</p>\n"
+                    "\t\t\t<svg viewbox=\"0 0 101 62\">\n"
+                    "\t\t\t\t<path d=\"%s\" />\n"
+                    "\t\t\t</svg>\n"
+                    "\t\t\t<p>Strength</p>\n"
+                    "\t\t\t<table>\n",
+            wms->html_lp);
+        e = rv < 0;
+        for (i = 0; i < 21 && e == 0; i++) {
+          rv = printf("\t\t\t\t<tr><td>%d</td><td>%d</td></tr>\n", i, wms->lvl_bucket[i]);
+          e = rv < 0;
+        }
+        if (e == 0) {
+          rv = printf("\t\t\t</table>\n"
+                      "\t\t\t<p><input type=\"submit\" name=\"learn_action\" value=\"Learn\">\n"
+                      "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Search\">\n"
+                      "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Refresh\"></p>\n"
+                      "\t\t</form>\n"
+                      "\t\t<code>%s; gaps=%d, gaps_size=%d, Details: %s</code>\n"
+                      "\t</body>\n"
+                      "</html>\n",
+              sw_info_str,
+              wms->ms.imf.stats_gaps,
+              wms->ms.imf.stats_gaps_space,
+              notice_str[0]);
+          e = rv < 0;
+        }
         break;
       default:
         e = 0x011e23b9; // WMSGHA (Web)MemorySurfer gen_html assert (failed)
