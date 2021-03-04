@@ -1309,15 +1309,15 @@ int parse_post (struct WebMemorySurfer *wms)
               case F_SEARCH_ACTION:
                 if (memcmp(wms->mult.post_lp, "Cancel", 6) == 0)
                   wms->seq = S_START;
-                else if (memcmp (wms->mult.post_lp, "Reverse", 7) == 0) {
+                else if (memcmp(wms->mult.post_lp, "Reverse", 7) == 0) {
                   wms->seq = S_SEARCH;
                   wms->ms.srch_dir = -1;
                 }
-                else if (memcmp (wms->mult.post_lp, "Forward", 7) == 0) {
+                else if (memcmp(wms->mult.post_lp, "Forward", 7) == 0) {
                   wms->seq = S_SEARCH;
                   wms->ms.srch_dir = 1;
                 }
-                else if (memcmp (wms->mult.post_lp, "Stop", 4) == 0)
+                else if (memcmp(wms->mult.post_lp, "Stop", 4) == 0)
                   wms->seq = S_SELECT_SEARCH_CAT;
                 break;
               case F_CAT:
@@ -1466,6 +1466,8 @@ int parse_post (struct WebMemorySurfer *wms)
                         wms->seq = S_SEND_CARD;
                     }
                   }
+                  else if (strncmp(wms->mult.post_lp, "Done", 4) == 0)
+                    wms->seq = S_START;
                   else {
                     e = strncmp(wms->mult.post_lp, "Show", 4) != 0;
                     if (e == 0)
@@ -1580,7 +1582,7 @@ int parse_post (struct WebMemorySurfer *wms)
                     }
                   else if (strncmp(wms->mult.post_lp, "Resume", 6) == 0)
                     wms->seq = S_RESUME;
-                  else if (memcmp (wms->mult.post_lp, "Search", 6) == 0)
+                  else if (memcmp(wms->mult.post_lp, "Search", 6) == 0)
                     wms->seq = S_SEARCH;
                   else {
                     e = strncmp(wms->mult.post_lp, "Reveal", 6);
@@ -2986,7 +2988,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        printf("\t\t\t<h1>About MemorySurfer v1.0.0.29</h1>\n"
+        printf("\t\t\t<h1>About MemorySurfer v1.0.1.0</h1>\n"
                "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                "\t\t\t<p>Copyright 2016-2021</p>\n"
                "\t\t\t<p>Send bugs and suggestions to\n"
@@ -3187,7 +3189,8 @@ static int gen_html(struct WebMemorySurfer *wms) {
           rv = printf("\t\t\t</table>\n"
                       "\t\t\t<p><input type=\"submit\" name=\"learn_action\" value=\"Learn\">\n"
                       "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Search\">\n"
-                      "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Refresh\"></p>\n"
+                      "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Refresh\">\n"
+                      "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Done\"></p>\n"
                       "\t\t</form>\n"
                       "\t\t<code>%s; gaps=%d, gaps_size=%d, Details: %s</code>\n"
                       "\t</body>\n"
@@ -5334,3 +5337,5 @@ int main(int argc, char *argv[])
     fprintf(stderr, "malloc for wms failed\n");
   return e;
 }
+/*
+*/
