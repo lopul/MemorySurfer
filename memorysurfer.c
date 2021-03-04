@@ -2109,8 +2109,7 @@ void set_indent (char *indent_str, int indent, size_t max_size)
   }
 }
 
-static void sa_init(struct StringArray *sa)
-{
+static void sa_init(struct StringArray *sa) {
   sa->sa_c = 0;
   sa->sa_d = NULL;
   sa->sa_n = 0;
@@ -3250,7 +3249,7 @@ int ms_init(struct MemorySurfer *ms)
   return e;
 }
 
-int wms_init (struct WebMemorySurfer *wms)
+int wms_init(struct WebMemorySurfer *wms)
 {
   int e;
   e = ms_init(&wms->ms);
@@ -3758,6 +3757,7 @@ int main(int argc, char *argv[])
   struct Card *card_ptr;
   char e_str[8]; // JTLWQNE + '\0' (0x7fffffff)
   char msg[64];
+  dbg_stream = NULL;
   size = sizeof(struct WebMemorySurfer);
   wms = malloc(size);
   e = wms == NULL;
@@ -3777,1195 +3777,965 @@ int main(int argc, char *argv[])
             e = rv < 0 || rv >= size;
             if (e == 0) {
               dbg_stream = fopen(dbg_filename, "a");
-              e = dbg_stream == NULL;
+              if (dbg_stream == NULL) {
+                rv = fprintf(stderr, "can't open %s\n", dbg_filename);
+                e = rv < 0;
+              }
             }
             free(dbg_filename);
           }
-          if (e == 0) {
-            mtime_test = -1;
-            act_i = 0;
-            assert(wms->seq <= S_END);
-            while ((act_c = action_seq[wms->seq][act_i++]) != A_END && e == 0)
-            {
-              switch (act_c)
-              {
-              case A_END:
-                assert (0);
-                break;
-              case A_NONE:
-                wms->page = P_START;
-                break;
-              case A_FILE:
-                wms->page = P_FILE;
-                break;
-              case A_WARNING:
-                wms->static_msg = "Warning: Before importing, the content of the current file is erased (and rebuild during the import).";
-                wms->static_btn_main = "Erase";
-                wms->static_btn_alt = "Cancel";
-                wms->todo_main = S_UPLOAD;
-                wms->todo_alt = S_FILE;
-                wms->page = P_MSG;
-                break;
-              case A_CREATE:
-                e = ms_create(&wms->ms, O_EXCL);
-                if (e != 0) {
-                  assert(wms->file_title_str != NULL);
-                  free(wms->file_title_str);
-                  wms->file_title_str = NULL;
-                  wms->static_msg = strerror(e);
-                  wms->static_btn_main = "OK";
-                  wms->todo_main = S_NONE;
-                  wms->page = P_MSG;
-                }
-                break;
-              case A_NEW:
-                wms->page = P_NEW;
-                break;
-              case A_OPEN_DLG:
-                wms->page = P_OPEN;
-                break;
-              case A_FILELIST:
-                dirp = opendir(DATA_PATH);
-                e = dirp == NULL;
-                if (e == 0) {
-                  fl_pn = NULL;
-                  fl_pn_alloc_size = 0;
-                  do {
-                    dirent = readdir(dirp);
-                    if (dirent != NULL) {
-                      fl_pn_size = strlen(DATA_PATH) + strlen(dirent->d_name) + 2;
-                      if (fl_pn_size > fl_pn_alloc_size) {
-                        fl_pn = realloc(fl_pn, fl_pn_size);
-                        e = fl_pn == NULL;
-                        if (e == 0)
-                          fl_pn_alloc_size = fl_pn_size;
-                      }
-                      if (e == 0) {
-                        strcpy(fl_pn, DATA_PATH);
-                        strcat(fl_pn, "/");
-                        strcat(fl_pn, dirent->d_name);
-                        e = stat(fl_pn, &file_stat);
-                        if (e == 0) {
-                          if (file_stat.st_mode & S_IFREG) {
-                            ext_str = rindex(fl_pn, '.');
-                            if (ext_str != NULL && strcmp(ext_str, ".imsf") == 0) {
-                              size = sizeof(char*) * (wms->fl_c + 1);
-                              wms->fl_v = realloc(wms->fl_v, size);
-                              e = wms->fl_v == NULL;
-                              if (e == 0) {
-                                size = strlen(dirent->d_name) + 1;
-                                wms->fl_v[wms->fl_c] = malloc(size);
-                                e = wms->fl_v[wms->fl_c] == NULL;
-                                if (e == 0) {
-                                  strcpy(wms->fl_v[wms->fl_c], dirent->d_name);
-                                  wms->fl_c++;
-                                }
-                              }
+          else
+            e = 0x00344f24; // WMDLF Web(MemorySurfer) malloc debug log file (failed)
+        }
+        else {
+          e2str(e, e_str);
+          snprintf(msg, sizeof(msg), "invalid form data (%s)", e_str);
+          wms->static_msg = msg;
+          wms->static_btn_main = "OK";
+          wms->todo_main = S_NONE;
+          wms->page = P_MSG;
+        }
+      }
+      else
+        fprintf(stderr, "starting stopwatch failed\n");
+      if (e == 0) {
+        mtime_test = -1;
+        act_i = 0;
+        assert(wms->seq <= S_END);
+        while ((act_c = action_seq[wms->seq][act_i++]) != A_END && e == 0)
+        {
+          switch (act_c)
+          {
+          case A_END:
+            assert (0);
+            break;
+          case A_NONE:
+            wms->page = P_START;
+            break;
+          case A_FILE:
+            wms->page = P_FILE;
+            break;
+          case A_WARNING:
+            wms->static_msg = "Warning: Before importing, the content of the current file is erased (and rebuild during the import).";
+            wms->static_btn_main = "Erase";
+            wms->static_btn_alt = "Cancel";
+            wms->todo_main = S_UPLOAD;
+            wms->todo_alt = S_FILE;
+            wms->page = P_MSG;
+            break;
+          case A_CREATE:
+            e = ms_create(&wms->ms, O_EXCL);
+            if (e != 0) {
+              assert(wms->file_title_str != NULL);
+              free(wms->file_title_str);
+              wms->file_title_str = NULL;
+              wms->static_msg = strerror(e);
+              wms->static_btn_main = "OK";
+              wms->todo_main = S_NONE;
+              wms->page = P_MSG;
+            }
+            break;
+          case A_NEW:
+            wms->page = P_NEW;
+            break;
+          case A_OPEN_DLG:
+            wms->page = P_OPEN;
+            break;
+          case A_FILELIST:
+            dirp = opendir(DATA_PATH);
+            e = dirp == NULL;
+            if (e == 0) {
+              fl_pn = NULL;
+              fl_pn_alloc_size = 0;
+              do {
+                dirent = readdir(dirp);
+                if (dirent != NULL) {
+                  fl_pn_size = strlen(DATA_PATH) + strlen(dirent->d_name) + 2;
+                  if (fl_pn_size > fl_pn_alloc_size) {
+                    fl_pn = realloc(fl_pn, fl_pn_size);
+                    e = fl_pn == NULL;
+                    if (e == 0)
+                      fl_pn_alloc_size = fl_pn_size;
+                  }
+                  if (e == 0) {
+                    strcpy(fl_pn, DATA_PATH);
+                    strcat(fl_pn, "/");
+                    strcat(fl_pn, dirent->d_name);
+                    e = stat(fl_pn, &file_stat);
+                    if (e == 0) {
+                      if (file_stat.st_mode & S_IFREG) {
+                        ext_str = rindex(fl_pn, '.');
+                        if (ext_str != NULL && strcmp(ext_str, ".imsf") == 0) {
+                          size = sizeof(char*) * (wms->fl_c + 1);
+                          wms->fl_v = realloc(wms->fl_v, size);
+                          e = wms->fl_v == NULL;
+                          if (e == 0) {
+                            size = strlen(dirent->d_name) + 1;
+                            wms->fl_v[wms->fl_c] = malloc(size);
+                            e = wms->fl_v[wms->fl_c] == NULL;
+                            if (e == 0) {
+                              strcpy(wms->fl_v[wms->fl_c], dirent->d_name);
+                              wms->fl_c++;
                             }
                           }
                         }
                       }
                     }
-                  } while (dirent != NULL && e == 0);
-                  free(fl_pn);
-                  e = closedir(dirp);
-                }
-                break;
-              case A_OPEN:
-                if (wms->ms.imf_filename != NULL) {
-                  e = ms_open(&wms->ms);
-                  if (e != 0) {
-                    free(wms->file_title_str);
-                    wms->file_title_str = NULL;
-                    e2str(e, e_str);
-                    gen_err_msg(wms, e_str);
-                    wms->static_msg = wms->dbg_lp;
-                    wms->static_btn_main = "OK"; // "Retry"
-                    wms->todo_main = S_NONE; // S_SCHEDULE S_SELECT_CREATE_CAT S_GO_LOGIN S_EDIT S_DELETE_CARD S_INSERT S_APPEND S_PREVIOUS S_NEXT S_SELECT_SEARCH_CAT
-                    wms->page = P_MSG;
                   }
                 }
-                else
-                  e = wms->seq != S_FILE && wms->seq != S_ABOUT;
-                break;
-              case A_CHANGE_PASSWD:
-                free(wms->ms.password);
-                assert(wms->ms.new_password != NULL);
-                wms->ms.password = wms->ms.new_password;
-                wms->ms.new_password = NULL;
-                break;
-              case A_WRITE_PASSWD:
-                e = sha1_reset(&sha1);
+              } while (dirent != NULL && e == 0);
+              free(fl_pn);
+              e = closedir(dirp);
+            }
+            break;
+          case A_OPEN:
+            if (wms->ms.imf_filename != NULL) {
+              e = ms_open(&wms->ms);
+              if (e != 0) {
+                free(wms->file_title_str);
+                wms->file_title_str = NULL;
+                e2str(e, e_str);
+                gen_err_msg(wms, e_str);
+                wms->static_msg = wms->dbg_lp;
+                wms->static_btn_main = "OK"; // "Retry"
+                wms->todo_main = S_NONE; // S_SCHEDULE S_SELECT_CREATE_CAT S_GO_LOGIN S_EDIT S_DELETE_CARD S_INSERT S_APPEND S_PREVIOUS S_NEXT S_SELECT_SEARCH_CAT
+                wms->page = P_MSG;
+              }
+            }
+            else
+              e = wms->seq != S_FILE && wms->seq != S_ABOUT;
+            break;
+          case A_CHANGE_PASSWD:
+            free(wms->ms.password);
+            assert(wms->ms.new_password != NULL);
+            wms->ms.password = wms->ms.new_password;
+            wms->ms.new_password = NULL;
+            break;
+          case A_WRITE_PASSWD:
+            e = sha1_reset(&sha1);
+            if (e == 0) {
+              assert(wms->ms.password != NULL);
+              len = strlen(wms->ms.password);
+              e = sha1_input(&sha1, (uint8_t*) wms->ms.password, len);
+              if (e == 0) {
+                e = sha1_result(&sha1, wms->ms.passwd.pw_msg_digest);
                 if (e == 0) {
-                  assert(wms->ms.password != NULL);
-                  len = strlen(wms->ms.password);
-                  e = sha1_input(&sha1, (uint8_t*) wms->ms.password, len);
+                  wms->ms.passwd.pw_flag = 1;
+                  size = sizeof(struct Password);
+                  e = imf_put(&wms->ms.imf, PW_INDEX, &wms->ms.passwd, size);
+                  if (e == 0)
+                    e = imf_sync (&wms->ms.imf);
+                }
+              }
+            }
+            break;
+          case A_READ_PASSWD:
+            if (wms->ms.imf_filename != NULL) {
+              assert(wms->ms.passwd.pw_flag == -1);
+              data_size = imf_get_size (&wms->ms.imf, PW_INDEX);
+              e = data_size != sizeof(struct Password);
+              if (e == 0)
+                e = imf_get (&wms->ms.imf, PW_INDEX, &wms->ms.passwd);
+              if (e != 0) {
+                wms->static_msg = "Read of password hash failed";
+                wms->static_btn_main = "OK";
+                wms->todo_main = S_GO_LOGIN;
+                wms->page = P_MSG;
+              }
+            }
+            else
+              e = wms->seq != S_FILE && wms->seq != S_ABOUT;
+            break;
+          case A_CHECK_PASSWORD:
+            e = wms->ms.passwd.pw_flag != 0;
+            if (e != 0) {
+              wms->static_msg = "A password is already set";
+              wms->static_btn_main = "OK";
+              wms->todo_main = S_GO_LOGIN;
+              wms->page = P_MSG;
+            }
+            break;
+          case A_AUTH_PASSWD:
+            assert(wms->ms.passwd.pw_flag > 0);
+            e = sha1_reset(&sha1);
+            if (e == 0) {
+              assert(wms->ms.password != NULL);
+              len = strlen(wms->ms.password);
+              e = sha1_input(&sha1, (uint8_t*) wms->ms.password, len);
+              if (e == 0) {
+                e = sha1_result(&sha1, message_digest);
+                if (e == 0)
+                  e = memcmp(wms->ms.passwd.pw_msg_digest, message_digest, SHA1_HASH_SIZE);
+              }
+            }
+            if (e != 0) {
+              sleep (1);
+              wms->static_msg = "Invalid password";
+              wms->static_btn_main = "OK";
+              wms->todo_main = S_GO_LOGIN;
+              wms->page = P_MSG;
+            }
+            break;
+          case A_AUTH_TOK:
+            if (wms->ms.imf_filename != NULL) {
+              assert(wms->ms.passwd.pw_flag > 0);
+              assert(wms->ms.passwd.tok_sec > 0 && wms->ms.passwd.tok_count > 0);
+              mod_time = wms->ms.timestamp / wms->ms.passwd.tok_sec * wms->ms.passwd.tok_sec;
+              for (i = 0; i < wms->ms.passwd.tok_count; i++) {
+                e = sha1_reset(&sha1);
+                assert(e == 0);
+                e = sha1_input(&sha1, (uint8_t*) wms->ms.passwd.pw_msg_digest, SHA1_HASH_SIZE);
+                if (e == 0) {
+                  e = sha1_input(&sha1, (uint8_t*) &mod_time, sizeof(uint32_t));
                   if (e == 0) {
-                    e = sha1_result(&sha1, wms->ms.passwd.pw_msg_digest);
+                    e = sha1_result(&sha1, message_digest);
                     if (e == 0) {
-                      wms->ms.passwd.pw_flag = 1;
-                      size = sizeof(struct Password);
-                      e = imf_put(&wms->ms.imf, PW_INDEX, &wms->ms.passwd, size);
+                      rv = memcmp(wms->tok_digest, message_digest, SHA1_HASH_SIZE);
+                      e = rv != 0;
                       if (e == 0)
-                        e = imf_sync (&wms->ms.imf);
+                        break;
                     }
                   }
                 }
-                break;
-              case A_READ_PASSWD:
-                if (wms->ms.imf_filename != NULL) {
-                  assert(wms->ms.passwd.pw_flag == -1);
-                  data_size = imf_get_size (&wms->ms.imf, PW_INDEX);
-                  e = data_size != sizeof(struct Password);
-                  if (e == 0)
-                    e = imf_get (&wms->ms.imf, PW_INDEX, &wms->ms.passwd);
-                  if (e != 0) {
-                    wms->static_msg = "Read of password hash failed";
-                    wms->static_btn_main = "OK";
-                    wms->todo_main = S_GO_LOGIN;
-                    wms->page = P_MSG;
-                  }
-                }
-                else
-                  e = wms->seq != S_FILE && wms->seq != S_ABOUT;
-                break;
-              case A_CHECK_PASSWORD:
-                e = wms->ms.passwd.pw_flag != 0;
-                if (e != 0) {
-                  wms->static_msg = "A password is already set";
-                  wms->static_btn_main = "OK";
-                  wms->todo_main = S_GO_LOGIN;
-                  wms->page = P_MSG;
-                }
-                break;
-              case A_AUTH_PASSWD:
-                assert(wms->ms.passwd.pw_flag > 0);
-                e = sha1_reset(&sha1);
+                mod_time -= wms->ms.passwd.tok_sec;
+              }
+              if (e != 0) {
+                sleep (1);
+                wms->static_msg = "Invalid session token";
+                wms->static_btn_main = "OK";
+                wms->todo_main = S_GO_LOGIN;
+                wms->page = P_MSG;
+              }
+            }
+            else
+              e = wms->seq != S_FILE && wms->seq != S_ABOUT;
+            break;
+          case A_GEN_TOK:
+            if (wms->ms.imf_filename != NULL) {
+              assert(wms->ms.passwd.pw_flag > 0);
+              e = sha1_reset(&sha1);
+              if (e == 0) {
+                e = sha1_input(&sha1, (uint8_t*) wms->ms.passwd.pw_msg_digest, SHA1_HASH_SIZE);
                 if (e == 0) {
-                  assert(wms->ms.password != NULL);
-                  len = strlen(wms->ms.password);
-                  e = sha1_input(&sha1, (uint8_t*) wms->ms.password, len);
+                  assert(wms->ms.passwd.tok_sec > 0);
+                  mod_time = wms->ms.timestamp / wms->ms.passwd.tok_sec * wms->ms.passwd.tok_sec;
+                  e = sha1_input(&sha1, (uint8_t*) &mod_time, sizeof(uint32_t));
                   if (e == 0) {
                     e = sha1_result(&sha1, message_digest);
                     if (e == 0)
-                      e = memcmp(wms->ms.passwd.pw_msg_digest, message_digest, SHA1_HASH_SIZE);
+                      print_hex(wms->tok_str, message_digest, 20);
                   }
                 }
-                if (e != 0) {
-                  sleep (1);
-                  wms->static_msg = "Invalid password";
-                  wms->static_btn_main = "OK";
-                  wms->todo_main = S_GO_LOGIN;
-                  wms->page = P_MSG;
-                }
-                break;
-              case A_AUTH_TOK:
-                if (wms->ms.imf_filename != NULL) {
-                  assert(wms->ms.passwd.pw_flag > 0);
-                  assert(wms->ms.passwd.tok_sec > 0 && wms->ms.passwd.tok_count > 0);
-                  mod_time = wms->ms.timestamp / wms->ms.passwd.tok_sec * wms->ms.passwd.tok_sec;
-                  for (i = 0; i < wms->ms.passwd.tok_count; i++) {
-                    e = sha1_reset(&sha1);
-                    assert(e == 0);
-                    e = sha1_input(&sha1, (uint8_t*) wms->ms.passwd.pw_msg_digest, SHA1_HASH_SIZE);
+              }
+            }
+            else
+              e = wms->seq != S_FILE && wms->seq != S_ABOUT;
+            break;
+          case A_RETRIEVE_MTIME:
+            e = mtime_test != -1;
+            if (e == 0) {
+              mtime_test = 1;
+              if (wms->mtime[0] != 0 || wms->mtime[1] != 0) {
+                mtime_test = 0;
+                if (wms->mtime[0] >= 0 && wms->mtime[1] >= 0) {
+                  if (wms->ms.imf_filename != NULL) {
+                    memset(&file_stat, 0, sizeof(struct stat));
+                    e = stat(wms->ms.imf_filename, &file_stat);
                     if (e == 0) {
-                      e = sha1_input(&sha1, (uint8_t*) &mod_time, sizeof(uint32_t));
-                      if (e == 0) {
-                        e = sha1_result(&sha1, message_digest);
-                        if (e == 0) {
-                          rv = memcmp(wms->tok_digest, message_digest, SHA1_HASH_SIZE);
-                          e = rv != 0;
-                          if (e == 0)
-                            break;
-                        }
-                      }
+                      assert(file_stat.st_mtim.tv_sec >= 0 && file_stat.st_mtim.tv_nsec >= 0);
+                      mtime_test = wms->mtime[0] == file_stat.st_mtim.tv_nsec && wms->mtime[1] == file_stat.st_mtim.tv_sec;
                     }
-                    mod_time -= wms->ms.passwd.tok_sec;
-                  }
-                  if (e != 0) {
-                    sleep (1);
-                    wms->static_msg = "Invalid session token";
-                    wms->static_btn_main = "OK";
-                    wms->todo_main = S_GO_LOGIN;
-                    wms->page = P_MSG;
                   }
                 }
-                else
-                  e = wms->seq != S_FILE && wms->seq != S_ABOUT;
-                break;
-              case A_GEN_TOK:
-                if (wms->ms.imf_filename != NULL) {
-                  assert(wms->ms.passwd.pw_flag > 0);
-                  e = sha1_reset(&sha1);
+              }
+            }
+            else
+              e = 0x00e72d74; // WMSMAA (Web)MemorySurfer main assert A (failed)
+            break;
+          case A_MTIME_TEST:
+            e = mtime_test == -1;
+            if (e == 0) {
+              e = mtime_test == 0;
+              if (e != 0) {
+                wms->static_msg = "Error: Invalid mtime value";
+                wms->static_btn_main = "OK";
+                wms->todo_main = S_SELECT_EDIT_CAT; // S_EDIT S_QUESTION
+                wms->page = P_MSG;
+              }
+            }
+            else
+              e = 0x01c21fdf; // WMSMAB (Web)MemorySurfer main assert B (failed)
+            break;
+          case A_CARD_TEST:
+            e = wms->ms.card_a <= 0 ? 0x19b4a393 : 0; // WMSMACA (Web)MemorySurfer main assert Card (test) (failed)
+            if (e == 0) {
+              e = wms->ms.card_i < 0 || wms->ms.card_i >= wms->ms.card_a;
+              if (e != 0) {
+                wms->static_msg = "Warning: Invalid card";
+                wms->static_btn_main = "OK";
+                wms->todo_main = S_NONE;
+                wms->page = P_MSG;
+              }
+            }
+            break;
+          case A_TEST_CAT_SELECTED:
+            e = wms->ms.cat_i < 0;
+            if (e == 1) {
+              wms->static_msg = "Please select a category to learn";
+              wms->static_btn_main = "OK";
+              wms->todo_main = S_SELECT_LEARN_CAT;
+              wms->page = P_MSG;
+            }
+            break;
+          case A_TEST_CAT_VALID:
+            e = wms->ms.cat_i >= wms->ms.cat_a || wms->ms.cat_t[wms->ms.cat_i].cat_used == 0;
+            if (e == 1) {
+              wms->ms.cat_i = -1;
+              wms->static_msg = "Warning: Invalid category";
+              wms->static_btn_main = "OK";
+              wms->todo_main = S_SELECT_LEARN_CAT;
+              wms->page = P_MSG;
+            }
+            break;
+          case A_TEST_CAT:
+            e = wms->ms.cat_i < 0 || wms->ms.cat_i >= wms->ms.cat_a || wms->ms.cat_t[wms->ms.cat_i].cat_used == 0;
+            if (e != 0 && wms->seq == S_CREATE_CAT)
+              e = wms->ms.cat_i != -1 || wms->ms.n_first != -1;
+            if (e != 0) {
+              wms->static_msg = "Warning: Invalid category";
+              wms->static_btn_main = "OK";
+              wms->todo_main = S_START_CAT;
+              wms->page = P_MSG;
+              if (wms->from_page == P_SELECT_CREATE_CAT) {
+                wms->static_msg = "Please select a category were to arrange the new category to";
+                wms->todo_main = S_SELECT_CREATE_CAT;
+              }
+              else if (wms->from_page == P_SELECT_CAT) {
+                if (wms->seq == S_SELECT_DEST_CAT) {
+                  wms->static_msg = "Please select a category to move";
+                  wms->todo_main = S_SELECT_MOVE_CAT;
+                }
+                else {
+                  assert(wms->seq == S_ASK_DELETE_CAT);
+                  wms->static_msg = "Please select a category to delete";
+                  wms->todo_main = S_SELECT_DELETE_CAT;
+                }
+              }
+            }
+            break;
+          case A_SLASH:
+            e = wms->file_title_str == NULL;
+            if (e == 0) {
+              str = strchr(wms->file_title_str, '/');
+              e = str != NULL;
+              if (e != 0) {
+                free(wms->file_title_str);
+                wms->file_title_str = NULL;
+                wms->static_msg = "Error: Slash ('/')";
+                wms->static_btn_main = "OK";
+                wms->todo_main = S_FILE;
+                wms->page = P_MSG;
+              }
+            }
+            else
+              e = 0x029d124a; // WMSMAC (Web)MemorySurfer main assert C (failed)
+            break;
+          case A_VOID:
+            assert(wms->file_title_str != NULL);
+            len = strlen(wms->file_title_str);
+            e = len == 0;
+            if (e != 0) {
+              free(wms->file_title_str);
+              wms->file_title_str = NULL;
+              wms->static_msg = "Error: No filename";
+              wms->static_btn_main = "OK";
+              wms->todo_main = S_FILE;
+              wms->page = P_MSG;
+            }
+            break;
+          case A_FILE_EXTENSION:
+            assert(wms->file_title_str != NULL);
+            ext_str = rindex(wms->file_title_str, '.');
+            if (ext_str == NULL || strcmp(ext_str, ".imsf") != 0) {
+              size = strlen(wms->file_title_str) + 6; // + ".imsf" + '\0'
+              str = malloc(size);
+              e = str == NULL;
+              if (e == 0) {
+                strcpy(str, wms->file_title_str);
+                strcat(str, ".imsf");
+                free(wms->file_title_str);
+                wms->file_title_str = str;
+              }
+            }
+            break;
+          case A_GATHER:
+            if (wms->file_title_str != NULL) {
+              size = strlen(DATA_PATH) + strlen(wms->file_title_str) + 2; // + '/' + '\0'
+              str = malloc(size);
+              e = str == NULL;
+              if (e == 0) {
+                strcpy(str, DATA_PATH);
+                strcat(str, "/");
+                strcat(str, wms->file_title_str);
+                assert(wms->ms.imf_filename == NULL);
+                wms->ms.imf_filename = str;
+              }
+            }
+            else
+              e = wms->seq != S_FILE && wms->seq != S_ABOUT;
+            break;
+          case A_UPLOAD:
+            e = ms_close (&wms->ms);
+            if (e == 0)
+            {
+              e = ms_create (&wms->ms, O_TRUNC);
+              if (e == 0)
+              {
+                wms->page = P_UPLOAD;
+              }
+            }
+            break;
+          case A_UPLOAD_REPORT:
+            data_size = sa_length(&wms->ms.cat_sa);
+            e = imf_put(&wms->ms.imf, SA_INDEX, wms->ms.cat_sa.sa_d, data_size);
+            if (e == 0) {
+              data_size = sizeof(struct Category) * wms->ms.cat_a;
+              e = imf_put(&wms->ms.imf, C_INDEX, wms->ms.cat_t, data_size);
+              if (e == 0) {
+                e = imf_sync(&wms->ms.imf);
+                if (e == 0)
+                  wms->page = P_UPLOAD_REPORT;
+              }
+            }
+            break;
+          case A_EXPORT:
+            wms->page = P_EXPORT;
+            break;
+          case A_LOAD_CARDLIST:
+            e = wms->ms.cat_i < 0;
+            if (e == 0) {
+              assert(wms->ms.cat_i >= 0);
+              e = wms->ms.cat_i >= wms->ms.cat_a || wms->ms.cat_t[wms->ms.cat_i].cat_used == 0;
+              if (e == 0) {
+                assert(wms->ms.cat_i < wms->ms.cat_a && wms->ms.cat_t[wms->ms.cat_i].cat_used != 0);
+                e = ms_load_card_list(&wms->ms);
+              }
+              else {
+                wms->ms.cat_i = -1;
+                wms->static_msg = "Warning: Invalid category";
+                wms->static_btn_main = "OK";
+                wms->todo_main = S_NONE; // S_SELECT_EDIT_CAT S_SELECT_SEARCH_CAT S_SELECT_LEARN_CAT S_DELETE_CARD S_APPEND
+                wms->page = P_MSG;
+              }
+            }
+            else {
+              assert (wms->ms.cat_i == -1);
+              wms->static_msg = "Please select a category";
+              wms->static_btn_main = "OK";
+              wms->todo_main = S_START; // S_NONE S_SELECT_EDIT_CAT S_SELECT_SEARCH_CAT S_SELECT_LEARN_CAT S_DELETE_CARD
+              wms->page = P_MSG;
+            }
+            break;
+          case A_CHECK_RESUME:
+            if (wms->ms.card_a > 0)
+              for (card_i = 0; card_i < wms->ms.card_a && wms->ms.can_resume == 0; card_i++)
+                if (wms->ms.card_l[card_i].card_state == STATE_SUSPENDED)
+                  wms->ms.can_resume = 1;
+            break;
+          case A_ASK_REMOVE:
+            wms->static_msg = "Remove file of the file system?";
+            wms->static_btn_main = "Remove";
+            wms->static_btn_alt = "Cancel";
+            wms->todo_main = S_REMOVE;
+            wms->todo_alt = S_FILE;
+            wms->page = P_MSG;
+            break;
+          case A_REMOVE:
+            e = ms_close(&wms->ms);
+            if (e == 0) {
+              e = unlink(wms->ms.imf_filename);
+              if (e == 0) {
+                assert(wms->ms.imf_filename != NULL);
+                free(wms->ms.imf_filename);
+                wms->ms.imf_filename = NULL;
+                wms->tok_str[0] = '\0';
+              }
+            }
+            break;
+          case A_ASK_ERASE:
+            wms->static_msg = "Erase all decks & cards?";
+            wms->static_btn_main = "Erase";
+            wms->static_btn_alt = "Cancel";
+            wms->todo_main = S_ERASE;
+            wms->todo_alt = S_FILE;
+            wms->page = P_MSG;
+            break;
+          case A_ERASE:
+            e = ms_close(&wms->ms);
+            if (e == 0) {
+              e = ms_create(&wms->ms, O_TRUNC);
+              if (e == 0) {
+                wms->ms.cat_i = -1;
+                wms->page = P_FILE;
+              }
+            }
+            break;
+          case A_CLOSE:
+            free(wms->file_title_str);
+            wms->file_title_str = NULL;
+            wms->ms.cat_i = -1;
+            wms->page = P_FILE;
+            break;
+          case A_START_CAT:
+            wms->page = P_START_CAT;
+            break;
+          case A_SELECT_CREATE_CAT:
+            if (wms->ms.n_first >= 0)
+              wms->page = P_SELECT_CREATE_CAT;
+            else
+              wms->page = P_CAT_NAME;
+            break;
+          case A_SELECT_CAT:
+            wms->page = P_SELECT_CAT;
+            break;
+          case A_SELECT_SEND_CAT:
+            wms->page = P_SELECT_SEND_CAT;
+            break;
+          case A_SELECT_ARRANGE:
+            wms->page = P_SELECT_ARRANGE;
+            break;
+          case A_CAT_NAME:
+            wms->page = P_CAT_NAME;
+            break;
+          case A_CREATE_CAT:
+            e = wms->ms.cat_name == NULL;
+            if (e == 0) {
+              len = strlen(wms->ms.cat_name);
+              e = len == 0;
+            }
+            if (e == 0) {
+              if (wms->ms.cat_i >= 0)
+                e = wms->ms.cat_i >= wms->ms.cat_a || wms->ms.cat_t[wms->ms.cat_i].cat_used == 0;
+              else {
+                e = wms->ms.cat_i != -1 || wms->ms.n_first != -1;
+                if (e == 0)
+                  wms->ms.arrange = -1;
+              }
+              if (e == 0) {
+                cat_i = 0;
+                while (cat_i < wms->ms.cat_a && wms->ms.cat_t[cat_i].cat_used != 0)
+                  cat_i++;
+                if (cat_i == wms->ms.cat_a) {
+                  cat_a = wms->ms.cat_a + 7;
+                  e = cat_a > INT16_MAX;
                   if (e == 0) {
-                    e = sha1_input(&sha1, (uint8_t*) wms->ms.passwd.pw_msg_digest, SHA1_HASH_SIZE);
+                    size = sizeof(struct Category) * cat_a;
+                    wms->ms.cat_t = realloc(wms->ms.cat_t, size);
+                    e = wms->ms.cat_t == NULL;
                     if (e == 0) {
-                      assert(wms->ms.passwd.tok_sec > 0);
-                      mod_time = wms->ms.timestamp / wms->ms.passwd.tok_sec * wms->ms.passwd.tok_sec;
-                      e = sha1_input(&sha1, (uint8_t*) &mod_time, sizeof(uint32_t));
-                      if (e == 0) {
-                        e = sha1_result(&sha1, message_digest);
-                        if (e == 0)
-                          print_hex(wms->tok_str, message_digest, 20);
-                      }
+                      for (i = wms->ms.cat_a; i < cat_a; i++)
+                        wms->ms.cat_t[i].cat_used = 0;
+                      wms->ms.cat_a = cat_a;
                     }
                   }
                 }
-                else
-                  e = wms->seq != S_FILE && wms->seq != S_ABOUT;
-                break;
-              case A_RETRIEVE_MTIME:
-                e = mtime_test != -1;
                 if (e == 0) {
-                  mtime_test = 1;
-                  if (wms->mtime[0] != 0 || wms->mtime[1] != 0) {
-                    mtime_test = 0;
-                    if (wms->mtime[0] >= 0 && wms->mtime[1] >= 0) {
-                      if (wms->ms.imf_filename != NULL) {
-                        memset(&file_stat, 0, sizeof(struct stat));
-                        e = stat(wms->ms.imf_filename, &file_stat);
+                  assert(cat_i < wms->ms.cat_a && wms->ms.cat_t[cat_i].cat_used == 0);
+                  e = imf_seek_unused(&wms->ms.imf, &index);
+                  if (e == 0) {
+                    e = imf_put(&wms->ms.imf, index, "", 0);
+                    if (e == 0) {
+                      wms->ms.cat_t[cat_i].cat_cli = index;
+                      e = sa_set(&wms->ms.cat_sa, cat_i, wms->ms.cat_name);
+                      if (e == 0) {
+                        wms->ms.cat_t[cat_i].cat_x = 1;
+                        switch (wms->ms.arrange)
+                        {
+                        case 0: // Before
+                          n_prev = -1;
+                          n_parent = -1;
+                          for (i = 0; i < wms->ms.cat_a && n_prev == -1 && n_parent == -1; i++)
+                            if (wms->ms.cat_t[i].cat_used != 0) {
+                              if (wms->ms.cat_t[i].cat_n_sibling == wms->ms.cat_i)
+                                n_prev = i;
+                              if (wms->ms.cat_t[i].cat_n_child == wms->ms.cat_i)
+                                n_parent = i;
+                            }
+                          if (n_prev != -1) {
+                            assert(wms->ms.cat_t[n_prev].cat_n_sibling == wms->ms.cat_i);
+                            wms->ms.cat_t[n_prev].cat_n_sibling = cat_i;
+                          }
+                          else {
+                            if (wms->ms.n_first == wms->ms.cat_i)
+                              wms->ms.n_first = cat_i;
+                            else {
+                              assert(n_parent != -1);
+                              wms->ms.cat_t[n_parent].cat_n_child = cat_i;
+                            }
+                          }
+                          wms->ms.cat_t[cat_i].cat_n_sibling = wms->ms.cat_i;
+                          wms->ms.cat_t[cat_i].cat_n_child = -1;
+                          break;
+                        case 1: // Below
+                          wms->ms.cat_t[cat_i].cat_n_sibling = wms->ms.cat_t[wms->ms.cat_i].cat_n_child;
+                          wms->ms.cat_t[wms->ms.cat_i].cat_n_child = cat_i;
+                          wms->ms.cat_t[cat_i].cat_n_child = -1;
+                          break;
+                        case 2: // Behind
+                          wms->ms.cat_t[cat_i].cat_n_sibling = wms->ms.cat_t[wms->ms.cat_i].cat_n_sibling;
+                          wms->ms.cat_t[wms->ms.cat_i].cat_n_sibling = cat_i;
+                          wms->ms.cat_t[cat_i].cat_n_child = -1;
+                          break;
+                        case -1:
+                          e = wms->ms.n_first != -1;
+                          if (e == 0) {
+                            wms->ms.cat_t[cat_i].cat_n_sibling = -1;
+                            wms->ms.cat_t[cat_i].cat_n_child = -1;
+                            assert(cat_i == 0);
+                            wms->ms.n_first = cat_i;
+                          }
+                          break;
+                        default:
+                          e = -1;
+                        }
                         if (e == 0) {
-                          assert(file_stat.st_mtim.tv_sec >= 0 && file_stat.st_mtim.tv_nsec >= 0);
-                          mtime_test = wms->mtime[0] == file_stat.st_mtim.tv_nsec && wms->mtime[1] == file_stat.st_mtim.tv_sec;
+                          wms->ms.cat_t[cat_i].cat_used = 1;
+                          wms->ms.cat_t[cat_i].cat_on = 1;
+                          data_size = sa_length(&wms->ms.cat_sa);
+                          e = imf_put(&wms->ms.imf, SA_INDEX, wms->ms.cat_sa.sa_d, data_size);
+                          if (e == 0) {
+                            data_size = sizeof(struct Category) * wms->ms.cat_a;
+                            e = imf_put(&wms->ms.imf, C_INDEX, wms->ms.cat_t, data_size);
+                            if (e == 0) {
+                              e = imf_sync(&wms->ms.imf);
+                              if (e == 0) {
+                                wms->ms.cat_i = cat_i;
+                                wms->page = P_START_CAT;
+                              }
+                            }
+                          }
+                        }
+                        else {
+                          wms->static_msg = "Please select how to arrange the new category";
+                          wms->static_btn_main = "OK";
+                          wms->todo_main = S_SELECT_ARRANGE;
+                          wms->page = P_MSG;
                         }
                       }
                     }
                   }
                 }
-                else
-                  e = 0x00e72d74; // WMSMAA (Web)MemorySurfer main assert A (failed)
-                break;
-              case A_MTIME_TEST:
-                e = mtime_test == -1;
+              }
+            }
+            else {
+              wms->static_msg = "Please enter a name for the new category";
+              wms->static_btn_main = "OK";
+              wms->todo_main = S_SELECT_CREATE_CAT;
+              wms->page = P_MSG;
+            }
+            break;
+          case A_RENAME_CAT:
+            assert(wms->ms.cat_i >= 0 && wms->ms.cat_i < wms->ms.cat_a && wms->ms.cat_t[wms->ms.cat_i].cat_used != 0);
+            e = sa_set (&wms->ms.cat_sa, wms->ms.cat_i, wms->ms.cat_name);
+            if (e == 0) {
+              data_size = sa_length(&wms->ms.cat_sa);
+              e = imf_put(&wms->ms.imf, SA_INDEX, wms->ms.cat_sa.sa_d, data_size);
+              if (e == 0) {
+                e = imf_sync(&wms->ms.imf);
+                if (e == 0)
+                  wms->page = P_START_CAT;
+              }
+            }
+            break;
+          case A_ASK_DELETE_CAT:
+            assert(wms->ms.cat_t[wms->ms.cat_i].cat_used != 0);
+            if (wms->ms.cat_t[wms->ms.cat_i].cat_n_child == -1) {
+              wms->static_msg = "Delete Category?";
+              wms->static_btn_main = "Delete";
+              wms->static_btn_alt = "Cancel";
+              wms->todo_main = S_DELETE_CAT;
+              wms->todo_alt = S_START_CAT;
+              wms->page = P_MSG;
+            }
+            else {
+              wms->static_msg = "A category to delete must be a leaf";
+              wms->static_btn_main = "OK";
+              wms->todo_main = S_SELECT_DELETE_CAT;
+              wms->page = P_MSG;
+            }
+            break;
+          case A_DELETE_CAT:
+            assert(wms->ms.cat_t[wms->ms.cat_i].cat_used != 0);
+            n_prev = -1;
+            n_parent = -1;
+            i = 0;
+            do {
+              if (wms->ms.cat_t[i].cat_used != 0) {
+                if (wms->ms.cat_t[i].cat_n_sibling == wms->ms.cat_i)
+                  n_prev = i;
+                if (wms->ms.cat_t[i].cat_n_child == wms->ms.cat_i)
+                  n_parent = i;
+              }
+              i++;
+            } while (i < wms->ms.cat_a && n_prev == -1 && n_parent == -1);
+            if (n_prev != -1)
+              wms->ms.cat_t[n_prev].cat_n_sibling = wms->ms.cat_t[wms->ms.cat_i].cat_n_sibling;
+            else if (n_parent != -1)
+              wms->ms.cat_t[n_parent].cat_n_child = wms->ms.cat_t[wms->ms.cat_i].cat_n_sibling;
+            else {
+              e = wms->ms.n_first != wms->ms.cat_i;
+              if (e == 0)
+                wms->ms.n_first = wms->ms.cat_t[wms->ms.cat_i].cat_n_sibling;
+            }
+            if (e == 0) {
+              e = ms_load_card_list(&wms->ms);
+              if (e == 0) {
+                card_i = 0;
+                while (card_i < wms->ms.card_a && e == 0) {
+                  e = imf_delete (&wms->ms.imf, wms->ms.card_l[card_i].card_qai);
+                  card_i++;
+                }
+                if (e == 0)
+                  e = imf_delete (&wms->ms.imf, wms->ms.cat_t[wms->ms.cat_i].cat_cli);
+              }
+            }
+            if (e == 0) {
+              wms->ms.cat_t[wms->ms.cat_i].cat_used = 0;
+              data_size = sizeof(struct Category) * wms->ms.cat_a;
+              e = imf_put(&wms->ms.imf, C_INDEX, wms->ms.cat_t, data_size);
+              if (e == 0) {
+                e = imf_sync(&wms->ms.imf);
                 if (e == 0) {
+                  wms->ms.cat_i = -1;
+                  wms->page = P_START_CAT;
+                }
+              }
+            }
+            break;
+          case A_TOGGLE:
+            assert(wms->ms.cat_i >= 0 && wms->ms.cat_i < wms->ms.cat_a && wms->ms.cat_t[wms->ms.cat_i].cat_used != 0);
+            wms->ms.cat_t[wms->ms.cat_i].cat_x = wms->ms.cat_t[wms->ms.cat_i].cat_x == 0 ? 1 : 0;
+            data_size = sizeof(struct Category) * wms->ms.cat_a;
+            e = imf_put(&wms->ms.imf, C_INDEX, wms->ms.cat_t, data_size);
+            if (e == 0) {
+              e = imf_sync(&wms->ms.imf);
+              if (e == 0)
+                wms->page = P_START_CAT;
+            }
+            break;
+          case A_MOVE_CAT:
+            assert (wms->ms.cat_t[wms->ms.cat_i].cat_used != 0 && wms->ms.cat_t[wms->ms.mov_cat_i].cat_used != 0);
+            n_prev = -1;
+            n_parent = wms->ms.cat_i;
+            do {
+              if (n_prev != -1)
+                cat_i = n_prev;
+              if (n_parent != -1)
+                cat_i = n_parent;
+              e = wms->ms.mov_cat_i == n_parent;
+              if (e != 0)
+                break;
+              n_prev = -1;
+              n_parent = -1;
+              for (i = 0; i < wms->ms.cat_a && n_parent == -1 && n_prev == -1; i++)
+                if (wms->ms.cat_t[i].cat_used != 0) {
+                  if (wms->ms.cat_t[i].cat_n_sibling == cat_i)
+                    n_prev = i;
+                  if (wms->ms.cat_t[i].cat_n_child == cat_i)
+                    n_parent = i;
+                }
+            } while (n_parent != -1 || n_prev != -1);
+            if (e == 0) {
+              if (wms->ms.arrange != 0 || wms->ms.cat_t[wms->ms.mov_cat_i].cat_n_sibling != wms->ms.cat_i) {
+                if (wms->ms.n_first != wms->ms.mov_cat_i) {
+                  n_prev = -1;
+                  n_parent = -1;
+                  for (i = 0; i < wms->ms.cat_a && n_prev == -1 && n_parent == -1; i++)
+                    if (wms->ms.cat_t[i].cat_used != 0) {
+                      if (wms->ms.cat_t[i].cat_n_sibling == wms->ms.mov_cat_i)
+                        n_prev = i;
+                      if (wms->ms.cat_t[i].cat_n_child == wms->ms.mov_cat_i)
+                        n_parent = i;
+                    }
+                  if (n_prev != -1)
+                    wms->ms.cat_t[n_prev].cat_n_sibling = wms->ms.cat_t[wms->ms.mov_cat_i].cat_n_sibling;
+                  if (n_parent != -1)
+                    wms->ms.cat_t[n_parent].cat_n_child = wms->ms.cat_t[wms->ms.mov_cat_i].cat_n_sibling;
+                }
+                else
+                  wms->ms.n_first = wms->ms.cat_t[wms->ms.mov_cat_i].cat_n_sibling;
+                assert (wms->ms.arrange != -1);
+                switch (wms->ms.arrange)
+                {
+                case 0: // Before
+                  i = 0;
+                  n_prev = -1;
+                  n_parent = -1;
+                  do {
+                    if (wms->ms.cat_t[i].cat_used != 0) {
+                      if (wms->ms.cat_t[i].cat_n_sibling == wms->ms.cat_i)
+                        n_prev = i;
+                      if (wms->ms.cat_t[i].cat_n_child == wms->ms.cat_i)
+                        n_parent = i;
+                    }
+                    i++;
+                  } while (i < wms->ms.cat_a && n_prev == -1 && n_parent == -1);
+                  if (n_prev != -1) {
+                    assert(wms->ms.cat_t[n_prev].cat_n_sibling == wms->ms.cat_i);
+                    wms->ms.cat_t[n_prev].cat_n_sibling = wms->ms.mov_cat_i;
+                  }
+                  else {
+                    if (wms->ms.n_first == wms->ms.cat_i)
+                      wms->ms.n_first = wms->ms.mov_cat_i;
+                    else {
+                      assert(n_parent != -1);
+                      wms->ms.cat_t[n_parent].cat_n_child = wms->ms.mov_cat_i;
+                    }
+                  }
+                  wms->ms.cat_t[wms->ms.mov_cat_i].cat_n_sibling = wms->ms.cat_i;
+                  break;
+                case 1: // Below
+                  wms->ms.cat_t[wms->ms.mov_cat_i].cat_n_sibling = wms->ms.cat_t[wms->ms.cat_i].cat_n_child;
+                  wms->ms.cat_t[wms->ms.cat_i].cat_n_child = wms->ms.mov_cat_i;
+                  break;
+                case 2: // Behind
+                  wms->ms.cat_t[wms->ms.mov_cat_i].cat_n_sibling = wms->ms.cat_t[wms->ms.cat_i].cat_n_sibling;
+                  wms->ms.cat_t[wms->ms.cat_i].cat_n_sibling = wms->ms.mov_cat_i;
+                  break;
+                }
+                data_size = sizeof (struct Category) * wms->ms.cat_a;
+                e = imf_put (&wms->ms.imf, C_INDEX, wms->ms.cat_t, data_size);
+                if (e == 0) {
+                  e = imf_sync (&wms->ms.imf);
+                  if (e == 0) {
+                    wms->ms.cat_i = wms->ms.mov_cat_i;
+                    wms->page = P_START_CAT;
+                  }
+                }
+              }
+            }
+            else {
+              wms->static_msg = "Invalid topology";
+              wms->static_btn_main = "OK";
+              wms->todo_main = S_START_CAT;
+              wms->page = P_MSG;
+            }
+            break;
+          case A_SELECT_EDIT_CAT:
+            wms->ms.card_i = -1;
+            wms->page = P_SELECT_EDIT_CAT;
+            break;
+          case A_EDIT:
+            if (wms->ms.cat_i >= 0)
+            {
+              if ((wms->ms.cat_i < wms->ms.cat_a) && (wms->ms.cat_t[wms->ms.cat_i].cat_used != 0))
+              {
+                e = ms_load_card_list (&wms->ms);
+                if (e == 0)
+                {
+                  assert (wms->ms.card_i >= -1 && wms->ms.card_a >= 0);
+                  if (wms->ms.card_i < 0 && wms->ms.card_a > 0)
+                  {
+                    wms->ms.card_i = 0;
+                  }
+                  if (wms->ms.card_i >= wms->ms.card_a)
+                  {
+                    wms->ms.card_i = wms->ms.card_a - 1;
+                  }
+                  if (wms->ms.card_i >= 0)
+                  {
+                    e = ms_get_card_sa (&wms->ms);
+                  }
+                  wms->page = P_EDIT;
+                }
+              }
+              else
+              {
+                wms->ms.cat_i = -1;
+                wms->static_msg = "Warning: Invalid category";
+                wms->static_btn_main = "OK";
+                wms->todo_main = S_SELECT_EDIT_CAT;
+                wms->page = P_MSG;
+              }
+            }
+            else
+            {
+              wms->static_msg = "Please select a category to edit";
+              wms->static_btn_main = "OK";
+              wms->todo_main = S_SELECT_EDIT_CAT;
+              wms->page = P_MSG;
+            }
+            break;
+          case A_SYNC_QA:
+            qa_err = sa_get(&wms->qa_sa, 0) == NULL;
+            qa_err |= sa_get(&wms->qa_sa, 1) == NULL;
+            if (qa_err == 0) {
+              e = ms_get_card_sa(&wms->ms);
+              if (e == 0) {
+                e = ms_modify_qa(&wms->qa_sa, &wms->ms);
+                if (e > 0) {
                   e = mtime_test == 0;
-                  if (e != 0) {
+                  if (e == 0)
+                    e = imf_sync(&wms->ms.imf);
+                  else {
                     wms->static_msg = "Error: Invalid mtime value";
                     wms->static_btn_main = "OK";
                     wms->todo_main = S_SELECT_EDIT_CAT; // S_EDIT S_QUESTION
                     wms->page = P_MSG;
                   }
                 }
-                else
-                  e = 0x01c21fdf; // WMSMAB (Web)MemorySurfer main assert B (failed)
-                break;
-              case A_CARD_TEST:
-                e = wms->ms.card_a <= 0 ? 0x19b4a393 : 0; // WMSMACA (Web)MemorySurfer main assert Card (test) (failed)
+              }
+            }
+            break;
+          case A_INSERT:
+            e = sa_set(&wms->ms.card_sa, 0, "");
+            if (e == 0) {
+              e = sa_set(&wms->ms.card_sa, 1, "");
+              if (e == 0) {
+                e = imf_seek_unused(&wms->ms.imf, &index);
                 if (e == 0) {
-                  e = wms->ms.card_i < 0 || wms->ms.card_i >= wms->ms.card_a;
-                  if (e != 0) {
-                    wms->static_msg = "Warning: Invalid card";
-                    wms->static_btn_main = "OK";
-                    wms->todo_main = S_NONE;
-                    wms->page = P_MSG;
-                  }
-                }
-                break;
-              case A_TEST_CAT_SELECTED:
-                e = wms->ms.cat_i < 0;
-                if (e == 1) {
-                  wms->static_msg = "Please select a category to learn";
-                  wms->static_btn_main = "OK";
-                  wms->todo_main = S_SELECT_LEARN_CAT;
-                  wms->page = P_MSG;
-                }
-                break;
-              case A_TEST_CAT_VALID:
-                e = wms->ms.cat_i >= wms->ms.cat_a || wms->ms.cat_t[wms->ms.cat_i].cat_used == 0;
-                if (e == 1) {
-                  wms->ms.cat_i = -1;
-                  wms->static_msg = "Warning: Invalid category";
-                  wms->static_btn_main = "OK";
-                  wms->todo_main = S_SELECT_LEARN_CAT;
-                  wms->page = P_MSG;
-                }
-                break;
-              case A_TEST_CAT:
-                e = wms->ms.cat_i < 0 || wms->ms.cat_i >= wms->ms.cat_a || wms->ms.cat_t[wms->ms.cat_i].cat_used == 0;
-                if (e != 0 && wms->seq == S_CREATE_CAT)
-                  e = wms->ms.cat_i != -1 || wms->ms.n_first != -1;
-                if (e != 0) {
-                  wms->static_msg = "Warning: Invalid category";
-                  wms->static_btn_main = "OK";
-                  wms->todo_main = S_START_CAT;
-                  wms->page = P_MSG;
-                  if (wms->from_page == P_SELECT_CREATE_CAT) {
-                    wms->static_msg = "Please select a category were to arrange the new category to";
-                    wms->todo_main = S_SELECT_CREATE_CAT;
-                  }
-                  else if (wms->from_page == P_SELECT_CAT) {
-                    if (wms->seq == S_SELECT_DEST_CAT) {
-                      wms->static_msg = "Please select a category to move";
-                      wms->todo_main = S_SELECT_MOVE_CAT;
-                    }
-                    else {
-                      assert(wms->seq == S_ASK_DELETE_CAT);
-                      wms->static_msg = "Please select a category to delete";
-                      wms->todo_main = S_SELECT_DELETE_CAT;
-                    }
-                  }
-                }
-                break;
-              case A_SLASH:
-                e = wms->file_title_str == NULL;
-                if (e == 0) {
-                  str = strchr(wms->file_title_str, '/');
-                  e = str != NULL;
-                  if (e != 0) {
-                    free(wms->file_title_str);
-                    wms->file_title_str = NULL;
-                    wms->static_msg = "Error: Slash ('/')";
-                    wms->static_btn_main = "OK";
-                    wms->todo_main = S_FILE;
-                    wms->page = P_MSG;
-                  }
-                }
-                else
-                  e = 0x029d124a; // WMSMAC (Web)MemorySurfer main assert C (failed)
-                break;
-              case A_VOID:
-                assert(wms->file_title_str != NULL);
-                len = strlen(wms->file_title_str);
-                e = len == 0;
-                if (e != 0) {
-                  free(wms->file_title_str);
-                  wms->file_title_str = NULL;
-                  wms->static_msg = "Error: No filename";
-                  wms->static_btn_main = "OK";
-                  wms->todo_main = S_FILE;
-                  wms->page = P_MSG;
-                }
-                break;
-              case A_FILE_EXTENSION:
-                assert(wms->file_title_str != NULL);
-                ext_str = rindex(wms->file_title_str, '.');
-                if (ext_str == NULL || strcmp(ext_str, ".imsf") != 0) {
-                  size = strlen(wms->file_title_str) + 6; // + ".imsf" + '\0'
-                  str = malloc(size);
-                  e = str == NULL;
+                  data_size = sa_length(&wms->ms.card_sa);
+                  e = imf_put(&wms->ms.imf, index, wms->ms.card_sa.sa_d, data_size);
                   if (e == 0) {
-                    strcpy(str, wms->file_title_str);
-                    strcat(str, ".imsf");
-                    free(wms->file_title_str);
-                    wms->file_title_str = str;
-                  }
-                }
-                break;
-              case A_GATHER:
-                if (wms->file_title_str != NULL) {
-                  size = strlen(DATA_PATH) + strlen(wms->file_title_str) + 2; // + '/' + '\0'
-                  str = malloc(size);
-                  e = str == NULL;
-                  if (e == 0) {
-                    strcpy(str, DATA_PATH);
-                    strcat(str, "/");
-                    strcat(str, wms->file_title_str);
-                    assert(wms->ms.imf_filename == NULL);
-                    wms->ms.imf_filename = str;
-                  }
-                }
-                else
-                  e = wms->seq != S_FILE && wms->seq != S_ABOUT;
-                break;
-              case A_UPLOAD:
-                e = ms_close (&wms->ms);
-                if (e == 0)
-                {
-                  e = ms_create (&wms->ms, O_TRUNC);
-                  if (e == 0)
-                  {
-                    wms->page = P_UPLOAD;
-                  }
-                }
-                break;
-              case A_UPLOAD_REPORT:
-                data_size = sa_length(&wms->ms.cat_sa);
-                e = imf_put(&wms->ms.imf, SA_INDEX, wms->ms.cat_sa.sa_d, data_size);
-                if (e == 0) {
-                  data_size = sizeof(struct Category) * wms->ms.cat_a;
-                  e = imf_put(&wms->ms.imf, C_INDEX, wms->ms.cat_t, data_size);
-                  if (e == 0) {
-                    e = imf_sync(&wms->ms.imf);
-                    if (e == 0)
-                      wms->page = P_UPLOAD_REPORT;
-                  }
-                }
-                break;
-              case A_EXPORT:
-                wms->page = P_EXPORT;
-                break;
-              case A_LOAD_CARDLIST:
-                e = wms->ms.cat_i < 0;
-                if (e == 0) {
-                  assert(wms->ms.cat_i >= 0);
-                  e = wms->ms.cat_i >= wms->ms.cat_a || wms->ms.cat_t[wms->ms.cat_i].cat_used == 0;
-                  if (e == 0) {
-                    assert(wms->ms.cat_i < wms->ms.cat_a && wms->ms.cat_t[wms->ms.cat_i].cat_used != 0);
-                    e = ms_load_card_list(&wms->ms);
-                  }
-                  else {
-                    wms->ms.cat_i = -1;
-                    wms->static_msg = "Warning: Invalid category";
-                    wms->static_btn_main = "OK";
-                    wms->todo_main = S_NONE; // S_SELECT_EDIT_CAT S_SELECT_SEARCH_CAT S_SELECT_LEARN_CAT S_DELETE_CARD S_APPEND
-                    wms->page = P_MSG;
-                  }
-                }
-                else {
-                  assert (wms->ms.cat_i == -1);
-                  wms->static_msg = "Please select a category";
-                  wms->static_btn_main = "OK";
-                  wms->todo_main = S_START; // S_NONE S_SELECT_EDIT_CAT S_SELECT_SEARCH_CAT S_SELECT_LEARN_CAT S_DELETE_CARD
-                  wms->page = P_MSG;
-                }
-                break;
-              case A_CHECK_RESUME:
-                if (wms->ms.card_a > 0)
-                  for (card_i = 0; card_i < wms->ms.card_a && wms->ms.can_resume == 0; card_i++)
-                    if (wms->ms.card_l[card_i].card_state == STATE_SUSPENDED)
-                      wms->ms.can_resume = 1;
-                break;
-              case A_ASK_REMOVE:
-                wms->static_msg = "Remove file of the file system?";
-                wms->static_btn_main = "Remove";
-                wms->static_btn_alt = "Cancel";
-                wms->todo_main = S_REMOVE;
-                wms->todo_alt = S_FILE;
-                wms->page = P_MSG;
-                break;
-              case A_REMOVE:
-                e = ms_close(&wms->ms);
-                if (e == 0) {
-                  e = unlink(wms->ms.imf_filename);
-                  if (e == 0) {
-                    assert(wms->ms.imf_filename != NULL);
-                    free(wms->ms.imf_filename);
-                    wms->ms.imf_filename = NULL;
-                    wms->tok_str[0] = '\0';
-                  }
-                }
-                break;
-              case A_ASK_ERASE:
-                wms->static_msg = "Erase all decks & cards?";
-                wms->static_btn_main = "Erase";
-                wms->static_btn_alt = "Cancel";
-                wms->todo_main = S_ERASE;
-                wms->todo_alt = S_FILE;
-                wms->page = P_MSG;
-                break;
-              case A_ERASE:
-                e = ms_close(&wms->ms);
-                if (e == 0) {
-                  e = ms_create(&wms->ms, O_TRUNC);
-                  if (e == 0) {
-                    wms->ms.cat_i = -1;
-                    wms->page = P_FILE;
-                  }
-                }
-                break;
-              case A_CLOSE:
-                free(wms->file_title_str);
-                wms->file_title_str = NULL;
-                wms->ms.cat_i = -1;
-                wms->page = P_FILE;
-                break;
-              case A_START_CAT:
-                wms->page = P_START_CAT;
-                break;
-              case A_SELECT_CREATE_CAT:
-                if (wms->ms.n_first >= 0)
-                  wms->page = P_SELECT_CREATE_CAT;
-                else
-                  wms->page = P_CAT_NAME;
-                break;
-              case A_SELECT_CAT:
-                wms->page = P_SELECT_CAT;
-                break;
-              case A_SELECT_SEND_CAT:
-                wms->page = P_SELECT_SEND_CAT;
-                break;
-              case A_SELECT_ARRANGE:
-                wms->page = P_SELECT_ARRANGE;
-                break;
-              case A_CAT_NAME:
-                wms->page = P_CAT_NAME;
-                break;
-              case A_CREATE_CAT:
-                e = wms->ms.cat_name == NULL;
-                if (e == 0) {
-                  len = strlen(wms->ms.cat_name);
-                  e = len == 0;
-                }
-                if (e == 0) {
-                  if (wms->ms.cat_i >= 0)
-                    e = wms->ms.cat_i >= wms->ms.cat_a || wms->ms.cat_t[wms->ms.cat_i].cat_used == 0;
-                  else {
-                    e = wms->ms.cat_i != -1 || wms->ms.n_first != -1;
-                    if (e == 0)
-                      wms->ms.arrange = -1;
-                  }
-                  if (e == 0) {
-                    cat_i = 0;
-                    while (cat_i < wms->ms.cat_a && wms->ms.cat_t[cat_i].cat_used != 0)
-                      cat_i++;
-                    if (cat_i == wms->ms.cat_a) {
-                      cat_a = wms->ms.cat_a + 7;
-                      e = cat_a > INT16_MAX;
-                      if (e == 0) {
-                        size = sizeof(struct Category) * cat_a;
-                        wms->ms.cat_t = realloc(wms->ms.cat_t, size);
-                        e = wms->ms.cat_t == NULL;
-                        if (e == 0) {
-                          for (i = wms->ms.cat_a; i < cat_a; i++)
-                            wms->ms.cat_t[i].cat_used = 0;
-                          wms->ms.cat_a = cat_a;
-                        }
-                      }
-                    }
+                    wms->ms.card_a++;
+                    data_size = wms->ms.card_a * sizeof(struct Card);
+                    wms->ms.card_l = realloc(wms->ms.card_l, data_size);
+                    e = wms->ms.card_l == NULL;
                     if (e == 0) {
-                      assert(cat_i < wms->ms.cat_a && wms->ms.cat_t[cat_i].cat_used == 0);
-                      e = imf_seek_unused(&wms->ms.imf, &index);
-                      if (e == 0) {
-                        e = imf_put(&wms->ms.imf, index, "", 0);
-                        if (e == 0) {
-                          wms->ms.cat_t[cat_i].cat_cli = index;
-                          e = sa_set(&wms->ms.cat_sa, cat_i, wms->ms.cat_name);
-                          if (e == 0) {
-                            wms->ms.cat_t[cat_i].cat_x = 1;
-                            switch (wms->ms.arrange)
-                            {
-                            case 0: // Before
-                              n_prev = -1;
-                              n_parent = -1;
-                              for (i = 0; i < wms->ms.cat_a && n_prev == -1 && n_parent == -1; i++)
-                                if (wms->ms.cat_t[i].cat_used != 0) {
-                                  if (wms->ms.cat_t[i].cat_n_sibling == wms->ms.cat_i)
-                                    n_prev = i;
-                                  if (wms->ms.cat_t[i].cat_n_child == wms->ms.cat_i)
-                                    n_parent = i;
-                                }
-                              if (n_prev != -1) {
-                                assert(wms->ms.cat_t[n_prev].cat_n_sibling == wms->ms.cat_i);
-                                wms->ms.cat_t[n_prev].cat_n_sibling = cat_i;
-                              }
-                              else {
-                                if (wms->ms.n_first == wms->ms.cat_i)
-                                  wms->ms.n_first = cat_i;
-                                else {
-                                  assert(n_parent != -1);
-                                  wms->ms.cat_t[n_parent].cat_n_child = cat_i;
-                                }
-                              }
-                              wms->ms.cat_t[cat_i].cat_n_sibling = wms->ms.cat_i;
-                              wms->ms.cat_t[cat_i].cat_n_child = -1;
-                              break;
-                            case 1: // Below
-                              wms->ms.cat_t[cat_i].cat_n_sibling = wms->ms.cat_t[wms->ms.cat_i].cat_n_child;
-                              wms->ms.cat_t[wms->ms.cat_i].cat_n_child = cat_i;
-                              wms->ms.cat_t[cat_i].cat_n_child = -1;
-                              break;
-                            case 2: // Behind
-                              wms->ms.cat_t[cat_i].cat_n_sibling = wms->ms.cat_t[wms->ms.cat_i].cat_n_sibling;
-                              wms->ms.cat_t[wms->ms.cat_i].cat_n_sibling = cat_i;
-                              wms->ms.cat_t[cat_i].cat_n_child = -1;
-                              break;
-                            case -1:
-                              e = wms->ms.n_first != -1;
-                              if (e == 0) {
-                                wms->ms.cat_t[cat_i].cat_n_sibling = -1;
-                                wms->ms.cat_t[cat_i].cat_n_child = -1;
-                                assert(cat_i == 0);
-                                wms->ms.n_first = cat_i;
-                              }
-                              break;
-                            default:
-                              e = -1;
-                            }
-                            if (e == 0) {
-                              wms->ms.cat_t[cat_i].cat_used = 1;
-                              wms->ms.cat_t[cat_i].cat_on = 1;
-                              data_size = sa_length(&wms->ms.cat_sa);
-                              e = imf_put(&wms->ms.imf, SA_INDEX, wms->ms.cat_sa.sa_d, data_size);
-                              if (e == 0) {
-                                data_size = sizeof(struct Category) * wms->ms.cat_a;
-                                e = imf_put(&wms->ms.imf, C_INDEX, wms->ms.cat_t, data_size);
-                                if (e == 0) {
-                                  e = imf_sync(&wms->ms.imf);
-                                  if (e == 0) {
-                                    wms->ms.cat_i = cat_i;
-                                    wms->page = P_START_CAT;
-                                  }
-                                }
-                              }
-                            }
-                            else {
-                              wms->static_msg = "Please select how to arrange the new category";
-                              wms->static_btn_main = "OK";
-                              wms->todo_main = S_SELECT_ARRANGE;
-                              wms->page = P_MSG;
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-                else {
-                  wms->static_msg = "Please enter a name for the new category";
-                  wms->static_btn_main = "OK";
-                  wms->todo_main = S_SELECT_CREATE_CAT;
-                  wms->page = P_MSG;
-                }
-                break;
-              case A_RENAME_CAT:
-                assert(wms->ms.cat_i >= 0 && wms->ms.cat_i < wms->ms.cat_a && wms->ms.cat_t[wms->ms.cat_i].cat_used != 0);
-                e = sa_set (&wms->ms.cat_sa, wms->ms.cat_i, wms->ms.cat_name);
-                if (e == 0) {
-                  data_size = sa_length(&wms->ms.cat_sa);
-                  e = imf_put(&wms->ms.imf, SA_INDEX, wms->ms.cat_sa.sa_d, data_size);
-                  if (e == 0) {
-                    e = imf_sync(&wms->ms.imf);
-                    if (e == 0)
-                      wms->page = P_START_CAT;
-                  }
-                }
-                break;
-              case A_ASK_DELETE_CAT:
-                assert(wms->ms.cat_t[wms->ms.cat_i].cat_used != 0);
-                if (wms->ms.cat_t[wms->ms.cat_i].cat_n_child == -1) {
-                  wms->static_msg = "Delete Category?";
-                  wms->static_btn_main = "Delete";
-                  wms->static_btn_alt = "Cancel";
-                  wms->todo_main = S_DELETE_CAT;
-                  wms->todo_alt = S_START_CAT;
-                  wms->page = P_MSG;
-                }
-                else {
-                  wms->static_msg = "A category to delete must be a leaf";
-                  wms->static_btn_main = "OK";
-                  wms->todo_main = S_SELECT_DELETE_CAT;
-                  wms->page = P_MSG;
-                }
-                break;
-              case A_DELETE_CAT:
-                assert(wms->ms.cat_t[wms->ms.cat_i].cat_used != 0);
-                n_prev = -1;
-                n_parent = -1;
-                i = 0;
-                do {
-                  if (wms->ms.cat_t[i].cat_used != 0) {
-                    if (wms->ms.cat_t[i].cat_n_sibling == wms->ms.cat_i)
-                      n_prev = i;
-                    if (wms->ms.cat_t[i].cat_n_child == wms->ms.cat_i)
-                      n_parent = i;
-                  }
-                  i++;
-                } while (i < wms->ms.cat_a && n_prev == -1 && n_parent == -1);
-                if (n_prev != -1)
-                  wms->ms.cat_t[n_prev].cat_n_sibling = wms->ms.cat_t[wms->ms.cat_i].cat_n_sibling;
-                else if (n_parent != -1)
-                  wms->ms.cat_t[n_parent].cat_n_child = wms->ms.cat_t[wms->ms.cat_i].cat_n_sibling;
-                else {
-                  e = wms->ms.n_first != wms->ms.cat_i;
-                  if (e == 0)
-                    wms->ms.n_first = wms->ms.cat_t[wms->ms.cat_i].cat_n_sibling;
-                }
-                if (e == 0) {
-                  e = ms_load_card_list(&wms->ms);
-                  if (e == 0) {
-                    card_i = 0;
-                    while (card_i < wms->ms.card_a && e == 0) {
-                      e = imf_delete (&wms->ms.imf, wms->ms.card_l[card_i].card_qai);
-                      card_i++;
-                    }
-                    if (e == 0)
-                      e = imf_delete (&wms->ms.imf, wms->ms.cat_t[wms->ms.cat_i].cat_cli);
-                  }
-                }
-                if (e == 0) {
-                  wms->ms.cat_t[wms->ms.cat_i].cat_used = 0;
-                  data_size = sizeof(struct Category) * wms->ms.cat_a;
-                  e = imf_put(&wms->ms.imf, C_INDEX, wms->ms.cat_t, data_size);
-                  if (e == 0) {
-                    e = imf_sync(&wms->ms.imf);
-                    if (e == 0) {
-                      wms->ms.cat_i = -1;
-                      wms->page = P_START_CAT;
-                    }
-                  }
-                }
-                break;
-              case A_TOGGLE:
-                assert(wms->ms.cat_i >= 0 && wms->ms.cat_i < wms->ms.cat_a && wms->ms.cat_t[wms->ms.cat_i].cat_used != 0);
-                wms->ms.cat_t[wms->ms.cat_i].cat_x = wms->ms.cat_t[wms->ms.cat_i].cat_x == 0 ? 1 : 0;
-                data_size = sizeof(struct Category) * wms->ms.cat_a;
-                e = imf_put(&wms->ms.imf, C_INDEX, wms->ms.cat_t, data_size);
-                if (e == 0) {
-                  e = imf_sync(&wms->ms.imf);
-                  if (e == 0)
-                    wms->page = P_START_CAT;
-                }
-                break;
-              case A_MOVE_CAT:
-                assert (wms->ms.cat_t[wms->ms.cat_i].cat_used != 0 && wms->ms.cat_t[wms->ms.mov_cat_i].cat_used != 0);
-                n_prev = -1;
-                n_parent = wms->ms.cat_i;
-                do {
-                  if (n_prev != -1)
-                    cat_i = n_prev;
-                  if (n_parent != -1)
-                    cat_i = n_parent;
-                  e = wms->ms.mov_cat_i == n_parent;
-                  if (e != 0)
-                    break;
-                  n_prev = -1;
-                  n_parent = -1;
-                  for (i = 0; i < wms->ms.cat_a && n_parent == -1 && n_prev == -1; i++)
-                    if (wms->ms.cat_t[i].cat_used != 0) {
-                      if (wms->ms.cat_t[i].cat_n_sibling == cat_i)
-                        n_prev = i;
-                      if (wms->ms.cat_t[i].cat_n_child == cat_i)
-                        n_parent = i;
-                    }
-                } while (n_parent != -1 || n_prev != -1);
-                if (e == 0) {
-                  if (wms->ms.arrange != 0 || wms->ms.cat_t[wms->ms.mov_cat_i].cat_n_sibling != wms->ms.cat_i) {
-                    if (wms->ms.n_first != wms->ms.mov_cat_i) {
-                      n_prev = -1;
-                      n_parent = -1;
-                      for (i = 0; i < wms->ms.cat_a && n_prev == -1 && n_parent == -1; i++)
-                        if (wms->ms.cat_t[i].cat_used != 0) {
-                          if (wms->ms.cat_t[i].cat_n_sibling == wms->ms.mov_cat_i)
-                            n_prev = i;
-                          if (wms->ms.cat_t[i].cat_n_child == wms->ms.mov_cat_i)
-                            n_parent = i;
-                        }
-                      if (n_prev != -1)
-                        wms->ms.cat_t[n_prev].cat_n_sibling = wms->ms.cat_t[wms->ms.mov_cat_i].cat_n_sibling;
-                      if (n_parent != -1)
-                        wms->ms.cat_t[n_parent].cat_n_child = wms->ms.cat_t[wms->ms.mov_cat_i].cat_n_sibling;
-                    }
-                    else
-                      wms->ms.n_first = wms->ms.cat_t[wms->ms.mov_cat_i].cat_n_sibling;
-                    assert (wms->ms.arrange != -1);
-                    switch (wms->ms.arrange)
-                    {
-                    case 0: // Before
-                      i = 0;
-                      n_prev = -1;
-                      n_parent = -1;
-                      do {
-                        if (wms->ms.cat_t[i].cat_used != 0) {
-                          if (wms->ms.cat_t[i].cat_n_sibling == wms->ms.cat_i)
-                            n_prev = i;
-                          if (wms->ms.cat_t[i].cat_n_child == wms->ms.cat_i)
-                            n_parent = i;
-                        }
-                        i++;
-                      } while (i < wms->ms.cat_a && n_prev == -1 && n_parent == -1);
-                      if (n_prev != -1) {
-                        assert(wms->ms.cat_t[n_prev].cat_n_sibling == wms->ms.cat_i);
-                        wms->ms.cat_t[n_prev].cat_n_sibling = wms->ms.mov_cat_i;
-                      }
-                      else {
-                        if (wms->ms.n_first == wms->ms.cat_i)
-                          wms->ms.n_first = wms->ms.mov_cat_i;
-                        else {
-                          assert(n_parent != -1);
-                          wms->ms.cat_t[n_parent].cat_n_child = wms->ms.mov_cat_i;
-                        }
-                      }
-                      wms->ms.cat_t[wms->ms.mov_cat_i].cat_n_sibling = wms->ms.cat_i;
-                      break;
-                    case 1: // Below
-                      wms->ms.cat_t[wms->ms.mov_cat_i].cat_n_sibling = wms->ms.cat_t[wms->ms.cat_i].cat_n_child;
-                      wms->ms.cat_t[wms->ms.cat_i].cat_n_child = wms->ms.mov_cat_i;
-                      break;
-                    case 2: // Behind
-                      wms->ms.cat_t[wms->ms.mov_cat_i].cat_n_sibling = wms->ms.cat_t[wms->ms.cat_i].cat_n_sibling;
-                      wms->ms.cat_t[wms->ms.cat_i].cat_n_sibling = wms->ms.mov_cat_i;
-                      break;
-                    }
-                    data_size = sizeof (struct Category) * wms->ms.cat_a;
-                    e = imf_put (&wms->ms.imf, C_INDEX, wms->ms.cat_t, data_size);
-                    if (e == 0) {
-                      e = imf_sync (&wms->ms.imf);
-                      if (e == 0) {
-                        wms->ms.cat_i = wms->ms.mov_cat_i;
-                        wms->page = P_START_CAT;
-                      }
-                    }
-                  }
-                }
-                else {
-                  wms->static_msg = "Invalid topology";
-                  wms->static_btn_main = "OK";
-                  wms->todo_main = S_START_CAT;
-                  wms->page = P_MSG;
-                }
-                break;
-              case A_SELECT_EDIT_CAT:
-                wms->ms.card_i = -1;
-                wms->page = P_SELECT_EDIT_CAT;
-                break;
-              case A_EDIT:
-                if (wms->ms.cat_i >= 0)
-                {
-                  if ((wms->ms.cat_i < wms->ms.cat_a) && (wms->ms.cat_t[wms->ms.cat_i].cat_used != 0))
-                  {
-                    e = ms_load_card_list (&wms->ms);
-                    if (e == 0)
-                    {
-                      assert (wms->ms.card_i >= -1 && wms->ms.card_a >= 0);
-                      if (wms->ms.card_i < 0 && wms->ms.card_a > 0)
-                      {
-                        wms->ms.card_i = 0;
-                      }
-                      if (wms->ms.card_i >= wms->ms.card_a)
-                      {
-                        wms->ms.card_i = wms->ms.card_a - 1;
-                      }
-                      if (wms->ms.card_i >= 0)
-                      {
-                        e = ms_get_card_sa (&wms->ms);
-                      }
-                      wms->page = P_EDIT;
-                    }
-                  }
-                  else
-                  {
-                    wms->ms.cat_i = -1;
-                    wms->static_msg = "Warning: Invalid category";
-                    wms->static_btn_main = "OK";
-                    wms->todo_main = S_SELECT_EDIT_CAT;
-                    wms->page = P_MSG;
-                  }
-                }
-                else
-                {
-                  wms->static_msg = "Please select a category to edit";
-                  wms->static_btn_main = "OK";
-                  wms->todo_main = S_SELECT_EDIT_CAT;
-                  wms->page = P_MSG;
-                }
-                break;
-              case A_SYNC_QA:
-                qa_err = sa_get(&wms->qa_sa, 0) == NULL;
-                qa_err |= sa_get(&wms->qa_sa, 1) == NULL;
-                if (qa_err == 0) {
-                  e = ms_get_card_sa(&wms->ms);
-                  if (e == 0) {
-                    e = ms_modify_qa(&wms->qa_sa, &wms->ms);
-                    if (e > 0) {
-                      e = mtime_test == 0;
-                      if (e == 0)
-                        e = imf_sync(&wms->ms.imf);
-                      else {
-                        wms->static_msg = "Error: Invalid mtime value";
-                        wms->static_btn_main = "OK";
-                        wms->todo_main = S_SELECT_EDIT_CAT; // S_EDIT S_QUESTION
-                        wms->page = P_MSG;
-                      }
-                    }
-                  }
-                }
-                break;
-              case A_INSERT:
-                e = sa_set(&wms->ms.card_sa, 0, "");
-                if (e == 0) {
-                  e = sa_set(&wms->ms.card_sa, 1, "");
-                  if (e == 0) {
-                    e = imf_seek_unused(&wms->ms.imf, &index);
-                    if (e == 0) {
-                      data_size = sa_length(&wms->ms.card_sa);
-                      e = imf_put(&wms->ms.imf, index, wms->ms.card_sa.sa_d, data_size);
-                      if (e == 0) {
-                        wms->ms.card_a++;
-                        data_size = wms->ms.card_a * sizeof(struct Card);
-                        wms->ms.card_l = realloc(wms->ms.card_l, data_size);
-                        e = wms->ms.card_l == NULL;
-                        if (e == 0) {
-                          src = wms->ms.card_l + wms->ms.card_i;
-                          dest = wms->ms.card_l + wms->ms.card_i + 1;
-                          n = wms->ms.card_a - wms->ms.card_i - 1;
-                          assert(n > 0);
-                          size = n * sizeof(struct Card);
-                          memmove(dest, src, size);
-                          wms->ms.card_l[wms->ms.card_i].card_time = time(NULL);
-                          e = wms->ms.card_l[wms->ms.card_i].card_time == -1;
-                          if (e == 0) {
-                            wms->ms.card_l[wms->ms.card_i].card_strength = 60;
-                            wms->ms.card_l[wms->ms.card_i].card_qai = index;
-                            wms->ms.card_l[wms->ms.card_i].card_state = STATE_NEW;
-                            e = imf_put(&wms->ms.imf, wms->ms.cat_t[wms->ms.cat_i].cat_cli, wms->ms.card_l, data_size);
-                            if (e == 0) {
-                              e = imf_sync (&wms->ms.imf);
-                              if (e == 0)
-                                wms->page = P_EDIT;
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-                break;
-              case A_APPEND:
-                e = sa_set(&wms->ms.card_sa, 0, "");
-                if (e == 0) {
-                  e = sa_set(&wms->ms.card_sa, 1, "");
-                  if (e == 0) {
-                    e = imf_seek_unused(&wms->ms.imf, &index);
-                    if (e == 0) {
-                      data_size = sa_length(&wms->ms.card_sa);
-                      e = imf_put(&wms->ms.imf, index, wms->ms.card_sa.sa_d, data_size);
-                      if (e == 0) {
-                        wms->ms.card_i = wms->ms.card_a;
-                        wms->ms.card_a++;
-                        data_size = wms->ms.card_a * sizeof(struct Card);
-                        wms->ms.card_l = realloc(wms->ms.card_l, data_size);
-                        e = wms->ms.card_l == NULL;
-                        if (e == 0) {
-                          card_ptr = wms->ms.card_l + wms->ms.card_i;
-                          card_ptr->card_time = time (NULL);
-                          e = card_ptr->card_time == -1;
-                          if (e == 0) {
-                            card_ptr->card_strength = 60;
-                            card_ptr->card_qai = index;
-                            card_ptr->card_state = STATE_NEW;
-                            cat_ptr = wms->ms.cat_t + wms->ms.cat_i;
-                            e = imf_put(&wms->ms.imf, cat_ptr->cat_cli, wms->ms.card_l, data_size);
-                            if (e == 0) {
-                              e = imf_sync(&wms->ms.imf);
-                              if (e == 0)
-                                wms->page = P_EDIT;
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-                break;
-              case A_ASK_DELETE_CARD:
-                wms->static_msg = "Delete Item?";
-                wms->static_btn_main = "Delete";
-                wms->static_btn_alt = "Cancel";
-                wms->todo_main = S_DELETE_CARD;
-                wms->todo_alt = S_EDIT;
-                wms->page = P_MSG;
-                break;
-              case A_DELETE_CARD:
-                if ((wms->ms.card_a > 0) && (wms->ms.card_i >= 0) && (wms->ms.card_i < wms->ms.card_a))
-                {
-                  card_ptr = wms->ms.card_l + wms->ms.card_i;
-                  e = imf_delete (&wms->ms.imf, card_ptr->card_qai);
-                  if (e == 0)
-                  {
-                    wms->ms.card_a--;
-                    dest = wms->ms.card_l + wms->ms.card_i;
-                    src = wms->ms.card_l + wms->ms.card_i + 1;
-                    n = wms->ms.card_a - wms->ms.card_i;
-                    if (n > 0)
-                    {
-                      n *= sizeof(struct Card);
-                      memmove (dest, src, n);
-                    }
-                    if (wms->ms.card_i == wms->ms.card_a)
-                    {
-                      wms->ms.card_i--;
-                    }
-                    data_size = wms->ms.card_a * sizeof (struct Card);
-                    cat_ptr = wms->ms.cat_t + wms->ms.cat_i;
-                    e = imf_put (&wms->ms.imf, cat_ptr->cat_cli, wms->ms.card_l, data_size);
-                    if (e == 0)
-                    {
-                      e = imf_sync (&wms->ms.imf);
-                      if (e == 0)
-                      {
-                        e = ms_get_card_sa (&wms->ms);
-                        if (e == 0)
-                        {
-                          wms->page = P_EDIT;
-                        }
-                      }
-                    }
-                  }
-                }
-                break;
-              case A_PREVIOUS:
-                e = ms_load_card_list (&wms->ms);
-                {
-                  qa_err = sa_get(&wms->qa_sa, 0) == NULL;
-                  qa_err |= sa_get(&wms->qa_sa, 1) == NULL;
-                  if (qa_err == 0)
-                  {
-                    e = ms_get_card_sa (&wms->ms);
-                    if (e == 0)
-                    {
-                      e = ms_modify_qa(&wms->qa_sa, &wms->ms);
-                      if (e > 0)
-                      {
-                        e = imf_sync (&wms->ms.imf);
-                      }
-                    }
-                  }
-                  if (wms->ms.card_a > 0) {
-                    wms->ms.card_i--;
-                    if (wms->ms.card_i < 0)
-                      wms->ms.card_i = 0;
-                    if (wms->ms.card_i >= wms->ms.card_a)
-                      wms->ms.card_i = wms->ms.card_a - 1;
-                  }
-                  else
-                    wms->ms.card_i = -1;
-                  if (wms->ms.card_i != -1) {
-                    e = ms_get_card_sa(&wms->ms);
-                    if (e == 0)
-                      wms->page = P_EDIT;
-                  }
-                }
-                break;
-              case A_NEXT:
-                e = ms_load_card_list (&wms->ms);
-                {
-                  qa_err = sa_get(&wms->qa_sa, 0) == NULL;
-                  qa_err |= sa_get(&wms->qa_sa, 1) == NULL;
-                  if (qa_err == 0)
-                  {
-                    e = ms_get_card_sa (&wms->ms);
-                    if (e == 0)
-                    {
-                      e = ms_modify_qa(&wms->qa_sa, &wms->ms);
-                      if (e > 0)
-                      {
-                        e = imf_sync (&wms->ms.imf);
-                      }
-                    }
-                  }
-                  if (wms->ms.card_a > 0) {
-                    wms->ms.card_i++;
-                    if (wms->ms.card_i < 0)
-                      wms->ms.card_i = 0;
-                    if (wms->ms.card_i >= wms->ms.card_a)
-                      wms->ms.card_i = wms->ms.card_a - 1;
-                  }
-                  else
-                    wms->ms.card_i = -1;
-                  if (wms->ms.card_i != -1) {
-                    e = ms_get_card_sa(&wms->ms);
-                    if (e == 0)
-                      wms->page = P_EDIT;
-                  }
-                }
-                break;
-              case A_SCHEDULE:
-                e = wms->ms.card_l[wms->ms.card_i].card_state < STATE_NEW;
-                if (e == 0) {
-                  wms->ms.card_l[wms->ms.card_i].card_state = STATE_SCHEDULED;
-                  data_size = wms->ms.card_a * sizeof(struct Card);
-                  index = wms->ms.cat_t[wms->ms.cat_i].cat_cli;
-                  e = imf_put(&wms->ms.imf, index, wms->ms.card_l, data_size);
-                  if (e == 0) {
-                    e = imf_sync(&wms->ms.imf);
-                    if (e == 0) {
-                      e = ms_get_card_sa(&wms->ms);
-                      if (e == 0)
-                        wms->page = P_EDIT;
-                    }
-                  }
-                }
-                break;
-              case A_SET:
-                wms->ms.mov_card_i = wms->ms.card_i;
-                wms->page = P_EDIT;
-                break;
-              case A_ARRANGE:
-                wms->page = P_SELECT_CARD_ARRANGE;
-                break;
-              case A_MOVE_CARD:
-                e = wms->ms.mov_card_i < 0 || wms->ms.mov_card_i >= wms->ms.card_a;
-                if (e == 0) {
-                  size = sizeof(struct Card);
-                  memcpy(&card, wms->ms.card_l + wms->ms.mov_card_i, size);
-                  dest = wms->ms.card_l + wms->ms.mov_card_i;
-                  src = dest + sizeof(struct Card);
-                  n = wms->ms.card_a - wms->ms.mov_card_i - 1;
-                  if (n > 0) {
-                    size = n * sizeof(struct Card);
-                    memmove(dest, src, size);
-                  }
-                  e = wms->ms.card_i < 0 || wms->ms.card_i >= wms->ms.card_a;
-                  if (e == 0) {
-                    card_i = wms->ms.card_i;
-                    if (card_i > wms->ms.mov_card_i)
-                      card_i--;
-                    if (wms->ms.arrange == 2)
-                      card_i++;
-                    else
-                      e = wms->ms.arrange != 0;
-                  }
-                  if (e == 0) {
-                    src = wms->ms.card_l + card_i;
-                    dest = src + sizeof(struct Card);
-                    n = wms->ms.card_a - card_i - 1;
-                    if (n > 0) {
+                      src = wms->ms.card_l + wms->ms.card_i;
+                      dest = wms->ms.card_l + wms->ms.card_i + 1;
+                      n = wms->ms.card_a - wms->ms.card_i - 1;
+                      assert(n > 0);
                       size = n * sizeof(struct Card);
                       memmove(dest, src, size);
-                    }
-                    size = sizeof(struct Card);
-                    memcpy(wms->ms.card_l + card_i, &card, size);
-                    data_size = wms->ms.card_a * sizeof(struct Card);
-                    e = imf_put(&wms->ms.imf, wms->ms.cat_t[wms->ms.cat_i].cat_cli, wms->ms.card_l, data_size);
-                    if (e == 0) {
-                      e = imf_sync(&wms->ms.imf);
+                      wms->ms.card_l[wms->ms.card_i].card_time = time(NULL);
+                      e = wms->ms.card_l[wms->ms.card_i].card_time == -1;
                       if (e == 0) {
-                        wms->ms.card_i = card_i;
-                        e = ms_get_card_sa(&wms->ms);
+                        wms->ms.card_l[wms->ms.card_i].card_strength = 60;
+                        wms->ms.card_l[wms->ms.card_i].card_qai = index;
+                        wms->ms.card_l[wms->ms.card_i].card_state = STATE_NEW;
+                        e = imf_put(&wms->ms.imf, wms->ms.cat_t[wms->ms.cat_i].cat_cli, wms->ms.card_l, data_size);
                         if (e == 0) {
-                          wms->ms.mov_card_i = -1;
-                          wms->page = P_EDIT;
+                          e = imf_sync (&wms->ms.imf);
+                          if (e == 0)
+                            wms->page = P_EDIT;
                         }
                       }
                     }
                   }
                 }
-                break;
-              case A_SEND_CARD:
-                e = wms->ms.mov_cat_i == wms->ms.cat_i;
+              }
+            }
+            break;
+          case A_APPEND:
+            e = sa_set(&wms->ms.card_sa, 0, "");
+            if (e == 0) {
+              e = sa_set(&wms->ms.card_sa, 1, "");
+              if (e == 0) {
+                e = imf_seek_unused(&wms->ms.imf, &index);
                 if (e == 0) {
-                  e = wms->ms.mov_cat_i < 0 || wms->ms.mov_cat_i >= wms->ms.cat_a || wms->ms.cat_t[wms->ms.mov_cat_i].cat_used == 0;
-                  if (e == 0) {
-                    index = wms->ms.cat_t[wms->ms.mov_cat_i].cat_cli;
-                    data_size = imf_get_size(&wms->ms.imf, index);
-                    e = data_size <= 0;
-                    if (e == 0) {
-                      mov_card_a = data_size / sizeof(struct Card);
-                      e = wms->ms.mov_card_i < 0 || wms->ms.mov_card_i >= mov_card_a;
-                      if (e == 0) {
-                        mov_card_l = malloc(data_size);
-                        e = mov_card_l == NULL;
-                        if (e == 0) {
-                          e = imf_get(&wms->ms.imf, index, mov_card_l);
-                          if (e == 0) {
-                            size = sizeof(struct Card);
-                            memcpy(&card, mov_card_l + wms->ms.mov_card_i, size);
-                            mov_card_a--;
-                            dest = mov_card_l + wms->ms.mov_card_i;
-                            src = mov_card_l + wms->ms.mov_card_i + 1;
-                            n = mov_card_a - wms->ms.mov_card_i;
-                            if (n > 0) {
-                              size = n * sizeof(struct Card);
-                              memmove(dest, src, size);
-                            }
-                            data_size = mov_card_a * sizeof(struct Card);
-                            e = imf_put(&wms->ms.imf, index, mov_card_l, data_size);
-                          }
-                          free(mov_card_l);
-                        }
-                      }
-                    }
-                  }
+                  data_size = sa_length(&wms->ms.card_sa);
+                  e = imf_put(&wms->ms.imf, index, wms->ms.card_sa.sa_d, data_size);
                   if (e == 0) {
                     wms->ms.card_i = wms->ms.card_a;
                     wms->ms.card_a++;
@@ -4973,110 +4743,436 @@ int main(int argc, char *argv[])
                     wms->ms.card_l = realloc(wms->ms.card_l, data_size);
                     e = wms->ms.card_l == NULL;
                     if (e == 0) {
-                      src = &card;
-                      dest = wms->ms.card_l + wms->ms.card_i;
-                      size = sizeof(struct Card);
-                      memcpy(dest, src, size);
-                      index = wms->ms.cat_t[wms->ms.cat_i].cat_cli;
-                      e = imf_put(&wms->ms.imf, index, wms->ms.card_l, data_size);
+                      card_ptr = wms->ms.card_l + wms->ms.card_i;
+                      card_ptr->card_time = time (NULL);
+                      e = card_ptr->card_time == -1;
+                      if (e == 0) {
+                        card_ptr->card_strength = 60;
+                        card_ptr->card_qai = index;
+                        card_ptr->card_state = STATE_NEW;
+                        cat_ptr = wms->ms.cat_t + wms->ms.cat_i;
+                        e = imf_put(&wms->ms.imf, cat_ptr->cat_cli, wms->ms.card_l, data_size);
+                        if (e == 0) {
+                          e = imf_sync(&wms->ms.imf);
+                          if (e == 0)
+                            wms->page = P_EDIT;
+                        }
+                      }
                     }
                   }
-                  if (e == 0)
-                    e = imf_sync(&wms->ms.imf);
-                  if (e == 0) {
-                    e = ms_get_card_sa(&wms->ms);
-                    if (e == 0)
-                      wms->page = P_EDIT;
-                  }
                 }
-                else {
-                  wms->static_msg = "Error: Src == Dest";
-                  wms->static_btn_main = "OK";
-                  wms->todo_main = S_EDIT;
-                  wms->page = P_MSG;
+              }
+            }
+            break;
+          case A_ASK_DELETE_CARD:
+            wms->static_msg = "Delete Item?";
+            wms->static_btn_main = "Delete";
+            wms->static_btn_alt = "Cancel";
+            wms->todo_main = S_DELETE_CARD;
+            wms->todo_alt = S_EDIT;
+            wms->page = P_MSG;
+            break;
+          case A_DELETE_CARD:
+            if ((wms->ms.card_a > 0) && (wms->ms.card_i >= 0) && (wms->ms.card_i < wms->ms.card_a))
+            {
+              card_ptr = wms->ms.card_l + wms->ms.card_i;
+              e = imf_delete (&wms->ms.imf, card_ptr->card_qai);
+              if (e == 0)
+              {
+                wms->ms.card_a--;
+                dest = wms->ms.card_l + wms->ms.card_i;
+                src = wms->ms.card_l + wms->ms.card_i + 1;
+                n = wms->ms.card_a - wms->ms.card_i;
+                if (n > 0)
+                {
+                  n *= sizeof(struct Card);
+                  memmove (dest, src, n);
                 }
-                break;
-              case A_SELECT_LEARN_CAT:
-                wms->ms.card_i = -1;
-                wms->page = P_SELECT_LEARN_CAT;
-                break;
-              case A_SELECT_SEARCH_CAT:
-                wms->ms.card_i = -1;
-                wms->page = P_SELECT_SEARCH_CAT;
-                break;
-              case A_PREFERENCES:
-                wms->page = P_PREFERENCES;
-                break;
-              case A_ABOUT:
-                wms->page = P_ABOUT;
-                break;
-              case A_APPLY:
-                assert(wms->timeout >= 0 && wms->timeout < 5);
-                wms->ms.passwd.tok_count = timeouts[wms->timeout][0];
-                wms->ms.passwd.tok_sec = timeouts[wms->timeout][1];
-                size = sizeof(struct Password);
-                e = imf_put(&wms->ms.imf, PW_INDEX, &wms->ms.passwd, size);
-                if (e == 0) {
+                if (wms->ms.card_i == wms->ms.card_a)
+                {
+                  wms->ms.card_i--;
+                }
+                data_size = wms->ms.card_a * sizeof (struct Card);
+                cat_ptr = wms->ms.cat_t + wms->ms.cat_i;
+                e = imf_put (&wms->ms.imf, cat_ptr->cat_cli, wms->ms.card_l, data_size);
+                if (e == 0)
+                {
                   e = imf_sync (&wms->ms.imf);
                   if (e == 0)
-                    wms->page = P_START;
-                }
-                break;
-              case A_SEARCH:
-                wms->found_str = NULL;
-                if (wms->ms.card_a > 0)
-                {
-                  assert ((wms->ms.card_i >= -1) && (wms->ms.card_a > 0));
-                  if (wms->ms.card_i == -1)
-                    wms->ms.card_i = 0;
-                  search_card_i = wms->ms.card_i;
-                  if (wms->ms.search_txt == NULL) {
-                    wms->ms.search_txt = malloc(1);
-                    e = wms->ms.search_txt == NULL;
-                    if (e == 0)
-                      wms->ms.search_txt[0] = '\0';
-                  }
-                  if (e == 0)
                   {
-                    size = strlen (wms->ms.search_txt) + 1;
-                    lwr_search_txt = malloc (size);
-                    e = lwr_search_txt == NULL;
-                    if (e == 0) {
-                      strcpy(lwr_search_txt, wms->ms.search_txt);
-                      str_tolower (lwr_search_txt);
-                      do
-                      {
-                        wms->ms.card_i += wms->ms.srch_dir;
-                        if (wms->ms.card_i == wms->ms.card_a)
-                        {
-                          wms->ms.card_i = 0;
-                        }
-                        if (wms->ms.card_i < 0)
-                        {
-                          wms->ms.card_i = wms->ms.card_a - 1;
-                        }
-                        assert(wms->ms.card_i >= 0 && wms->ms.card_i < wms->ms.card_a);
-                        e = ms_get_card_sa(&wms->ms);
-                        if (e == 0) {
-                          qa_str = sa_get(&wms->ms.card_sa, 0);
-                          str_tolower(qa_str);
-                          wms->found_str = strstr(qa_str, lwr_search_txt);
-                          if (wms->found_str == NULL)
-                          {
-                            qa_str = sa_get(&wms->ms.card_sa, 1);
-                            str_tolower(qa_str);
-                            wms->found_str = strstr (qa_str, lwr_search_txt);
-                          }
-                        }
-                      } while ((wms->found_str == NULL) && (wms->ms.card_i != search_card_i) && (e == 0));
-                      e = ms_get_card_sa(&wms->ms);
-                      free(lwr_search_txt);
+                    e = ms_get_card_sa (&wms->ms);
+                    if (e == 0)
+                    {
+                      wms->page = P_EDIT;
                     }
                   }
                 }
-                wms->page = P_SEARCH;
-                break;
-              case A_QUESTION:
+              }
+            }
+            break;
+          case A_PREVIOUS:
+            e = ms_load_card_list (&wms->ms);
+            {
+              qa_err = sa_get(&wms->qa_sa, 0) == NULL;
+              qa_err |= sa_get(&wms->qa_sa, 1) == NULL;
+              if (qa_err == 0)
+              {
+                e = ms_get_card_sa (&wms->ms);
+                if (e == 0)
+                {
+                  e = ms_modify_qa(&wms->qa_sa, &wms->ms);
+                  if (e > 0)
+                  {
+                    e = imf_sync (&wms->ms.imf);
+                  }
+                }
+              }
+              if (wms->ms.card_a > 0) {
+                wms->ms.card_i--;
+                if (wms->ms.card_i < 0)
+                  wms->ms.card_i = 0;
+                if (wms->ms.card_i >= wms->ms.card_a)
+                  wms->ms.card_i = wms->ms.card_a - 1;
+              }
+              else
+                wms->ms.card_i = -1;
+              if (wms->ms.card_i != -1) {
+                e = ms_get_card_sa(&wms->ms);
+                if (e == 0)
+                  wms->page = P_EDIT;
+              }
+            }
+            break;
+          case A_NEXT:
+            e = ms_load_card_list (&wms->ms);
+            {
+              qa_err = sa_get(&wms->qa_sa, 0) == NULL;
+              qa_err |= sa_get(&wms->qa_sa, 1) == NULL;
+              if (qa_err == 0)
+              {
+                e = ms_get_card_sa (&wms->ms);
+                if (e == 0)
+                {
+                  e = ms_modify_qa(&wms->qa_sa, &wms->ms);
+                  if (e > 0)
+                  {
+                    e = imf_sync (&wms->ms.imf);
+                  }
+                }
+              }
+              if (wms->ms.card_a > 0) {
+                wms->ms.card_i++;
+                if (wms->ms.card_i < 0)
+                  wms->ms.card_i = 0;
+                if (wms->ms.card_i >= wms->ms.card_a)
+                  wms->ms.card_i = wms->ms.card_a - 1;
+              }
+              else
+                wms->ms.card_i = -1;
+              if (wms->ms.card_i != -1) {
+                e = ms_get_card_sa(&wms->ms);
+                if (e == 0)
+                  wms->page = P_EDIT;
+              }
+            }
+            break;
+          case A_SCHEDULE:
+            e = wms->ms.card_l[wms->ms.card_i].card_state < STATE_NEW;
+            if (e == 0) {
+              wms->ms.card_l[wms->ms.card_i].card_state = STATE_SCHEDULED;
+              data_size = wms->ms.card_a * sizeof(struct Card);
+              index = wms->ms.cat_t[wms->ms.cat_i].cat_cli;
+              e = imf_put(&wms->ms.imf, index, wms->ms.card_l, data_size);
+              if (e == 0) {
+                e = imf_sync(&wms->ms.imf);
+                if (e == 0) {
+                  e = ms_get_card_sa(&wms->ms);
+                  if (e == 0)
+                    wms->page = P_EDIT;
+                }
+              }
+            }
+            break;
+          case A_SET:
+            wms->ms.mov_card_i = wms->ms.card_i;
+            wms->page = P_EDIT;
+            break;
+          case A_ARRANGE:
+            wms->page = P_SELECT_CARD_ARRANGE;
+            break;
+          case A_MOVE_CARD:
+            e = wms->ms.mov_card_i < 0 || wms->ms.mov_card_i >= wms->ms.card_a;
+            if (e == 0) {
+              size = sizeof(struct Card);
+              memcpy(&card, wms->ms.card_l + wms->ms.mov_card_i, size);
+              dest = wms->ms.card_l + wms->ms.mov_card_i;
+              src = dest + sizeof(struct Card);
+              n = wms->ms.card_a - wms->ms.mov_card_i - 1;
+              if (n > 0) {
+                size = n * sizeof(struct Card);
+                memmove(dest, src, size);
+              }
+              e = wms->ms.card_i < 0 || wms->ms.card_i >= wms->ms.card_a;
+              if (e == 0) {
+                card_i = wms->ms.card_i;
+                if (card_i > wms->ms.mov_card_i)
+                  card_i--;
+                if (wms->ms.arrange == 2)
+                  card_i++;
+                else
+                  e = wms->ms.arrange != 0;
+              }
+              if (e == 0) {
+                src = wms->ms.card_l + card_i;
+                dest = src + sizeof(struct Card);
+                n = wms->ms.card_a - card_i - 1;
+                if (n > 0) {
+                  size = n * sizeof(struct Card);
+                  memmove(dest, src, size);
+                }
+                size = sizeof(struct Card);
+                memcpy(wms->ms.card_l + card_i, &card, size);
+                data_size = wms->ms.card_a * sizeof(struct Card);
+                e = imf_put(&wms->ms.imf, wms->ms.cat_t[wms->ms.cat_i].cat_cli, wms->ms.card_l, data_size);
+                if (e == 0) {
+                  e = imf_sync(&wms->ms.imf);
+                  if (e == 0) {
+                    wms->ms.card_i = card_i;
+                    e = ms_get_card_sa(&wms->ms);
+                    if (e == 0) {
+                      wms->ms.mov_card_i = -1;
+                      wms->page = P_EDIT;
+                    }
+                  }
+                }
+              }
+            }
+            break;
+          case A_SEND_CARD:
+            e = wms->ms.mov_cat_i == wms->ms.cat_i;
+            if (e == 0) {
+              e = wms->ms.mov_cat_i < 0 || wms->ms.mov_cat_i >= wms->ms.cat_a || wms->ms.cat_t[wms->ms.mov_cat_i].cat_used == 0;
+              if (e == 0) {
+                index = wms->ms.cat_t[wms->ms.mov_cat_i].cat_cli;
+                data_size = imf_get_size(&wms->ms.imf, index);
+                e = data_size <= 0;
+                if (e == 0) {
+                  mov_card_a = data_size / sizeof(struct Card);
+                  e = wms->ms.mov_card_i < 0 || wms->ms.mov_card_i >= mov_card_a;
+                  if (e == 0) {
+                    mov_card_l = malloc(data_size);
+                    e = mov_card_l == NULL;
+                    if (e == 0) {
+                      e = imf_get(&wms->ms.imf, index, mov_card_l);
+                      if (e == 0) {
+                        size = sizeof(struct Card);
+                        memcpy(&card, mov_card_l + wms->ms.mov_card_i, size);
+                        mov_card_a--;
+                        dest = mov_card_l + wms->ms.mov_card_i;
+                        src = mov_card_l + wms->ms.mov_card_i + 1;
+                        n = mov_card_a - wms->ms.mov_card_i;
+                        if (n > 0) {
+                          size = n * sizeof(struct Card);
+                          memmove(dest, src, size);
+                        }
+                        data_size = mov_card_a * sizeof(struct Card);
+                        e = imf_put(&wms->ms.imf, index, mov_card_l, data_size);
+                      }
+                      free(mov_card_l);
+                    }
+                  }
+                }
+              }
+              if (e == 0) {
+                wms->ms.card_i = wms->ms.card_a;
+                wms->ms.card_a++;
+                data_size = wms->ms.card_a * sizeof(struct Card);
+                wms->ms.card_l = realloc(wms->ms.card_l, data_size);
+                e = wms->ms.card_l == NULL;
+                if (e == 0) {
+                  src = &card;
+                  dest = wms->ms.card_l + wms->ms.card_i;
+                  size = sizeof(struct Card);
+                  memcpy(dest, src, size);
+                  index = wms->ms.cat_t[wms->ms.cat_i].cat_cli;
+                  e = imf_put(&wms->ms.imf, index, wms->ms.card_l, data_size);
+                }
+              }
+              if (e == 0)
+                e = imf_sync(&wms->ms.imf);
+              if (e == 0) {
+                e = ms_get_card_sa(&wms->ms);
+                if (e == 0)
+                  wms->page = P_EDIT;
+              }
+            }
+            else {
+              wms->static_msg = "Error: Src == Dest";
+              wms->static_btn_main = "OK";
+              wms->todo_main = S_EDIT;
+              wms->page = P_MSG;
+            }
+            break;
+          case A_SELECT_LEARN_CAT:
+            wms->ms.card_i = -1;
+            wms->page = P_SELECT_LEARN_CAT;
+            break;
+          case A_SELECT_SEARCH_CAT:
+            wms->ms.card_i = -1;
+            wms->page = P_SELECT_SEARCH_CAT;
+            break;
+          case A_PREFERENCES:
+            wms->page = P_PREFERENCES;
+            break;
+          case A_ABOUT:
+            wms->page = P_ABOUT;
+            break;
+          case A_APPLY:
+            assert(wms->timeout >= 0 && wms->timeout < 5);
+            wms->ms.passwd.tok_count = timeouts[wms->timeout][0];
+            wms->ms.passwd.tok_sec = timeouts[wms->timeout][1];
+            size = sizeof(struct Password);
+            e = imf_put(&wms->ms.imf, PW_INDEX, &wms->ms.passwd, size);
+            if (e == 0) {
+              e = imf_sync (&wms->ms.imf);
+              if (e == 0)
+                wms->page = P_START;
+            }
+            break;
+          case A_SEARCH:
+            wms->found_str = NULL;
+            if (wms->ms.card_a > 0)
+            {
+              assert ((wms->ms.card_i >= -1) && (wms->ms.card_a > 0));
+              if (wms->ms.card_i == -1)
+                wms->ms.card_i = 0;
+              search_card_i = wms->ms.card_i;
+              if (wms->ms.search_txt == NULL) {
+                wms->ms.search_txt = malloc(1);
+                e = wms->ms.search_txt == NULL;
+                if (e == 0)
+                  wms->ms.search_txt[0] = '\0';
+              }
+              if (e == 0)
+              {
+                size = strlen (wms->ms.search_txt) + 1;
+                lwr_search_txt = malloc (size);
+                e = lwr_search_txt == NULL;
+                if (e == 0) {
+                  strcpy(lwr_search_txt, wms->ms.search_txt);
+                  str_tolower (lwr_search_txt);
+                  do
+                  {
+                    wms->ms.card_i += wms->ms.srch_dir;
+                    if (wms->ms.card_i == wms->ms.card_a)
+                    {
+                      wms->ms.card_i = 0;
+                    }
+                    if (wms->ms.card_i < 0)
+                    {
+                      wms->ms.card_i = wms->ms.card_a - 1;
+                    }
+                    assert(wms->ms.card_i >= 0 && wms->ms.card_i < wms->ms.card_a);
+                    e = ms_get_card_sa(&wms->ms);
+                    if (e == 0) {
+                      qa_str = sa_get(&wms->ms.card_sa, 0);
+                      str_tolower(qa_str);
+                      wms->found_str = strstr(qa_str, lwr_search_txt);
+                      if (wms->found_str == NULL)
+                      {
+                        qa_str = sa_get(&wms->ms.card_sa, 1);
+                        str_tolower(qa_str);
+                        wms->found_str = strstr (qa_str, lwr_search_txt);
+                      }
+                    }
+                  } while ((wms->found_str == NULL) && (wms->ms.card_i != search_card_i) && (e == 0));
+                  e = ms_get_card_sa(&wms->ms);
+                  free(lwr_search_txt);
+                }
+              }
+            }
+            wms->page = P_SEARCH;
+            break;
+          case A_QUESTION:
+            if (e == 0) {
+              e = ms_determine_card(&wms->ms);
+              if (e == 0) {
+                wms->page = P_LEARN;
+                wms->mode = M_ASK;
+              } else if (e < 0) {
+                wms->static_msg = "Notification: No card eligible for repetition.";
+                wms->static_btn_main = "OK";
+                wms->todo_main = S_SELECT_LEARN_CAT;
+                wms->page = P_MSG;
+              }
+            }
+            break;
+          case A_SHOW:
+            assert(wms->ms.card_a > 0 && wms->ms.timestamp > 0 && wms->ms.card_i != -1);
+            e = ms_get_card_sa (&wms->ms);
+            if (e == 0) {
+              wms->page = P_LEARN;
+              wms->mode = M_RATE;
+            }
+            break;
+          case A_REVEAL:
+            e = ms_get_card_sa(&wms->ms);
+            if (e == 0) {
+              qa_str = sa_get(&wms->ms.card_sa, 1);
+              len = strlen(qa_str);
+              e = len > INT32_MAX;
+              if (e == 0) {
+                assert(wms->saved_reveal_pos < 0 || wms->saved_reveal_pos <= len);
+                i = wms->saved_reveal_pos < 0 ? 0 : wms->saved_reveal_pos;
+                e = utf8_strcspn(qa_str + i, ",·.-", &n);
+                if (e == 0) {
+                  wms->reveal_pos = i + n;
+                  if (wms->reveal_pos < len) {
+                    len = utf8_char_len(qa_str + wms->reveal_pos);
+                    e = len == 0;
+                    if (e == 0) {
+                      wms->reveal_pos += len;
+                      size = wms->reveal_pos + 10 + 1; // "---more---" + '\0'
+                      str = malloc(size);
+                      e = str == NULL;
+                      if (e == 0) {
+                        strncpy(str, qa_str, wms->reveal_pos);
+                        str[wms->reveal_pos] = '\0';
+                        strcat(str, "---more---");
+                        e = sa_set(&wms->ms.card_sa, 1, str);
+                        free(str);
+                        wms->page = P_LEARN;
+                        wms->mode = M_ASK;
+                      }
+                    }
+                  }
+                  else {
+                    assert(wms->reveal_pos == len);
+                    wms->reveal_pos = -1;
+                    wms->page = P_LEARN;
+                    wms->mode = M_RATE;
+                  }
+                }
+              }
+            }
+            break;
+          case A_PROCEED:
+            assert(mtime_test != 0);
+            assert(wms->ms.cat_i >= 0 && wms->ms.cat_i < wms->ms.cat_a && wms->ms.cat_t[wms->ms.cat_i].cat_used != 0);
+            assert(wms->ms.timestamp > 0);
+            assert(wms->ms.card_i >= 0 && wms->ms.card_i < wms->ms.card_a);
+            card_ptr = wms->ms.card_l + wms->ms.card_i;
+            if (card_ptr->card_state == STATE_NEW || card_ptr->card_state == STATE_SUSPENDED)
+              card_ptr->card_state = STATE_SCHEDULED;
+            card_ptr->card_strength = lvl_s[wms->ms.lvl]; // S = -t / log(R)
+            card_ptr->card_time = time(NULL);
+            e = card_ptr->card_time == -1;
+            if (e == 0) {
+              assert(card_ptr->card_state == STATE_SCHEDULED || card_ptr->card_state == STATE_SUSPENDED);
+              data_size = wms->ms.card_a * sizeof(struct Card);
+              e = imf_put(&wms->ms.imf, wms->ms.cat_t[wms->ms.cat_i].cat_cli, wms->ms.card_l, data_size);
+              if (e == 0) {
+                e = imf_sync(&wms->ms.imf);
                 if (e == 0) {
                   e = ms_determine_card(&wms->ms);
                   if (e == 0) {
@@ -5089,244 +5185,133 @@ int main(int argc, char *argv[])
                     wms->page = P_MSG;
                   }
                 }
-                break;
-              case A_SHOW:
-                assert(wms->ms.card_a > 0 && wms->ms.timestamp > 0 && wms->ms.card_i != -1);
-                e = ms_get_card_sa (&wms->ms);
-                if (e == 0) {
-                  wms->page = P_LEARN;
-                  wms->mode = M_RATE;
-                }
-                break;
-              case A_REVEAL:
-                e = ms_get_card_sa(&wms->ms);
-                if (e == 0) {
-                  qa_str = sa_get(&wms->ms.card_sa, 1);
-                  len = strlen(qa_str);
-                  e = len > INT32_MAX;
-                  if (e == 0) {
-                    assert(wms->saved_reveal_pos < 0 || wms->saved_reveal_pos <= len);
-                    i = wms->saved_reveal_pos < 0 ? 0 : wms->saved_reveal_pos;
-                    e = utf8_strcspn(qa_str + i, ",·.-", &n);
-                    if (e == 0) {
-                      wms->reveal_pos = i + n;
-                      if (wms->reveal_pos < len) {
-                        len = utf8_char_len(qa_str + wms->reveal_pos);
-                        e = len == 0;
-                        if (e == 0) {
-                          wms->reveal_pos += len;
-                          size = wms->reveal_pos + 10 + 1; // "---more---" + '\0'
-                          str = malloc(size);
-                          e = str == NULL;
-                          if (e == 0) {
-                            strncpy(str, qa_str, wms->reveal_pos);
-                            str[wms->reveal_pos] = '\0';
-                            strcat(str, "---more---");
-                            e = sa_set(&wms->ms.card_sa, 1, str);
-                            free(str);
-                            wms->page = P_LEARN;
-                            wms->mode = M_ASK;
-                          }
-                        }
-                      }
-                      else {
-                        assert(wms->reveal_pos == len);
-                        wms->reveal_pos = -1;
-                        wms->page = P_LEARN;
-                        wms->mode = M_RATE;
-                      }
-                    }
-                  }
-                }
-                break;
-              case A_PROCEED:
-                assert(mtime_test != 0);
-                assert(wms->ms.cat_i >= 0 && wms->ms.cat_i < wms->ms.cat_a && wms->ms.cat_t[wms->ms.cat_i].cat_used != 0);
-                assert(wms->ms.timestamp > 0);
-                assert(wms->ms.card_i >= 0 && wms->ms.card_i < wms->ms.card_a);
-                card_ptr = wms->ms.card_l + wms->ms.card_i;
-                if (card_ptr->card_state == STATE_NEW || card_ptr->card_state == STATE_SUSPENDED)
-                  card_ptr->card_state = STATE_SCHEDULED;
-                card_ptr->card_strength = lvl_s[wms->ms.lvl]; // S = -t / log(R)
-                card_ptr->card_time = time(NULL);
-                e = card_ptr->card_time == -1;
-                if (e == 0) {
-                  assert(card_ptr->card_state == STATE_SCHEDULED || card_ptr->card_state == STATE_SUSPENDED);
-                  data_size = wms->ms.card_a * sizeof(struct Card);
-                  e = imf_put(&wms->ms.imf, wms->ms.cat_t[wms->ms.cat_i].cat_cli, wms->ms.card_l, data_size);
-                  if (e == 0) {
-                    e = imf_sync(&wms->ms.imf);
-                    if (e == 0) {
-                      e = ms_determine_card(&wms->ms);
-                      if (e == 0) {
-                        wms->page = P_LEARN;
-                        wms->mode = M_ASK;
-                      } else if (e < 0) {
-                        wms->static_msg = "Notification: No card eligible for repetition.";
-                        wms->static_btn_main = "OK";
-                        wms->todo_main = S_SELECT_LEARN_CAT;
-                        wms->page = P_MSG;
-                      }
-                    }
-                  }
-                }
-                break;
-              case A_SUSPEND:
-                assert(wms->ms.card_a > 0);
-                e = wms->ms.card_i < 0 || wms->ms.card_i >= wms->ms.card_a;
-                if (e == 0) {
-                  assert(wms->ms.card_l[wms->ms.card_i].card_state == STATE_SCHEDULED || wms->ms.card_l[wms->ms.card_i].card_state == STATE_NEW);
-                  wms->ms.card_l[wms->ms.card_i].card_state = STATE_SUSPENDED;
-                  data_size = wms->ms.card_a * sizeof(struct Card);
-                  index = wms->ms.cat_t[wms->ms.cat_i].cat_cli;
-                  e = imf_put(&wms->ms.imf, index, wms->ms.card_l, data_size);
-                  if (e == 0) {
-                    e = imf_sync(&wms->ms.imf);
-                    if (e == 0) {
-                      e = ms_determine_card(&wms->ms);
-                      if (e == 0) {
-                        wms->page = P_LEARN;
-                        wms->mode = M_ASK;
-                      } else if (e < 0) {
-                        wms->static_msg = "Notification: No card eligible for repetition.";
-                        wms->static_btn_main = "OK";
-                        wms->todo_main = S_SELECT_LEARN_CAT;
-                        wms->page = P_MSG;
-                      }
-                    }
-                  }
-                }
-                else {
-                  wms->static_msg = "Warning: Invalid card";
-                  wms->static_btn_main = "OK";
-                  wms->todo_main = S_NONE;
-                  wms->page = P_MSG;
-                }
-                break;
-              case A_RESUME:
-                e = wms->ms.card_a <= 0;
-                if (e == 0) {
-                  n = 0;
-                  for (card_i = 0; card_i < wms->ms.card_a; card_i++)
-                    if (wms->ms.card_l[card_i].card_state == STATE_SUSPENDED) {
-                      wms->ms.card_l[card_i].card_state = STATE_SCHEDULED;
-                      n++;
-                    }
-                  e = n == 0;
-                  if (e == 0) {
-                    data_size = wms->ms.card_a * sizeof(struct Card);
-                    index = wms->ms.cat_t[wms->ms.cat_i].cat_cli;
-                    e = imf_put(&wms->ms.imf, index, wms->ms.card_l, data_size);
-                    if (e == 0) {
-                      e = imf_sync(&wms->ms.imf);
-                      if (e == 0) {
-                        e = ms_determine_card(&wms->ms);
-                        if (e == 0) {
-                          wms->page = P_LEARN;
-                          wms->mode = M_ASK;
-                        } else if (e < 0) {
-                          wms->static_msg = "Notification: No card eligible for repetition.";
-                          wms->static_btn_main = "OK";
-                          wms->todo_main = S_SELECT_LEARN_CAT;
-                          wms->page = P_MSG;
-                        }
-                      }
-                    }
-                  }
-                }
-                break;
-              case A_CHECK_FILE:
-                e = wms->file_title_str == NULL;
-                if (e != 0) {
-                  wms->static_msg = "Please select a file.";
-                  wms->static_btn_main = "OK";
-                  wms->todo_main = S_FILELIST;
-                  wms->page = P_MSG;
-                }
-                break;
-              case A_LOGIN:
-                wms->page = P_PASSWORD;
-                wms->mode = wms->seq == S_GO_CHANGE ? M_CHANGE_PASSWD : M_DEFAULT;
-                break;
-              case A_HISTOGRAM:
-                for (i = 0; i < 100; i++)
-                  wms->hist_bucket[i] = 0;
-                for (i = 0; i < 21; i++)
-                  wms->lvl_bucket[i] = 0;
-                if (wms->ms.card_a > 0) {
-                  wms->ms.timestamp = time(NULL);
-                  e = wms->ms.timestamp == -1;
-                  if (e == 0) {
-                    for (card_i = 0; card_i < wms->ms.card_a; card_i++)
-                      if (wms->ms.card_l[card_i].card_state == STATE_SCHEDULED) {
-                        time_diff = wms->ms.timestamp - wms->ms.card_l[card_i].card_time;
-                        retention = exp (- ((double)(time_diff) / wms->ms.card_l[card_i].card_strength));
-                        i = retention * 100;
-                        assert(i >= 0 && i < 100);
-                        wms->hist_bucket[i]++;
-                        for (i = 0; i < 21; i++)
-                          if (lvl_s[i] >= wms->ms.card_l[card_i].card_strength)
-                            break;
-                        wms->lvl_bucket[i]++;
-                      }
-                    wms->hist_max = 0;
-                    for (i = 0; i < 100; i++)
-                      if (wms->hist_bucket[i] > wms->hist_max)
-                        wms->hist_max = wms->hist_bucket[i];
-                    wms->page = P_HISTOGRAM;
-                  }
-                }
-                break;
               }
             }
-            free(wms->ms.password);
-            wms->ms.password = NULL;
-            e2str(e, e_str);
-            rv = fprintf(dbg_stream, "%s,%ld,%s\n",
-              e_str,
-              wms->ms.timestamp,
-              wms->dbg_lp);
-            saved_e = e;
-            e = rv < 0;
-            if (e == 0)
-              e = fclose(dbg_stream);
-            if (e != 0)
-              fprintf(stderr, "appending to log failed\n");
-            e = saved_e;
+            break;
+          case A_SUSPEND:
+            assert(wms->ms.card_a > 0);
+            e = wms->ms.card_i < 0 || wms->ms.card_i >= wms->ms.card_a;
+            if (e == 0) {
+              assert(wms->ms.card_l[wms->ms.card_i].card_state == STATE_SCHEDULED || wms->ms.card_l[wms->ms.card_i].card_state == STATE_NEW);
+              wms->ms.card_l[wms->ms.card_i].card_state = STATE_SUSPENDED;
+              data_size = wms->ms.card_a * sizeof(struct Card);
+              index = wms->ms.cat_t[wms->ms.cat_i].cat_cli;
+              e = imf_put(&wms->ms.imf, index, wms->ms.card_l, data_size);
+              if (e == 0) {
+                e = imf_sync(&wms->ms.imf);
+                if (e == 0) {
+                  e = ms_determine_card(&wms->ms);
+                  if (e == 0) {
+                    wms->page = P_LEARN;
+                    wms->mode = M_ASK;
+                  } else if (e < 0) {
+                    wms->static_msg = "Notification: No card eligible for repetition.";
+                    wms->static_btn_main = "OK";
+                    wms->todo_main = S_SELECT_LEARN_CAT;
+                    wms->page = P_MSG;
+                  }
+                }
+              }
+            }
+            else {
+              wms->static_msg = "Warning: Invalid card";
+              wms->static_btn_main = "OK";
+              wms->todo_main = S_NONE;
+              wms->page = P_MSG;
+            }
+            break;
+          case A_RESUME:
+            e = wms->ms.card_a <= 0;
+            if (e == 0) {
+              n = 0;
+              for (card_i = 0; card_i < wms->ms.card_a; card_i++)
+                if (wms->ms.card_l[card_i].card_state == STATE_SUSPENDED) {
+                  wms->ms.card_l[card_i].card_state = STATE_SCHEDULED;
+                  n++;
+                }
+              e = n == 0;
+              if (e == 0) {
+                data_size = wms->ms.card_a * sizeof(struct Card);
+                index = wms->ms.cat_t[wms->ms.cat_i].cat_cli;
+                e = imf_put(&wms->ms.imf, index, wms->ms.card_l, data_size);
+                if (e == 0) {
+                  e = imf_sync(&wms->ms.imf);
+                  if (e == 0) {
+                    e = ms_determine_card(&wms->ms);
+                    if (e == 0) {
+                      wms->page = P_LEARN;
+                      wms->mode = M_ASK;
+                    } else if (e < 0) {
+                      wms->static_msg = "Notification: No card eligible for repetition.";
+                      wms->static_btn_main = "OK";
+                      wms->todo_main = S_SELECT_LEARN_CAT;
+                      wms->page = P_MSG;
+                    }
+                  }
+                }
+              }
+            }
+            break;
+          case A_CHECK_FILE:
+            e = wms->file_title_str == NULL;
+            if (e != 0) {
+              wms->static_msg = "Please select a file.";
+              wms->static_btn_main = "OK";
+              wms->todo_main = S_FILELIST;
+              wms->page = P_MSG;
+            }
+            break;
+          case A_LOGIN:
+            wms->page = P_PASSWORD;
+            wms->mode = wms->seq == S_GO_CHANGE ? M_CHANGE_PASSWD : M_DEFAULT;
+            break;
+          case A_HISTOGRAM:
+            for (i = 0; i < 100; i++)
+              wms->hist_bucket[i] = 0;
+            for (i = 0; i < 21; i++)
+              wms->lvl_bucket[i] = 0;
+            if (wms->ms.card_a > 0) {
+              wms->ms.timestamp = time(NULL);
+              e = wms->ms.timestamp == -1;
+              if (e == 0) {
+                for (card_i = 0; card_i < wms->ms.card_a; card_i++)
+                  if (wms->ms.card_l[card_i].card_state == STATE_SCHEDULED) {
+                    time_diff = wms->ms.timestamp - wms->ms.card_l[card_i].card_time;
+                    retention = exp (- ((double)(time_diff) / wms->ms.card_l[card_i].card_strength));
+                    i = retention * 100;
+                    assert(i >= 0 && i < 100);
+                    wms->hist_bucket[i]++;
+                    for (i = 0; i < 21; i++)
+                      if (lvl_s[i] >= wms->ms.card_l[card_i].card_strength)
+                        break;
+                    wms->lvl_bucket[i]++;
+                  }
+                wms->hist_max = 0;
+                for (i = 0; i < 100; i++)
+                  if (wms->hist_bucket[i] > wms->hist_max)
+                    wms->hist_max = wms->hist_bucket[i];
+                wms->page = P_HISTOGRAM;
+              }
+            }
+            break;
           }
-          else {
-            wms->static_msg = "can't open debug.csv";
-            wms->static_btn_main = "OK";
-            wms->todo_main = S_NONE;
-            wms->page = P_MSG;
-          }
         }
-        else {
-          e2str(e, e_str);
-          snprintf(msg, sizeof(msg), "invalid form data (%s)", e_str);
-          wms->static_msg = msg;
-          wms->static_btn_main = "OK";
-          wms->todo_main = S_NONE;
-          wms->page = P_MSG;
-        }
-        if (e != 0 && wms->page != P_MSG) {
-          free(wms->file_title_str);
-          wms->file_title_str = NULL;
-          e2str(e, e_str);
-          snprintf(msg, sizeof(msg), "Unexpected error (%s)", e_str);
-          wms->static_msg = msg;
-          wms->static_btn_main = "OK";
-          wms->todo_main = S_NONE;
-          wms->page = P_MSG;
-        }
-        if (e == 0 || wms->page == P_MSG) {
-          e = gen_html(wms);
-          if (e != 0)
-            fprintf(stderr, "gen_html failed\n");
-        }
+        free(wms->ms.password);
+        wms->ms.password = NULL;
       }
-      else
-        fprintf(stderr, "starting stopwatch failed\n");
+      if (e == 0 || wms->page == P_MSG)
+        e = gen_html(wms);
+      e2str(e, e_str);
+      rv = fprintf(dbg_stream != NULL ? dbg_stream : stderr, "%ld %s %s\n",
+          wms->ms.timestamp,
+          e_str,
+          wms->dbg_lp);
+      saved_e = e;
+      e = rv < 0;
+      if (e == 0 && dbg_stream != NULL)
+        e = fclose(dbg_stream);
+      if (e != 0)
+        e = saved_e;
       wms_free(wms);
     }
     else
@@ -5335,7 +5320,9 @@ int main(int argc, char *argv[])
   }
   else
     fprintf(stderr, "malloc for wms failed\n");
+  if (e != 0) {
+    e2str(e, e_str);
+    fprintf(stderr, "unreported error: %s\n", e_str);
+  }
   return e;
 }
-/*
-*/
