@@ -197,8 +197,6 @@ struct MemorySurfer {
   int card_i;
   int mov_card_i;
   int cards_nel; // n eligible
-//char *l_a_str;
-//int l_revealed;
   struct StringArray card_sa;
   time_t timestamp;
   int lvl; // level
@@ -984,8 +982,7 @@ static int scan_hex(uint8_t *data, char *str, size_t len)
   return e;
 }
 
-int parse_post (struct WebMemorySurfer *wms)
-{
+int parse_post(struct WebMemorySurfer *wms) {
   int e;
   int a_n; // assignments
   char *str;
@@ -2138,7 +2135,7 @@ int gen_xml_category (int16_t cat_i, struct XmlGenerator *xg, struct MemorySurfe
   struct tm bd_time; // broken-down
   time_t card_time;
   char time_str[20]; // 1971-01-01T00:00:00
-  int print_n;
+  int rv;
   char strength_str[16];
   char state_ch;
   char *q_str;
@@ -2192,17 +2189,17 @@ int gen_xml_category (int16_t cat_i, struct XmlGenerator *xg, struct MemorySurfe
                       {
                         bd_time.tm_mon += 1;
                         bd_time.tm_year += 1900;
-                        print_n = snprintf (time_str, sizeof (time_str), "%4d-%02d-%02dT%02d:%02d:%02d",
+                        rv = snprintf (time_str, sizeof (time_str), "%4d-%02d-%02dT%02d:%02d:%02d",
                             bd_time.tm_year, bd_time.tm_mon, bd_time.tm_mday,
                             bd_time.tm_hour, bd_time.tm_min, bd_time.tm_sec);
-                        e = print_n != 19;
+                        e = rv != 19;
                         if (e == 0)
                         {
                           e = fprintf (xg->w_stream, "%s</time>%s<strength>", time_str, xg->indent_str) <= 0;
                           if (e == 0)
                           {
-                            print_n = snprintf (strength_str, sizeof (strength_str), "%d", card_ptr->card_strength);
-                            e = ! (print_n < sizeof (strength_str));
+                            rv = snprintf (strength_str, sizeof (strength_str), "%d", card_ptr->card_strength);
+                            e = ! (rv < sizeof (strength_str));
                             if (e == 0)
                             {
                               state_ch = card_ptr->card_state + '0';
@@ -2355,7 +2352,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
       e = xml_escape(&wms->html_lp, &wms->html_n, wms->file_title_str, ESC_AMP | ESC_LT);
       if (e == 0) {
         rv = snprintf(title_str, size, "MemorySurfer – %s", wms->html_lp);
-        e = rv < 0;
+        e = rv < 0 || rv >= size;
       }
     }
   }
@@ -2987,25 +2984,26 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        printf("\t\t\t<h1>About MemorySurfer v1.0.1.3</h1>\n"
-               "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
-               "\t\t\t<p>Copyright 2016-2021</p>\n"
-               "\t\t\t<p>Send bugs and suggestions to\n"
-               "<a href=\"mailto:memorysurfer@lorenz-pullwitt.de\">memorysurfer@lorenz-pullwitt.de</a></p>\n"
-               "\t\t\t<cite>MemorySurfer is free software; you can redistribute it and/or\n"
-               "modify it under the terms of the GNU General Public License\n"
-               "as published by the Free Software Foundation; either version 2\n"
-               "of the License, or (at your option) any later version.</cite>\n"
-               "\t\t\t<cite>This program is distributed in the hope that it will be useful,\n"
-               "but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
-               "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the\n"
-               "<a href=\"https://www.gnu.org/licenses/\">GNU\302\240General\302\240Public\302\240License</a> for more details.</cite>\n"
-               "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"OK\"></p>\n"
-               "\t\t</form>\n"
-               "\t\t<code>%s</code>\n"
-               "\t</body>\n"
-               "</html>\n",
-          sw_info_str);
+        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.4</h1>\n"
+                    "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
+                    "\t\t\t<p>Copyright 2016-2021</p>\n"
+                    "\t\t\t<p>Send bugs and suggestions to\n"
+                    "<a href=\"mailto:memorysurfer@lorenz-pullwitt.de\">memorysurfer@lorenz-pullwitt.de</a></p>\n"
+                    "\t\t\t<cite>MemorySurfer is free software; you can redistribute it and/or\n"
+                    "modify it under the terms of the GNU General Public License\n"
+                    "as published by the Free Software Foundation; either version 2\n"
+                    "of the License, or (at your option) any later version.</cite>\n"
+                    "\t\t\t<cite>This program is distributed in the hope that it will be useful,\n"
+                    "but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+                    "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the\n"
+                    "<a href=\"https://www.gnu.org/licenses/\">GNU\302\240General\302\240Public\302\240License</a> for more details.</cite>\n"
+                    "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"OK\"></p>\n"
+                    "\t\t</form>\n"
+                    "\t\t<code>%s</code>\n"
+                    "\t</body>\n"
+                    "</html>\n",
+            sw_info_str);
+        e = rv < 0;
         break;
       case B_LEARN:
         q_str = sa_get(&wms->ms.card_sa, 0);
@@ -3756,6 +3754,7 @@ int main(int argc, char *argv[])
   struct Category *cat_ptr;
   struct Card *card_ptr;
   char e_str[8]; // JTLWQNE + '\0' (0x7fffffff)
+  char msg[64];
   dbg_stream = NULL;
   size = sizeof(struct WebMemorySurfer);
   wms = malloc(size);
@@ -3766,31 +3765,31 @@ int main(int argc, char *argv[])
       wms->sw_i = sw_start("main", &wms->ms.imf.sw);
       e = wms->sw_i != 0;
       if (e == 0) {
-        e = parse_post(wms);
+        size = strlen(DATA_PATH) + 10 + 1;
+        dbg_filename = malloc(size);
+        e = dbg_filename == NULL;
         if (e == 0) {
-          size = strlen(DATA_PATH) + 10 + 1;
-          dbg_filename = malloc(size);
-          e = dbg_filename == NULL;
+          rv = snprintf(dbg_filename, size, "%s%s", DATA_PATH, "/debug.csv");
+          e = rv < 0 || rv >= size;
           if (e == 0) {
-            rv = snprintf(dbg_filename, size, "%s%s", DATA_PATH, "/debug.csv");
-            e = rv < 0 || rv >= size;
-            if (e == 0) {
-              dbg_stream = fopen(dbg_filename, "a");
-              if (dbg_stream == NULL) {
-                rv = fprintf(stderr, "can't open \"%s\"\n", dbg_filename);
-                e = rv < 0;
-              }
+            dbg_stream = fopen(dbg_filename, "a");
+            if (dbg_stream == NULL) {
+              rv = fprintf(stderr, "can't open \"%s\"\n", dbg_filename);
+              e = rv < 0;
             }
-            free(dbg_filename);
           }
-          else
-            e = 0x00344f24; // WMDLF Web(MemorySurfer) malloc debug log file (failed)
+          free(dbg_filename);
         }
         else
-          e = 0x039f5cde; // WMSIFD WebMemorySurfer invalid form data
+          e = 0x00344f24; // WMDLF Web(MemorySurfer) malloc debug log file (failed)
       }
       else
         e = 0x00020585; // WSSF Web(MemorySurfer) starting stopwatch failed
+      if (e == 0) {
+        e = parse_post(wms);
+        if (e == 1)
+          e = 0x00014618; // WMFD Web(MemorySurfer) malformed form data
+      }
       if (e == 0) {
         mtime_test = -1;
         act_i = 0;
@@ -5292,10 +5291,8 @@ int main(int argc, char *argv[])
         free(wms->ms.password);
         wms->ms.password = NULL;
       }
-      if (e == 0 || wms->page == P_MSG)
-        e = gen_html(wms);
       e2str(e, e_str);
-      rv = fprintf(dbg_stream != NULL ? dbg_stream : stderr, "%ld %s %s\n",
+      rv = fprintf(dbg_stream != NULL ? dbg_stream : stderr, "%ld %s \"%s\"\n",
           wms->ms.timestamp,
           e_str,
           wms->dbg_lp);
@@ -5303,6 +5300,19 @@ int main(int argc, char *argv[])
       e = rv < 0;
       if (e == 0 && dbg_stream != NULL)
         e = fclose(dbg_stream);
+      if (saved_e != 0 && wms->page != P_MSG) {
+        free(wms->file_title_str);
+        wms->file_title_str = NULL;
+        size = sizeof(msg);
+        rv = snprintf(msg, size, "Unexpected error (%s)", e_str);
+        e = rv < 0 || rv >= size;
+        wms->static_msg = msg;
+        wms->static_btn_main = "OK";
+        wms->todo_main = S_NONE;
+        wms->page = P_MSG;
+      }
+      if (e == 0 || wms->page == P_MSG)
+        e = gen_html(wms);
       if (e != 0 && saved_e != 0)
         e = saved_e;
       wms_free(wms);
