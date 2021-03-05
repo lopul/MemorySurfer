@@ -2987,7 +2987,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        printf("\t\t\t<h1>About MemorySurfer v1.0.1.0</h1>\n"
+        printf("\t\t\t<h1>About MemorySurfer v1.0.1.3</h1>\n"
                "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                "\t\t\t<p>Copyright 2016-2021</p>\n"
                "\t\t\t<p>Send bugs and suggestions to\n"
@@ -3756,7 +3756,6 @@ int main(int argc, char *argv[])
   struct Category *cat_ptr;
   struct Card *card_ptr;
   char e_str[8]; // JTLWQNE + '\0' (0x7fffffff)
-  char msg[64];
   dbg_stream = NULL;
   size = sizeof(struct WebMemorySurfer);
   wms = malloc(size);
@@ -3778,7 +3777,7 @@ int main(int argc, char *argv[])
             if (e == 0) {
               dbg_stream = fopen(dbg_filename, "a");
               if (dbg_stream == NULL) {
-                rv = fprintf(stderr, "can't open %s\n", dbg_filename);
+                rv = fprintf(stderr, "can't open \"%s\"\n", dbg_filename);
                 e = rv < 0;
               }
             }
@@ -3787,17 +3786,11 @@ int main(int argc, char *argv[])
           else
             e = 0x00344f24; // WMDLF Web(MemorySurfer) malloc debug log file (failed)
         }
-        else {
-          e2str(e, e_str);
-          snprintf(msg, sizeof(msg), "invalid form data (%s)", e_str);
-          wms->static_msg = msg;
-          wms->static_btn_main = "OK";
-          wms->todo_main = S_NONE;
-          wms->page = P_MSG;
-        }
+        else
+          e = 0x039f5cde; // WMSIFD WebMemorySurfer invalid form data
       }
       else
-        fprintf(stderr, "starting stopwatch failed\n");
+        e = 0x00020585; // WSSF Web(MemorySurfer) starting stopwatch failed
       if (e == 0) {
         mtime_test = -1;
         act_i = 0;
@@ -5310,16 +5303,16 @@ int main(int argc, char *argv[])
       e = rv < 0;
       if (e == 0 && dbg_stream != NULL)
         e = fclose(dbg_stream);
-      if (e != 0)
+      if (e != 0 && saved_e != 0)
         e = saved_e;
       wms_free(wms);
     }
     else
-      fprintf(stderr, "wms_init failed\n");
+      e = 0x00339332; // WMSIF wms_init failed
     free(wms);
   }
   else
-    fprintf(stderr, "malloc for wms failed\n");
+    e = 0x00021047; // WMWF Web(MemorySurfer) malloc (for) wms failed (failed)
   if (e != 0) {
     e2str(e, e_str);
     fprintf(stderr, "unreported error: %s\n", e_str);
