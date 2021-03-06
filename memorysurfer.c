@@ -1261,9 +1261,7 @@ int parse_post(struct WebMemorySurfer *wms) {
                 e = a_n != 1;
                 break;
               case F_EDIT_ACTION:
-                if (strncmp(wms->mult.post_lp, "Edit", 4) == 0)
-                  wms->seq = S_EDIT;
-                else if (strncmp(wms->mult.post_lp, "Append", 6) == 0)
+                if (strncmp(wms->mult.post_lp, "Append", 6) == 0)
                   wms->seq = S_APPEND;
                 else if (strncmp(wms->mult.post_lp, "Delete", 6) == 0)
                   wms->seq = S_ASK_DELETE_CARD;
@@ -1430,6 +1428,8 @@ int parse_post(struct WebMemorySurfer *wms) {
                     else
                       wms->seq = S_START_CAT;
                   }
+                  else if (strncmp(wms->mult.post_lp, "Edit", 4) == 0)
+                    wms->seq = S_EDIT;
                   else if (strncmp(wms->mult.post_lp, "Open", 4) == 0) {
                     if (wms->from_page == P_OPEN)
                       wms->seq = S_GO_LOGIN;
@@ -2837,7 +2837,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         assert(wms->file_title_str != NULL && strlen(wms->tok_str) == 40);
         printf("\t\t\t<h1>Select a category to edit</h1>\n");
         gen_html_cat (wms->ms.n_first, 3, H_CHILD, wms);
-        printf("\t\t\t<p><input type=\"submit\" name=\"edit_action\" value=\"Edit\">\n"
+        printf("\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Edit\">\n"
                "\t\t\t\t<input type=\"submit\" name=\"learn_action\" value=\"Learn\">\n"
                "\t\t\t\t<input type=\"submit\" name=\"edit_action\" value=\"Cancel\"></p>\n"
                "\t\t</form>\n"
@@ -2902,7 +2902,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         printf("\t\t\t<h1>Select a category to learn</h1>\n");
         gen_html_cat(wms->ms.n_first, 3, H_CHILD, wms);
         printf("\t\t\t<p><input type=\"submit\" name=\"learn_action\" value=\"Learn\">\n"
-               "\t\t\t<input type=\"submit\" name=\"edit_action\" value=\"Edit\">\n"
+               "\t\t\t<input type=\"submit\" name=\"event\" value=\"Edit\">\n"
                "\t\t\t\t<input type=\"submit\" name=\"learn_action\" value=\"Cancel\"></p>\n"
                "\t\t</form>\n"
                "\t\t<code>%s</code>\n"
@@ -2941,7 +2941,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
             e = xml_escape(&wms->html_lp, &wms->html_n, a_str, ESC_AMP | ESC_LT);
             if (e == 0) {
               printf("\t\t\t<div><textarea rows=\"10\" cols=\"46\"%s>%s</textarea></div>\n"
-                     "\t\t\t<p><input type=\"submit\" name=\"edit_action\" value=\"Edit\">\n"
+                     "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Edit\">\n"
                      "\t\t\t\t<input type=\"submit\" name=\"learn_action\" value=\"Learn\"%s>\n"
                      "\t\t\t\t<input type=\"submit\" name=\"search_action\" value=\"Stop\"></p>\n"
                      "\t\t</form>\n"
@@ -2984,7 +2984,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.4</h1>\n"
+        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.6</h1>\n"
                     "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p>Copyright 2016-2021</p>\n"
                     "\t\t\t<p>Send bugs and suggestions to\n"
@@ -3088,7 +3088,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
             if (e == 0) {
               rv = printf("\t\t\t</table>\n"
                           "\t\t\t<div><textarea rows=\"10\" cols=\"46\"%s>%s</textarea></div>\n"
-                          "\t\t\t<p><input type=\"submit\" name=\"edit_action\" value=\"Edit\">\n"
+                          "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Edit\">\n"
                           "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Search\">\n"
                           "\t\t\t\t<input type=\"submit\" name=\"learn_action\" value=\"Stop\">\n"
                           "\t\t\t\t<input type=\"submit\" name=\"learn_action\" value=\"Suspend\"%s>\n"
@@ -3184,7 +3184,8 @@ static int gen_html(struct WebMemorySurfer *wms) {
         }
         if (e == 0) {
           rv = printf("\t\t\t</table>\n"
-                      "\t\t\t<p><input type=\"submit\" name=\"learn_action\" value=\"Learn\">\n"
+                      "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Edit\">\n"
+                      "\t\t\t\t<input type=\"submit\" name=\"learn_action\" value=\"Learn\">\n"
                       "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Search\">\n"
                       "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Refresh\">\n"
                       "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Done\"></p>\n"
