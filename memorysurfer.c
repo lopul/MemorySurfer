@@ -383,10 +383,10 @@ static int sa_set(struct StringArray *sa, int16_t sa_i, char *sa_str)
       while (ch != '\0');
     }
     else {
-        do {
-          ch = sa->sa_d[pos_s++];
-        }
-        while (ch != '\0');
+      do {
+        ch = sa->sa_d[pos_s++];
+      }
+      while (ch != '\0');
     }
   }
   sa_c = sa->sa_c;
@@ -2203,8 +2203,8 @@ int gen_xml_category (int16_t cat_i, struct XmlGenerator *xg, struct MemorySurfe
                           e = fprintf (xg->w_stream, "%s</time>%s<strength>", time_str, xg->indent_str) <= 0;
                           if (e == 0)
                           {
-                            rv = snprintf (strength_str, sizeof (strength_str), "%d", card_ptr->card_strength);
-                            e = ! (rv < sizeof (strength_str));
+                            rv = snprintf(strength_str, sizeof(strength_str), "%d", card_ptr->card_strength);
+                            e = rv < 0 || rv >= sizeof(strength_str);
                             if (e == 0)
                             {
                               state_ch = card_ptr->card_state + '0';
@@ -2351,13 +2351,13 @@ static int gen_html(struct WebMemorySurfer *wms) {
   }
   if (e == 0) {
     size = sizeof(title_str);
-    assert(size >= 13);
-    strcpy(title_str, "MemorySurfer - Welcome");
-    if (wms->file_title_str != NULL) {
+    rv = snprintf(title_str, size, "MemorySurfer - Welcome");
+    e = rv < 0;
+    if (wms->file_title_str != NULL && e == 0) {
       e = xml_escape(&wms->html_lp, &wms->html_n, wms->file_title_str, ESC_AMP | ESC_LT);
       if (e == 0) {
         rv = snprintf(title_str, size, "MemorySurfer – %s", wms->html_lp);
-        e = rv < 0 || rv >= size;
+        e = rv < 0;
       }
     }
   }
@@ -2607,13 +2607,14 @@ static int gen_html(struct WebMemorySurfer *wms) {
           }
         }
         printf("\t\t\t</ul>\n"
-               "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Open\">\n"
+               "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Open\"%s>\n"
                "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Cancel\"></p>\n"
                "\t\t</form>\n"
                "\t\t<code>%s</code>\n"
                "\t</body>\n"
                "</html>\n",
-          sw_info_str);
+            wms->fl_c > 0 ? "" : " disabled",
+            sw_info_str);
         break;
       case B_UPLOAD:
         assert(wms->file_title_str != NULL && strlen(wms->tok_str) == 40);
@@ -2989,7 +2990,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.7</h1>\n"
+        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.8</h1>\n"
                     "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p>Copyright 2016-2021</p>\n"
                     "\t\t\t<p>Send bugs and suggestions to\n"
@@ -3637,31 +3638,6 @@ static void e2str(int e, char *e_str) {
   }
 }
 
-static int gen_err_msg(struct WebMemorySurfer *wms, char *e_str) {
-  int e;
-  char *err_str;
-  size_t len;
-  e = 0;
-  err_str = strerror(errno);
-  len = 4 + strlen(err_str) + 4 + strlen(e_str);
-  if (wms->dbg_wp + len + 1 > wms->dbg_n) {
-    wms->dbg_n = (wms->dbg_wp + len + 1 + 120) & 0xfffffff8;
-    e = wms->dbg_n > INT32_MAX;
-    if (e == 0) {
-      wms->dbg_lp = realloc(wms->dbg_lp, wms->dbg_n);
-      e = wms->dbg_lp == NULL;
-    }
-  }
-  if (e == 0) {
-    strcat(wms->dbg_lp, "<br>");
-    strcat(wms->dbg_lp, err_str);
-    strcat(wms->dbg_lp, "<br>");
-    strcat(wms->dbg_lp, e_str);
-    wms->dbg_wp += len;
-  }
-  return e;
-}
-
 size_t utf8_char_len(const char *s) {
   size_t len;
   const uint8_t *b;
@@ -3893,12 +3869,8 @@ int main(int argc, char *argv[])
               if (e != 0) {
                 free(wms->file_title_str);
                 wms->file_title_str = NULL;
-                e2str(e, e_str);
-                gen_err_msg(wms, e_str);
-                wms->static_msg = wms->dbg_lp;
-                wms->static_btn_main = "OK"; // "Retry"
-                wms->todo_main = S_NONE; // S_SCHEDULE S_SELECT_CREATE_CAT S_GO_LOGIN S_EDIT S_DELETE_CARD S_INSERT S_APPEND S_PREVIOUS S_NEXT S_SELECT_SEARCH_CAT
-                wms->page = P_MSG;
+                free(wms->ms.imf_filename);
+                wms->ms.imf_filename = NULL;
               }
             }
             else
@@ -5320,7 +5292,7 @@ int main(int argc, char *argv[])
         wms->file_title_str = NULL;
         size = sizeof(msg);
         rv = snprintf(msg, size, "Unexpected error (%s)", e_str);
-        e = rv < 0 || rv >= size;
+        e = rv < 0;
         wms->static_msg = msg;
         wms->static_btn_main = "OK";
         wms->todo_main = S_NONE;
