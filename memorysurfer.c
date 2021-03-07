@@ -436,8 +436,7 @@ static int sa_set(struct StringArray *sa, int16_t sa_i, char *sa_str)
   return e;
 }
 
-static int multi_delim (struct Multi *mult)
-{
+static int multi_delim(struct Multi *mult) {
   int e;
   int i;
   int ch;
@@ -985,6 +984,7 @@ static int scan_hex(uint8_t *data, char *str, size_t len)
 int parse_post(struct WebMemorySurfer *wms) {
   int e;
   int a_n; // assignments
+  int consumed_n;
   char *str;
   enum Stage stage;
   int len;
@@ -1316,9 +1316,15 @@ int parse_post(struct WebMemorySurfer *wms) {
                   wms->seq = S_SELECT_SEARCH_CAT;
                 break;
               case F_CAT:
-                assert (wms->ms.cat_i == -1);
-                a_n = sscanf (wms->mult.post_lp, "%d", &wms->ms.cat_i);
-                e = a_n != 1;
+                if (wms->mult.post_fp >= 0)
+                  len = wms->mult.post_fp;
+                else
+                  len = wms->mult.post_wp;
+                e = wms->ms.cat_i != -1;
+                if (e == 0) {
+                  a_n = sscanf(wms->mult.post_lp, "%d%n", &wms->ms.cat_i, &consumed_n);
+                  e = a_n != 1 || consumed_n != len;
+                }
                 break;
               case F_CARD:
                 assert(wms->ms.card_i == -1);
@@ -2184,12 +2190,11 @@ int gen_xml_category (int16_t cat_i, struct XmlGenerator *xg, struct MemorySurfe
                       memset (&bd_time, 0, sizeof (bd_time));
                       assert ((card_ptr->card_time < INT32_MAX) || (sizeof (card_time) == 8));
                       card_time = card_ptr->card_time;
-                      e = ! gmtime_r (&card_time, &bd_time);
-                      if (e == 0)
-                      {
+                      e = gmtime_r(&card_time, &bd_time) == NULL;
+                      if (e == 0) {
                         bd_time.tm_mon += 1;
                         bd_time.tm_year += 1900;
-                        rv = snprintf (time_str, sizeof (time_str), "%4d-%02d-%02dT%02d:%02d:%02d",
+                        rv = snprintf(time_str, sizeof(time_str), "%4d-%02d-%02dT%02d:%02d:%02d",
                             bd_time.tm_year, bd_time.tm_mon, bd_time.tm_mday,
                             bd_time.tm_hour, bd_time.tm_min, bd_time.tm_sec);
                         e = rv != 19;
@@ -2984,7 +2989,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.6</h1>\n"
+        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.7</h1>\n"
                     "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p>Copyright 2016-2021</p>\n"
                     "\t\t\t<p>Send bugs and suggestions to\n"
@@ -3756,6 +3761,7 @@ int main(int argc, char *argv[])
   struct Card *card_ptr;
   char e_str[8]; // JTLWQNE + '\0' (0x7fffffff)
   char msg[64];
+  struct tm bd_time; // broken-down
   dbg_stream = NULL;
   size = sizeof(struct WebMemorySurfer);
   wms = malloc(size);
@@ -5292,15 +5298,23 @@ int main(int argc, char *argv[])
         free(wms->ms.password);
         wms->ms.password = NULL;
       }
+      size = sizeof(struct tm);
+      memset(&bd_time, 0, size);
       e2str(e, e_str);
-      rv = fprintf(dbg_stream != NULL ? dbg_stream : stderr, "%ld %s \"%s\"\n",
-          wms->ms.timestamp,
-          e_str,
-          wms->dbg_lp);
       saved_e = e;
-      e = rv < 0;
-      if (e == 0 && dbg_stream != NULL)
-        e = fclose(dbg_stream);
+      e = gmtime_r(&wms->ms.timestamp, &bd_time) == NULL;
+      if (e == 0) {
+        bd_time.tm_mon += 1;
+        bd_time.tm_year += 1900;
+        rv = fprintf(dbg_stream != NULL ? dbg_stream : stderr, "%4d-%02d-%02dT%02d:%02d:%02d %s \"%s\"\n",
+            bd_time.tm_year, bd_time.tm_mon, bd_time.tm_mday,
+            bd_time.tm_hour, bd_time.tm_min, bd_time.tm_sec,
+            e_str,
+            wms->dbg_lp);
+        e = rv < 0;
+        if (e == 0 && dbg_stream != NULL)
+          e = fclose(dbg_stream);
+      }
       if (saved_e != 0 && wms->page != P_MSG) {
         free(wms->file_title_str);
         wms->file_title_str = NULL;
