@@ -45,7 +45,7 @@ enum Sequence { S_FILE, S_START_CAT, S_SELECT_CREATE_CAT, S_SELECT_ARRANGE, S_SE
 enum Stage { T_NULL, T_URLENCODE, T_BOUNDARY_INIT, T_CONTENT, T_NAME, T_BOUNDARY_BEGIN, T_BOUNDARY_CHECK };
 
 static enum Action action_seq[S_END+1][13] = {
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_FILE, A_END }, // S_FILE
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_FILELIST, A_FILE, A_END }, // S_FILE
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_START_CAT, A_END }, // S_START_CAT
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_SELECT_CREATE_CAT, A_END }, // S_SELECT_CREATE_CAT
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_TEST_CAT, A_SELECT_ARRANGE, A_END }, // S_SELECT_ARRANGE
@@ -71,7 +71,7 @@ static enum Action action_seq[S_END+1][13] = {
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_REMOVE, A_CLOSE, A_END }, // S_REMOVE
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_ASK_ERASE, A_END }, // S_ASK_ERASE
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_ERASE, A_END }, // S_ERASE
-  { A_CLOSE, A_END }, // S_CLOSE
+  { A_FILELIST, A_CLOSE, A_END }, // S_CLOSE
   { A_NONE, A_END }, // S_NONE
   { A_SLASH, A_VOID, A_FILE_EXTENSION, A_GATHER, A_CREATE, A_LOGIN, A_END }, // S_CREATE
   { A_CHECK_FILE, A_GATHER, A_OPEN, A_READ_PASSWD, A_LOGIN, A_END }, // S_GO_LOGIN
@@ -1179,26 +1179,14 @@ int parse_post(struct WebMemorySurfer *wms) {
                 }
                 break;
               case F_START_ACTION:
-                if (memcmp (wms->mult.post_lp, "File", 4) == 0)
-                {
-                  wms->seq = S_FILE;
-                }
-                else if (memcmp (wms->mult.post_lp, "Categories", 10) == 0)
-                {
+                if (strncmp(wms->mult.post_lp, "Categories", 10) == 0)
                   wms->seq = S_START_CAT;
-                }
-                else if (memcmp (wms->mult.post_lp, "Edit", 4) == 0)
-                {
+                else if (strncmp(wms->mult.post_lp, "Edit", 4) == 0)
                   wms->seq = S_SELECT_EDIT_CAT;
-                }
-                else if (memcmp (wms->mult.post_lp, "Learn", 5) == 0)
-                {
+                else if (strncmp(wms->mult.post_lp, "Learn", 5) == 0)
                   wms->seq = S_SELECT_LEARN_CAT;
-                }
-                else if (memcmp (wms->mult.post_lp, "Search", 6) == 0)
-                {
+                else if (strncmp(wms->mult.post_lp, "Search", 6) == 0)
                   wms->seq = S_SELECT_SEARCH_CAT;
-                }
                 break;
               case F_FILE_ACTION:
                 if (memcmp (wms->mult.post_lp, "New", 3) == 0)
@@ -1423,7 +1411,9 @@ int parse_post(struct WebMemorySurfer *wms) {
                   len = wms->mult.post_wp;
                 switch (len) {
                 case 4:
-                  if (strncmp(wms->mult.post_lp, "Stop", 4) == 0) {
+                  if (strncmp(wms->mult.post_lp, "Show", 4) == 0)
+                    wms->seq = S_SHOW;
+                  else if (strncmp(wms->mult.post_lp, "Stop", 4) == 0) {
                     if (wms->from_page == P_SELECT_CARD_ARRANGE)
                       wms->seq = S_EDIT;
                     else if (wms->from_page == P_SELECT_SEND_CAT) {
@@ -1472,9 +1462,9 @@ int parse_post(struct WebMemorySurfer *wms) {
                   else if (strncmp(wms->mult.post_lp, "Done", 4) == 0)
                     wms->seq = S_START;
                   else {
-                    e = strncmp(wms->mult.post_lp, "Show", 4) != 0;
+                    e = strncmp(wms->mult.post_lp, "File", 4) != 0;
                     if (e == 0)
-                      wms->seq = S_SHOW;
+                      wms->seq = S_FILE;
                   }
                   break;
                 case 5:
@@ -2459,7 +2449,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         dis_str = wms->file_title_str != NULL ? "" : " disabled";
         attr_str = wms->ms.n_first != -1 ? "" : " disabled";
         printf("\t\t\t<h1>Start</h1>\n"
-               "\t\t\t<p><input type=\"submit\" name=\"start_action\" value=\"File\"></p>\n"
+               "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"File\"></p>\n"
                "\t\t\t<p><input type=\"submit\" name=\"start_action\" value=\"Categories\"%s></p>\n"
                "\t\t\t<p><input type=\"submit\" name=\"start_action\" value=\"Edit\"%s></p>\n"
                "\t\t\t<p><input type=\"submit\" name=\"start_action\" value=\"Learn\"%s></p>\n"
@@ -2486,29 +2476,30 @@ static int gen_html(struct WebMemorySurfer *wms) {
           dis_str = " disabled";
           attr_str = "";
         }
-        printf("\t\t\t<h1>File</h1>\n"
-               "\t\t\t<p><input type=\"submit\" name=\"file_action\" value=\"New\"%s></p>\n"
-               "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Open\"%s></p>\n"
-               "\t\t\t<p><input type=\"submit\" name=\"file_action\" value=\"Password\"%s></p>\n"
-               "\t\t\t<p><input type=\"submit\" name=\"file_action\" value=\"Import\"%s></p>\n"
-               "\t\t\t<p><input type=\"submit\" name=\"file_action\" value=\"Export\"%s></p>\n"
-               "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Remove\"%s></p>\n"
-               "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Erase\"%s></p>\n"
-               "\t\t\t<p><input type=\"submit\" name=\"file_action\" value=\"Close\"%s></p>\n"
-               "\t\t\t<p><input type=\"submit\" name=\"file_action\" value=\"Cancel\"></p>\n"
-               "\t\t</form>\n"
-               "\t\t<code>%s</code>\n"
-               "\t</body>\n"
-               "</html>\n",
-          attr_str,
-          attr_str,
-          dis_str,
-          dis_str,
-          dis_str,
-          dis_str,
-          dis_str,
-          dis_str,
-          sw_info_str);
+        rv = printf("\t\t\t<h1>File</h1>\n"
+                    "\t\t\t<p><input type=\"submit\" name=\"file_action\" value=\"New\"%s></p>\n"
+                    "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Open\"%s></p>\n"
+                    "\t\t\t<p><input type=\"submit\" name=\"file_action\" value=\"Password\"%s></p>\n"
+                    "\t\t\t<p><input type=\"submit\" name=\"file_action\" value=\"Import\"%s></p>\n"
+                    "\t\t\t<p><input type=\"submit\" name=\"file_action\" value=\"Export\"%s></p>\n"
+                    "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Remove\"%s></p>\n"
+                    "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Erase\"%s></p>\n"
+                    "\t\t\t<p><input type=\"submit\" name=\"file_action\" value=\"Close\"%s></p>\n"
+                    "\t\t\t<p><input type=\"submit\" name=\"file_action\" value=\"Cancel\"></p>\n"
+                    "\t\t</form>\n"
+                    "\t\t<code>%s</code>\n"
+                    "\t</body>\n"
+                    "</html>\n",
+            attr_str,
+            wms->fl_c > 0 ? attr_str : " disabled",
+            dis_str,
+            dis_str,
+            dis_str,
+            dis_str,
+            dis_str,
+            dis_str,
+            sw_info_str);
+        e = rv < 0;
         break;
       case B_PASSWORD:
         assert(wms->ms.passwd.pw_flag >= 0);
@@ -2990,7 +2981,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.8</h1>\n"
+        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.9</h1>\n"
                     "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p>Copyright 2016-2021</p>\n"
                     "\t\t\t<p>Send bugs and suggestions to\n"
