@@ -1189,38 +1189,34 @@ int parse_post(struct WebMemorySurfer *wms) {
                   wms->seq = S_SELECT_SEARCH_CAT;
                 break;
               case F_FILE_ACTION:
-                if (memcmp (wms->mult.post_lp, "New", 3) == 0)
+                if (strncmp(wms->mult.post_lp, "New", 3) == 0)
                   wms->seq = S_NEW;
-                else if (memcmp (wms->mult.post_lp, "Import", 6) == 0)
-                  wms->seq = S_WARN_UPLOAD;
-                else if (memcmp (wms->mult.post_lp, "Export", 6) == 0)//////////////////////////////
+                else if (strncmp(wms->mult.post_lp, "Export", 6) == 0)
                   wms->seq = S_EXPORT;
-                else if (memcmp (wms->mult.post_lp, "Close", 5) == 0)
+                else if (strncmp(wms->mult.post_lp, "Close", 5) == 0)
                   wms->seq = S_CLOSE;
-                else if (memcmp(wms->mult.post_lp, "Cancel", 6) == 0)
+                else if (strncmp(wms->mult.post_lp, "Cancel", 6) == 0)
                   if (wms->file_title_str != NULL)
                     wms->seq = S_START;
                   else
                     wms->seq = S_NONE;
-                else if (memcmp (wms->mult.post_lp, "Enter", 5) == 0)
+                else if (strncmp(wms->mult.post_lp, "Enter", 5) == 0)
                   wms->seq = S_ENTER;
-                else if (memcmp (wms->mult.post_lp, "Login", 5) == 0)
+                else if (strncmp(wms->mult.post_lp, "Login", 5) == 0)
                   wms->seq = S_LOGIN;
-                else if (memcmp (wms->mult.post_lp, "Create", 6) == 0)
+                else if (strncmp(wms->mult.post_lp, "Create", 6) == 0)
                   wms->seq = S_CREATE;
-                else if (memcmp (wms->mult.post_lp, "Stop", 4) == 0) {
+                else if (strncmp(wms->mult.post_lp, "Stop", 4) == 0) {
                   wms->seq = S_FILE;
                   if ((wms->from_page == P_PASSWORD && wms->saved_mode == M_DEFAULT) || wms->from_page == P_NEW)
                     wms->seq = S_CLOSE;
                 }
-                else if (memcmp(wms->mult.post_lp, "Password", 8) == 0)
+                else if (strncmp(wms->mult.post_lp, "Password", 8) == 0)
                   wms->seq = S_GO_CHANGE;
-                else if (memcmp(wms->mult.post_lp, "Change", 6) == 0)
-                  wms->seq = S_CHANGE;
                 else {
-                  e = memcmp(wms->mult.post_lp, "OK", 2);//////////////////////////////
+                  e = strncmp(wms->mult.post_lp, "Change", 6) != 0;
                   if (e == 0)
-                    wms->seq = S_START;
+                    wms->seq = S_CHANGE;
                 }
                 break;
               case F_ARRANGE:
@@ -1484,13 +1480,15 @@ int parse_post(struct WebMemorySurfer *wms) {
                   else if (strncmp(wms->mult.post_lp, "About", 5) == 0)
                     wms->seq = S_ABOUT;
                   else {
-                    e = strncmp(wms->mult.post_lp, "Start", 5);
+                    e = strncmp(wms->mult.post_lp, "Start", 5) != 0;
                     if (e == 0)
                       wms->seq = S_NONE;
                   }
                   break;
                 case 6:
-                  if (strncmp(wms->mult.post_lp, "Create", 6) == 0) {
+                  if (strncmp(wms->mult.post_lp, "Reveal", 6) == 0)
+                    wms->seq = S_REVEAL;
+                  else if (strncmp(wms->mult.post_lp, "Create", 6) == 0) {
                     if (wms->from_page == P_START_CAT)
                       wms->seq = S_SELECT_CREATE_CAT;
                     else {
@@ -1578,9 +1576,9 @@ int parse_post(struct WebMemorySurfer *wms) {
                   else if (memcmp(wms->mult.post_lp, "Search", 6) == 0)
                     wms->seq = S_SEARCH;
                   else {
-                    e = strncmp(wms->mult.post_lp, "Reveal", 6);
+                    e = strncmp(wms->mult.post_lp, "Import", 6) != 0;
                     if (e == 0)
-                      wms->seq = S_REVEAL;
+                      wms->seq = S_WARN_UPLOAD;
                   }
                   break;
                 default:
@@ -1596,7 +1594,7 @@ int parse_post(struct WebMemorySurfer *wms) {
                   else if (strncmp(wms->mult.post_lp, "Refresh", 7) == 0)
                     wms->seq = S_HISTOGRAM;
                   else {
-                    e = strncmp(wms->mult.post_lp, "OK", 2);
+                    e = strncmp(wms->mult.post_lp, "OK", 2) != 0;
                     if (e == 0) {
                       if (wms->from_page == P_FILE || wms->from_page == P_ABOUT) {
                         if (wms->file_title_str != NULL)
@@ -1604,6 +1602,8 @@ int parse_post(struct WebMemorySurfer *wms) {
                         else
                           wms->seq = S_NONE;
                       }
+                      else if (wms->from_page == P_UPLOAD_REPORT)
+                        wms->seq = S_START;
                       else {
                         e = wms->from_page != P_MSG;
                         if (e == 0) {
@@ -2480,7 +2480,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
                     "\t\t\t<p><input type=\"submit\" name=\"file_action\" value=\"New\"%s></p>\n"
                     "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Open\"%s></p>\n"
                     "\t\t\t<p><input type=\"submit\" name=\"file_action\" value=\"Password\"%s></p>\n"
-                    "\t\t\t<p><input type=\"submit\" name=\"file_action\" value=\"Import\"%s></p>\n"
+                    "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Import\"%s></p>\n"
                     "\t\t\t<p><input type=\"submit\" name=\"file_action\" value=\"Export\"%s></p>\n"
                     "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Remove\"%s></p>\n"
                     "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Erase\"%s></p>\n"
@@ -2640,7 +2640,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         break;
       case B_UPLOAD_REPORT:
         printf("\t\t\t<h1>XML File imported</h1>\n"
-               "\t\t\t<p><input type=\"submit\" name=\"file_action\" value=\"OK\"></p>\n"
+               "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"OK\"></p>\n"
                "\t\t</form>\n"
                "\t\t<code>%s; chunks=%d, swaps=%d, avg=%d</code>\n"
                "\t</body>\n"
@@ -2981,7 +2981,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.10</h1>\n"
+        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.11</h1>\n"
                     "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p>Copyright 2016-2021</p>\n"
                     "\t\t\t<p>Send bugs and suggestions to\n"
@@ -5207,8 +5207,7 @@ int main(int argc, char *argv[])
                     if (e == 0) {
                       wms->page = P_LEARN;
                       wms->mode = M_ASK;
-                    }
-                    else if (e < 0) {
+                    } else if (e < 0) {
                       wms->static_msg = "Notification: No card eligible for repetition.";
                       wms->static_btn_main = "OK";
                       wms->todo_main = S_SELECT_LEARN_CAT;
