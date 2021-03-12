@@ -38,8 +38,8 @@
 
 enum Field { F_UNKNOWN, F_FILENAME, F_FILE_TITLE, F_START_ACTION, F_FILE_ACTION, F_ARRANGE, F_CAT_NAME, F_MOVED_CAT, F_EDIT_ACTION, F_LEARN_ACTION, F_SEARCH_TXT, F_SEARCH_ACTION, F_CAT, F_CARD, F_MOV_CARD, F_LVL, F_Q, F_A, F_REVEAL_POS, F_TODO_MAIN, F_TODO_ALT, F_MTIME, F_PASSWORD, F_NEW_PASSWORD, F_TOKEN, F_EVENT, F_PAGE, F_MODE, F_TIMEOUT };
 enum Action { A_END, A_NONE, A_FILE, A_WARN_UPLOAD, A_CREATE, A_NEW, A_OPEN_DLG, A_FILELIST, A_OPEN, A_CHANGE_PASSWD, A_WRITE_PASSWD, A_READ_PASSWD, A_CHECK_PASSWORD, A_AUTH_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_CHECK_RESUME, A_SLASH, A_VOID, A_FILE_EXTENSION, A_GATHER, A_UPLOAD, A_UPLOAD_REPORT, A_EXPORT, A_ASK_REMOVE, A_REMOVE, A_ASK_ERASE, A_ERASE, A_CLOSE, A_START_CAT, A_SELECT_CREATE_CAT, A_SELECT_CAT, A_SELECT_SEND_CAT, A_SELECT_ARRANGE, A_CAT_NAME, A_CREATE_CAT, A_RENAME_CAT, A_ASK_DELETE_CAT, A_DELETE_CAT, A_TOGGLE, A_MOVE_CAT, A_SELECT_EDIT_CAT, A_EDIT, A_SYNC_QA, A_INSERT, A_APPEND, A_ASK_DELETE_CARD, A_DELETE_CARD, A_PREVIOUS, A_NEXT, A_SCHEDULE, A_SET, A_ARRANGE, A_MOVE_CARD, A_SEND_CARD, A_SELECT_LEARN_CAT, A_SELECT_SEARCH_CAT, A_PREFERENCES, A_ABOUT, A_APPLY, A_SEARCH, A_QUESTION, A_SHOW, A_REVEAL, A_PROCEED, A_SUSPEND, A_RESUME, A_CHECK_FILE, A_LOGIN, A_HISTOGRAM, A_RETRIEVE_MTIME, A_MTIME_TEST, A_CARD_TEST, A_TEST_CAT_SELECTED, A_TEST_CAT_VALID, A_TEST_CAT };
-enum Page { P_START, P_FILE, P_PASSWORD, P_NEW, P_OPEN, P_UPLOAD, P_UPLOAD_REPORT, P_EXPORT, P_START_CAT, P_CAT_NAME, P_SELECT_CREATE_CAT, P_SELECT_CAT, P_SELECT_SEND_CAT, P_SELECT_ARRANGE, P_SELECT_CARD_ARRANGE, P_SELECT_EDIT_CAT, P_EDIT, P_SELECT_LEARN_CAT, P_SELECT_SEARCH_CAT, P_SEARCH, P_PREFERENCES, P_ABOUT, P_LEARN, P_MSG, P_HISTOGRAM };
-enum Block { B_END, B_START_HTML, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_START, B_FILE, B_PASSWORD, B_NEW, B_OPEN, B_UPLOAD, B_UPLOAD_REPORT, B_EXPORT, B_START_CAT, B_CAT_NAME, B_SELECT_CREATE_CAT, B_SELECT_CAT, B_SELECT_SEND_CAT, B_SELECT_ARRANGE, B_SELECT_CARD_ARRANGE, B_SELECT_EDIT_CAT, B_EDIT, B_SELECT_LEARN_CAT, B_SELECT_SEARCH_CAT, B_SEARCH, B_PREFERENCES, B_ABOUT, B_LEARN, B_MSG, B_HISTOGRAM };
+enum Page { P_START, P_FILE, P_PASSWORD, P_NEW, P_OPEN, P_UPLOAD, P_UPLOAD_REPORT, P_EXPORT, P_START_CAT, P_CAT_NAME, P_SELECT_CREATE_CAT, P_SELECT_CAT, P_SELECT_SEND_CAT, P_SELECT_ARRANGE, P_SELECT_CARD_ARRANGE, P_SELECT_DECK, P_EDIT, P_SELECT_LEARN_CAT, P_SELECT_SEARCH_CAT, P_SEARCH, P_PREFERENCES, P_ABOUT, P_LEARN, P_MSG, P_HISTOGRAM };
+enum Block { B_END, B_START_HTML, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_START, B_FILE, B_PASSWORD, B_NEW, B_OPEN, B_UPLOAD, B_UPLOAD_REPORT, B_EXPORT, B_START_CAT, B_CAT_NAME, B_SELECT_CREATE_CAT, B_SELECT_CAT, B_SELECT_SEND_CAT, B_SELECT_ARRANGE, B_SELECT_CARD_ARRANGE, B_SELECT_DECK, B_EDIT, B_SELECT_LEARN_CAT, B_SELECT_SEARCH_CAT, B_SEARCH, B_PREFERENCES, B_ABOUT, B_LEARN, B_MSG, B_HISTOGRAM };
 enum Mode { M_NONE = -1, M_DEFAULT, M_CHANGE_PASSWD, M_ASK, M_RATE };
 enum Sequence { S_FILE, S_START_CAT, S_SELECT_CREATE_CAT, S_SELECT_ARRANGE, S_SELECT_MOVE_ARRANGE, S_CAT_NAME, S_SELECT_EDIT_CAT, S_SELECT_LEARN_CAT, S_SELECT_SEARCH_CAT, S_PREFERENCES, S_ABOUT, S_APPLY, S_NEW, S_FILELIST, S_WARN_UPLOAD, S_UPLOAD, S_LOGIN, S_ENTER, S_CHANGE, S_START, S_UPLOAD_REPORT, S_EXPORT, S_ASK_REMOVE, S_REMOVE, S_ASK_ERASE, S_ERASE, S_CLOSE, S_NONE, S_CREATE, S_GO_LOGIN, S_GO_CHANGE, S_SELECT_RENAME_CAT, S_RENAME_ENTER, S_RENAME_CAT, S_SELECT_MOVE_CAT, S_SELECT_DEST_CAT, S_MOVE_CAT, S_CREATE_CAT, S_SELECT_DELETE_CAT, S_ASK_DELETE_CAT, S_DELETE_CAT, S_SELECT_TOGGLE_CAT, S_TOGGLE, S_EDIT, S_INSERT, S_APPEND, S_ASK_DELETE_CARD, S_DELETE_CARD, S_PREVIOUS, S_NEXT, S_SCHEDULE, S_SET, S_ARRANGE, S_MOVE_CARD, S_SELECT_SEND_CAT, S_SEND_CARD, S_SEARCH_SYNCED, S_QUESTION, S_SHOW, S_REVEAL, S_PROCEED, S_SUSPEND, S_RESUME, S_SEARCH, S_HISTOGRAM, S_END };
 enum Stage { T_NULL, T_URLENCODE, T_BOUNDARY_INIT, T_CONTENT, T_NAME, T_BOUNDARY_BEGIN, T_BOUNDARY_CHECK };
@@ -129,7 +129,7 @@ static enum Block block_seq[P_HISTOGRAM+1][8] = {
   { B_START_HTML, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_SELECT_SEND_CAT, B_END }, // P_SELECT_SEND_CAT
   { B_START_HTML, B_HIDDEN_CAT, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_SELECT_ARRANGE, B_END }, // P_SELECT_ARRANGE
   { B_START_HTML, B_HIDDEN_CAT, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_SELECT_CARD_ARRANGE, B_END }, // P_SELECT_CARD_ARRANGE
-  { B_START_HTML, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_SELECT_EDIT_CAT, B_END }, // P_SELECT_EDIT_CAT
+  { B_START_HTML, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_SELECT_DECK, B_END }, // P_SELECT_DECK
   { B_START_HTML, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_EDIT, B_END }, // P_EDIT
   { B_START_HTML, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_SELECT_LEARN_CAT, B_END }, // P_SELECT_LEARN_CAT
   { B_START_HTML, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_SELECT_SEARCH_CAT, B_END }, // P_SELECT_SEARCH_CAT
@@ -1263,15 +1263,13 @@ int parse_post(struct WebMemorySurfer *wms) {
                   wms->seq = S_START;
                 break;
               case F_LEARN_ACTION:
-                if (memcmp (wms->mult.post_lp, "Learn", 5) == 0)
-                  wms->seq = S_QUESTION;
-                else if (memcmp (wms->mult.post_lp, "Suspend", 7) == 0)
+                if (strncmp(wms->mult.post_lp, "Suspend", 7) == 0)
                   wms->seq = S_SUSPEND;
-                else if (memcmp (wms->mult.post_lp, "Stop", 4) == 0)
+                else if (strncmp(wms->mult.post_lp, "Stop", 4) == 0)
                   wms->seq = S_SELECT_LEARN_CAT;
-                else if (memcmp (wms->mult.post_lp, "Proceed", 7) == 0)
+                else if (strncmp(wms->mult.post_lp, "Proceed", 7) == 0)
                   wms->seq = S_PROCEED;
-                else if (memcmp(wms->mult.post_lp, "Cancel", 6) == 0)
+                else if (strncmp(wms->mult.post_lp, "Cancel", 6) == 0)
                   wms->seq = S_START;
                 break;
               case F_SEARCH_TXT:
@@ -1464,7 +1462,9 @@ int parse_post(struct WebMemorySurfer *wms) {
                   }
                   break;
                 case 5:
-                  if (strncmp(wms->mult.post_lp, "Apply", 5) == 0)
+                  if (strncmp(wms->mult.post_lp, "Learn", 5) == 0)
+                    wms->seq = S_QUESTION;
+                  else if (strncmp(wms->mult.post_lp, "Apply", 5) == 0)
                     wms->seq = S_APPLY;
                   else if (strncmp(wms->mult.post_lp, "Erase", 5) == 0)
                     if (wms->from_page == P_FILE)
@@ -1940,52 +1940,62 @@ static int xml_escape(char **xml_str_ptr, size_t *xml_n_ptr, char *str_text, int
 
 enum HIERARCHY { H_CHILD, H_SIBLING };
 
-void gen_html_cat (int16_t n_create, int indent_n, enum HIERARCHY hierarchy, struct WebMemorySurfer *wms)
-{
+static int gen_html_cat(int16_t n_create, int indent_n, enum HIERARCHY hierarchy, struct WebMemorySurfer *wms) {
   int e;
+  int rv;
   char *c_str;
   char indent_str[32];
   int i;
   char *checked;
-  for (i = 0; i < indent_n; i++)
-  {
-    indent_str[i] = '\t';
-  }
-  indent_str[i] = '\0';
-  if (hierarchy == H_CHILD)
-  {
-    printf ("%s<ul>\n", indent_str);
-  }
-  checked = n_create == wms->ms.cat_i ? " checked" : "";
-  c_str = sa_get (&wms->ms.cat_sa, n_create);
-  e = xml_escape(&wms->html_lp, &wms->html_n, c_str, ESC_AMP | ESC_LT);
-  assert (e == 0);
-  printf ("%s\t<li><label><input type=\"radio\" name=\"cat\" value=\"%d\"%s>%s</label>%s\n",
-    indent_str,
-    n_create,
-    checked,
-    wms->html_lp,
-    wms->ms.cat_t[n_create].cat_n_child == -1 ? "</li>" : "");
-  if (wms->ms.cat_t[n_create].cat_n_child != -1)
-  {
-    if (wms->ms.cat_t[n_create].cat_x != 0)
-    {
-      gen_html_cat (wms->ms.cat_t[n_create].cat_n_child, indent_n + 1, H_CHILD, wms);
+  e = indent_n >= 32 || n_create < 0;
+  if (e == 0) {
+    for (i = 0; i < indent_n; i++)
+      indent_str[i] = '\t';
+    indent_str[i] = '\0';
+    if (hierarchy == H_CHILD) {
+      rv = printf("%s<ul>\n", indent_str);
+      e = rv < 0;
     }
-    else
-    {
-      printf ("%s\t\t...\n", indent_str);
+    if (e == 0) {
+      checked = n_create == wms->ms.cat_i ? " checked" : "";
+      c_str = sa_get(&wms->ms.cat_sa, n_create);
+      e = xml_escape(&wms->html_lp, &wms->html_n, c_str, ESC_AMP | ESC_LT);
+      if (e == 0) {
+        rv = printf("%s\t<li><label><input type=\"radio\" name=\"cat\" value=\"%d\"%s>%s</label>%s\n",
+            indent_str,
+            n_create,
+            checked,
+            wms->html_lp,
+            wms->ms.cat_t[n_create].cat_n_child == -1 ? "</li>" : "");
+        e = rv < 0;
+        if (e == 0) {
+          if (wms->ms.cat_t[n_create].cat_n_child != -1) {
+            if (wms->ms.cat_t[n_create].cat_x != 0) {
+              e = gen_html_cat(wms->ms.cat_t[n_create].cat_n_child, indent_n + 2, H_CHILD, wms);
+            } else {
+              rv = printf ("%s\t\t...\n", indent_str);
+              e = rv < 0;
+            }
+            if (e == 0) {
+              rv = printf ("%s\t</li>\n", indent_str);
+              e = rv < 0;
+            }
+          }
+          if (e == 0) {
+            if (wms->ms.cat_t[n_create].cat_n_sibling != -1)
+              e = gen_html_cat(wms->ms.cat_t[n_create].cat_n_sibling, indent_n, H_SIBLING, wms);
+            if (e == 0) {
+              if (hierarchy == H_CHILD) {
+                rv = printf ("%s</ul>\n", indent_str);
+                e = rv < 0;
+              }
+            }
+          }
+        }
+      }
     }
-    printf ("%s\t</li>\n", indent_str);
   }
-  if (wms->ms.cat_t[n_create].cat_n_sibling != -1)
-  {
-    gen_html_cat (wms->ms.cat_t[n_create].cat_n_sibling, indent_n, H_SIBLING, wms);
-  }
-  if (hierarchy == H_CHILD)
-  {
-    printf ("%s</ul>\n", indent_str);
-  }
+  return e;
 }
 
 enum
@@ -2727,28 +2737,22 @@ static int gen_html(struct WebMemorySurfer *wms) {
         if (wms->seq == S_SELECT_CREATE_CAT) {
           notice_str[0] = "where to create the new category to";
           submit_str = "Select";
-        }
-        else if (wms->seq == S_SELECT_DEST_CAT) {
+        } else if (wms->seq == S_SELECT_DEST_CAT) {
           notice_str[0] = "where to move";
           submit_str = "Select";
-        }
-        else if (wms->seq == S_SELECT_RENAME_CAT) {
+        } else if (wms->seq == S_SELECT_RENAME_CAT) {
           notice_str[0] = "to rename";
           submit_str = "Rename";
-        }
-        else if (wms->seq == S_SELECT_MOVE_CAT) {
+        } else if (wms->seq == S_SELECT_MOVE_CAT) {
           notice_str[0] = "to move";
           submit_str = "Move";
-        }
-        else if (wms->seq == S_SELECT_DELETE_CAT) {
+        } else if (wms->seq == S_SELECT_DELETE_CAT) {
           notice_str[0] = "to delete";
           submit_str = "Delete";
-        }
-        else if (wms->seq == S_SELECT_TOGGLE_CAT) {
+        } else if (wms->seq == S_SELECT_TOGGLE_CAT) {
           notice_str[0] = "to Collapse / Expand";
           submit_str = "Toggle";
-        }
-        else {
+        } else {
           assert(wms->seq == S_SELECT_SEND_CAT);
           notice_str[0] = "to move the card to";
           submit_str = "Send";
@@ -2830,18 +2834,29 @@ static int gen_html(struct WebMemorySurfer *wms) {
           submit_str,
           sw_info_str);
         break;
-      case B_SELECT_EDIT_CAT:
-        assert(wms->file_title_str != NULL && strlen(wms->tok_str) == 40);
-        printf("\t\t\t<h1>Select a category to edit</h1>\n");
-        gen_html_cat (wms->ms.n_first, 3, H_CHILD, wms);
-        printf("\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Edit\">\n"
-               "\t\t\t\t<input type=\"submit\" name=\"learn_action\" value=\"Learn\">\n"
-               "\t\t\t\t<input type=\"submit\" name=\"edit_action\" value=\"Cancel\"></p>\n"
-               "\t\t</form>\n"
-               "\t\t<code>%s</code>\n"
-               "\t</body>\n"
-               "</html>\n",
-          sw_info_str);
+      case B_SELECT_DECK:
+        e = wms->file_title_str == NULL || strlen(wms->tok_str) != 40;
+        if (e == 0) {
+          e = wms->mode != M_DEFAULT;
+          if (e == 0) {
+            rv = printf("\t\t\t<h1>Select a category to edit</h1>\n");
+            e = rv < 0;
+            if (e == 0) {
+              e = gen_html_cat(wms->ms.n_first, 3, H_CHILD, wms);
+              if (e == 0) {
+                rv = printf("\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Edit\">\n"
+                            "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Learn\">\n"
+                            "\t\t\t\t<input type=\"submit\" name=\"edit_action\" value=\"Cancel\"></p>\n"
+                            "\t\t</form>\n"
+                            "\t\t<code>%s</code>\n"
+                            "\t</body>\n"
+                            "</html>\n",
+                    sw_info_str);
+                e = rv < 0;
+              }
+            }
+          }
+        }
         break;
       case B_EDIT:
         q_str = sa_get(&wms->ms.card_sa, 0);
@@ -2872,7 +2887,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           e = xml_escape(&wms->html_lp, &wms->html_n, a_str, ESC_AMP | ESC_LT);
           if (e == 0) {
             printf("\t\t\t<div><textarea name=\"a\" rows=\"10\" cols=\"46\"%s>%s</textarea></div>\n"
-                   "\t\t\t<p><input type=\"submit\" name=\"learn_action\" value=\"Learn\">\n"
+                   "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Learn\">\n"
                    "\t\t\t\t<input type=\"submit\" name=\"edit_action\" value=\"Search\">\n"
                    "\t\t\t\t<input type=\"submit\" name=\"edit_action\" value=\"Stop\"></p>\n",
               a_str != NULL ? "" : " disabled",
@@ -2898,7 +2913,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         assert(wms->file_title_str != NULL && strlen(wms->tok_str) == 40);
         printf("\t\t\t<h1>Select a category to learn</h1>\n");
         gen_html_cat(wms->ms.n_first, 3, H_CHILD, wms);
-        printf("\t\t\t<p><input type=\"submit\" name=\"learn_action\" value=\"Learn\">\n"
+        printf("\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Learn\">\n"
                "\t\t\t<input type=\"submit\" name=\"event\" value=\"Edit\">\n"
                "\t\t\t\t<input type=\"submit\" name=\"learn_action\" value=\"Cancel\"></p>\n"
                "\t\t</form>\n"
@@ -2910,7 +2925,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
       case B_SELECT_SEARCH_CAT:
         assert(wms->file_title_str != NULL && strlen(wms->tok_str) == 40);
         printf("\t\t\t<h1>Select a category to search</h1>\n");
-        gen_html_cat (wms->ms.n_first, 3, H_CHILD, wms);
+        gen_html_cat(wms->ms.n_first, 3, H_CHILD, wms);
         printf("\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Search\">\n"
                "\t\t\t<input type=\"submit\" name=\"search_action\" value=\"Cancel\"></p>\n"
                "\t\t</form>\n"
@@ -2939,7 +2954,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
             if (e == 0) {
               printf("\t\t\t<div><textarea rows=\"10\" cols=\"46\"%s>%s</textarea></div>\n"
                      "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Edit\">\n"
-                     "\t\t\t\t<input type=\"submit\" name=\"learn_action\" value=\"Learn\"%s>\n"
+                     "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Learn\"%s>\n"
                      "\t\t\t\t<input type=\"submit\" name=\"search_action\" value=\"Stop\"></p>\n"
                      "\t\t</form>\n"
                      "\t\t<code>%s</code>\n"
@@ -2981,7 +2996,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.11</h1>\n"
+        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.12</h1>\n"
                     "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p>Copyright 2016-2021</p>\n"
                     "\t\t\t<p>Send bugs and suggestions to\n"
@@ -3182,7 +3197,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         if (e == 0) {
           rv = printf("\t\t\t</table>\n"
                       "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Edit\">\n"
-                      "\t\t\t\t<input type=\"submit\" name=\"learn_action\" value=\"Learn\">\n"
+                      "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Learn\">\n"
                       "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Search\">\n"
                       "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Refresh\">\n"
                       "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Done\"></p>\n"
@@ -4589,7 +4604,8 @@ int main(int argc, char *argv[])
             break;
           case A_SELECT_EDIT_CAT:
             wms->ms.card_i = -1;
-            wms->page = P_SELECT_EDIT_CAT;
+            wms->page = P_SELECT_DECK;
+            wms->mode = M_DEFAULT;
             break;
           case A_EDIT:
             if (wms->ms.cat_i >= 0)
