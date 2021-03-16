@@ -2031,8 +2031,7 @@ enum
   SECONDS_YEAR = SECONDS_DAY * 365
 };
 
-static void set_time_str(char *time_str, time_t time_set)
-{
+static void set_time_str(char *time_str, time_t time_set) {
   int n_stored;
   char *str_cursor;
   int n_years;
@@ -3025,7 +3024,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.15</h1>\n"
+        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.16</h1>\n"
                     "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p>Copyright 2016-2021</p>\n"
                     "\t\t\t<p>Send bugs and suggestions to\n"
@@ -3220,7 +3219,8 @@ static int gen_html(struct WebMemorySurfer *wms) {
             wms->html_lp);
         e = rv < 0;
         for (i = 0; i < 21 && e == 0; i++) {
-          rv = printf("\t\t\t\t<tr><td>%d</td><td>%d</td></tr>\n", i, wms->lvl_bucket[i]);
+          set_time_str(time_str, lvl_s[i]);
+          rv = printf("\t\t\t\t<tr><td>%d</td><td>(%s)</td><td>%d</td></tr>\n", i, time_str, wms->lvl_bucket[i]);
           e = rv < 0;
         }
         if (e == 0) {
