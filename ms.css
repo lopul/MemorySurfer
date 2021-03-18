@@ -1,6 +1,6 @@
 /*
 	Author: Lorenz Pullwitt <memorysurfer@lorenz-pullwitt.de>
-	Copyright 2016-2020
+	Copyright 2016-2021
 
 	This file is part of MemorySurfer.
 
@@ -43,6 +43,9 @@ ul {
 td {
 	min-width: 19ex;
 }
+td.histogram {
+	min-width: auto;
+}
 svg {
 	width: 100%;
 	max-width: 50ex;
@@ -51,7 +54,8 @@ p {
 	margin: 1.1ex 0 1ex 0.5ex;
 }
 label {
-	padding: 0;
+	margin: 0.1ex 0 0.1ex 0;
+	padding: 0.4ex 0 0.4ex 0;
 }
 input[type=submit] {
 	padding: 0.5ex 0.4ex 0.5ex 0.4ex;

@@ -3024,7 +3024,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.16</h1>\n"
+        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.17</h1>\n"
                     "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p>Copyright 2016-2021</p>\n"
                     "\t\t\t<p>Send bugs and suggestions to\n"
@@ -3220,7 +3220,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         e = rv < 0;
         for (i = 0; i < 21 && e == 0; i++) {
           set_time_str(time_str, lvl_s[i]);
-          rv = printf("\t\t\t\t<tr><td>%d</td><td>(%s)</td><td>%d</td></tr>\n", i, time_str, wms->lvl_bucket[i]);
+          rv = printf("\t\t\t\t<tr><td class=\"histogram\">%d</td><td class=\"histogram\"><code>(%s)</code></td><td class=\"histogram\">%d</td></tr>\n", i, time_str, wms->lvl_bucket[i]);
           e = rv < 0;
         }
         if (e == 0) {
