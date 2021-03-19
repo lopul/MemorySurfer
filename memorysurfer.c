@@ -2950,13 +2950,14 @@ static int gen_html(struct WebMemorySurfer *wms) {
         e = xml_escape(&wms->html_lp, &wms->html_n, wms->ms.search_txt, ESC_AMP | ESC_QUOT);
         if (e == 0) {
           assert(wms->file_title_str != NULL && strlen(wms->tok_str) == 40);
+          assert(wms->ms.match_case >= -1 && wms->ms.match_case <= 1);
           rv = printf("\t\t\t<h1>Searching</h1>\n"
                       "\t\t\t<p><input type=\"text\" name=\"search_txt\" value=\"%s\" size=25>\n"
                       "\t\t\t\t<label><input type=\"radio\" name=\"match-case\" value=\"1\"%s>Exact</label>\n"
                       "\t\t\t\t<label><input type=\"radio\" name=\"match-case\" value=\"0\"%s>Independent</label></p>\n",
               wms->html_lp,
-              wms->ms.match_case != 0 ? " checked" : "",
-              wms->ms.match_case == 0 ? " checked" : "");
+              wms->ms.match_case == 1 ? " checked" : "",
+              wms->ms.match_case == 0 || wms->ms.match_case == -1 ? " checked" : "");
           e = rv < 0;
           if (e == 0) {
             q_str = sa_get(&wms->ms.card_sa, 0);
@@ -3024,7 +3025,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.17</h1>\n"
+        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.18</h1>\n"
                     "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p>Copyright 2016-2021</p>\n"
                     "\t\t\t<p>Send bugs and suggestions to\n"
