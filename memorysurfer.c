@@ -1294,8 +1294,9 @@ int parse_post(struct WebMemorySurfer *wms) {
                   len = wms->mult.post_wp;
                 e = wms->ms.match_case != -1;
                 if (e == 0) {
-                  a_n = sscanf(wms->mult.post_lp, "%d%n", &wms->ms.match_case, &consumed_n);
-                  e = a_n != 1 || consumed_n != len;
+                  e = strncmp(wms->mult.post_lp, "on", len) != 0;
+                  if (e == 0)
+                    wms->ms.match_case = 1;
                 }
                 break;
               case F_SEARCH_ACTION:
@@ -2437,6 +2438,10 @@ static int gen_html(struct WebMemorySurfer *wms) {
           rv = printf("\t\t\t\t<input type=\"hidden\" name=\"reveal-pos\" value=\"%d\">\n", wms->reveal_pos);
           e = rv < 0;
         }
+        if (wms->ms.match_case > 0 && wms->page != P_SEARCH) {
+          rv = printf("\t\t\t\t<input type=\"hidden\" name=\"match-case\" value=\"on\">\n");
+          e = rv < 0;
+        }
         break;
       case B_HIDDEN_CAT:
         if (wms->ms.cat_i >= 0) {
@@ -2951,14 +2956,12 @@ static int gen_html(struct WebMemorySurfer *wms) {
         e = xml_escape(&wms->html_lp, &wms->html_n, wms->ms.search_txt, ESC_AMP | ESC_QUOT);
         if (e == 0) {
           assert(wms->file_title_str != NULL && strlen(wms->tok_str) == 40);
-          assert(wms->ms.match_case >= -1 && wms->ms.match_case <= 1);
+          assert(wms->ms.match_case == -1 || wms->ms.match_case == 1);
           rv = printf("\t\t\t<h1>Searching</h1>\n"
                       "\t\t\t<p><input type=\"text\" name=\"search_txt\" value=\"%s\" size=25>\n"
-                      "\t\t\t\t<label><input type=\"radio\" name=\"match-case\" value=\"1\"%s>Exact</label>\n"
-                      "\t\t\t\t<label><input type=\"radio\" name=\"match-case\" value=\"0\"%s>Independent</label></p>\n",
+                      "\t\t\t\t<label><input type=\"checkbox\" name=\"match-case\"%s>Match Case</label></p>\n",
               wms->html_lp,
-              wms->ms.match_case == 1 ? " checked" : "",
-              wms->ms.match_case == 0 || wms->ms.match_case == -1 ? " checked" : "");
+              wms->ms.match_case > 0 ? " checked" : "");
           e = rv < 0;
           if (e == 0) {
             q_str = sa_get(&wms->ms.card_sa, 0);
@@ -3026,7 +3029,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.21</h1>\n"
+        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.22</h1>\n"
                     "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p>Copyright 2016-2021</p>\n"
                     "\t\t\t<p>Send bugs and suggestions to\n"
@@ -5074,7 +5077,7 @@ int main(int argc, char *argv[])
                 e = lwr_search_txt == NULL;
                 if (e == 0) {
                   strcpy(lwr_search_txt, wms->ms.search_txt);
-                  if (wms->ms.match_case == 0)
+                  if (wms->ms.match_case < 0)
                     str_tolower(lwr_search_txt);
                   do {
                     wms->ms.card_i += wms->ms.srch_dir;
@@ -5088,14 +5091,14 @@ int main(int argc, char *argv[])
                       qa_str = sa_get(&wms->ms.card_sa, 0);
                       e = qa_str == NULL;
                       if (e == 0) {
-                        if (wms->ms.match_case == 0)
+                        if (wms->ms.match_case < 0)
                           str_tolower(qa_str);
                         wms->found_str = strstr(qa_str, lwr_search_txt);
                         if (wms->found_str == NULL) {
                           qa_str = sa_get(&wms->ms.card_sa, 1);
                           e = qa_str == NULL;
                           if (e == 0) {
-                            if (wms->ms.match_case == 0)
+                            if (wms->ms.match_case < 0)
                               str_tolower(qa_str);
                             wms->found_str = strstr(qa_str, lwr_search_txt);
                           }
