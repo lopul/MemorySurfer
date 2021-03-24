@@ -2690,43 +2690,39 @@ static int gen_html(struct WebMemorySurfer *wms) {
         break;
       case B_EXPORT:
         e = wms->ms.imf_filename == NULL;
-        if (e == 0)
-        {
-          dup_str = strdup (wms->ms.imf_filename);
+        if (e == 0) {
+          dup_str = strdup(wms->ms.imf_filename);
           e = dup_str == NULL;
-          if (e == 0)
-          {
-            f_basename = basename (dup_str);
+          if (e == 0) {
+            f_basename = basename(dup_str);
             len = strlen(f_basename);
             e = len <= 5;
-            if (e == 0)
-            {
-              dot = strrchr (dup_str, '.');
-              e = strcmp (dot, ".imsf") != 0;
-              if (e == 0)
-              {
-                strcpy (dot, ".xml");
-                printf("Content-Disposition: attachment; filename=\"%s\"\n"
-                       "Content-Type: text/xml; charset=utf-8\n\n",
-                  f_basename);
-                xg.w_stream = stdout;
-                e = fputs ("<memorysurfer>", xg.w_stream) <= 0;
-                if (e == 0)
-                {
-                  xg.indent = 1;
-                  set_indent (xg.indent_str, xg.indent, sizeof (xg.indent_str));
-                  xg.w_lineptr = NULL;
-                  xg.w_n = 0;
-                  e = gen_xml_category (wms->ms.n_first, &xg, &wms->ms);
-                  if (e == 0)
-                  {
-                    e = fputs ("</memorysurfer>", xg.w_stream) <= 0;
+            if (e == 0) {
+              dot = strrchr(dup_str, '.');
+              e = strcmp(dot, ".imsf") != 0;
+              if (e == 0) {
+                strcpy(dot, ".xml");
+                rv = printf("Content-Disposition: attachment; filename=\"%s\"\n"
+                            "Content-Type: text/xml; charset=utf-8\n\n",
+                    f_basename);
+                e = rv < 0;
+                if (e == 0) {
+                  xg.w_stream = stdout;
+                  e = fputs("<memorysurfer>", xg.w_stream) <= 0;
+                  if (e == 0) {
+                    xg.indent = 1;
+                    set_indent(xg.indent_str, xg.indent, sizeof(xg.indent_str));
+                    xg.w_lineptr = NULL;
+                    xg.w_n = 0;
+                    e = gen_xml_category(wms->ms.n_first, &xg, &wms->ms);
+                    if (e == 0)
+                      e = fputs("</memorysurfer>", xg.w_stream) <= 0;
+                    free(xg.w_lineptr);
                   }
-                  free (xg.w_lineptr);
                 }
               }
             }
-            free (dup_str);
+            free(dup_str);
           }
         }
         break;
@@ -3029,7 +3025,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.22</h1>\n"
+        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.23</h1>\n"
                     "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p>Copyright 2016-2021</p>\n"
                     "\t\t\t<p>Send bugs and suggestions to\n"
@@ -3053,21 +3049,32 @@ static int gen_html(struct WebMemorySurfer *wms) {
       case B_LEARN:
         q_str = sa_get(&wms->ms.card_sa, 0);
         a_str = sa_get(&wms->ms.card_sa, 1);
-        e = q_str == NULL || a_str == NULL || (wms->mode != M_ASK && wms->mode != M_RATE) || strlen(mtime_str) != 16 || wms->file_title_str == NULL || strlen(wms->tok_str) != 40;
+        e = q_str == NULL || a_str == NULL || strlen(mtime_str) != 16 || wms->file_title_str == NULL || strlen(wms->tok_str) != 40;
         if (e == 0) {
-          e = xml_escape(&wms->html_lp, &wms->html_n, q_str, ESC_AMP | ESC_LT);
+          if (wms->mode == M_ASK)
+            header_str = "Asking";
+          else {
+            e = wms->mode != M_RATE;
+            if (e == 0)
+              header_str = "Rating";
+          }
           if (e == 0) {
-            rv = printf("\t\t\t<p><input type=\"submit\" name=\"learn_action\" value=\"Proceed\"%s>\n"
-                        "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Show\"%s>\n"
-                        "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Reveal\"%s>\n"
-                        "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Histogram\"></p>\n"
-                        "\t\t\t<div><textarea rows=\"10\" cols=\"46\" readonly>%s</textarea></div>\n"
-                        "\t\t\t<table>\n",
-                wms->mode != M_RATE ? " disabled" : "",
-                wms->mode != M_ASK ? " disabled" : "",
-                wms->mode != M_ASK ? " disabled" : "",
-                wms->html_lp);
-            e = rv < 0;
+            e = xml_escape(&wms->html_lp, &wms->html_n, q_str, ESC_AMP | ESC_LT);
+            if (e == 0) {
+              rv = printf("\t\t\t<h1>%s</h1>\n"
+                          "\t\t\t<p><input type=\"submit\" name=\"learn_action\" value=\"Proceed\"%s>\n"
+                          "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Show\"%s>\n"
+                          "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Reveal\"%s>\n"
+                          "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Histogram\"></p>\n"
+                          "\t\t\t<div><textarea rows=\"10\" cols=\"46\" readonly>%s</textarea></div>\n"
+                          "\t\t\t<table>\n",
+                  header_str,
+                  wms->mode != M_RATE ? " disabled" : "",
+                  wms->mode != M_ASK ? " disabled" : "",
+                  wms->mode != M_ASK ? " disabled" : "",
+                  wms->html_lp);
+              e = rv < 0;
+            }
           }
           if (e == 0) {
             if (wms->mode == M_ASK) {
@@ -3084,7 +3091,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
                 }
               }
             } else {
-              assert(wms->mode == M_RATE || wms->ms.card_i != -1);
+              assert(wms->ms.card_i != -1);
               if (wms->ms.card_l[wms->ms.card_i].card_state == STATE_NEW) {
                 time_diff = lvl_s[1];
                 lvl = 0;
