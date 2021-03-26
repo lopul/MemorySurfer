@@ -2349,6 +2349,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
   char mtime_str[17];
   struct stat file_stat;
   int nb; // number (of) bytes
+  int dx; // delta
   int dy;
   static const char *TIMEOUTS[] = { "5 m", "15 m", "1 h", "3 h", "12 h" };
   size_t size;
@@ -3026,7 +3027,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.25</h1>\n"
+        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.26</h1>\n"
                     "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p>Copyright 2016-2021</p>\n"
                     "\t\t\t<p>Send bugs and suggestions to\n"
@@ -3205,32 +3206,45 @@ static int gen_html(struct WebMemorySurfer *wms) {
         if (e == 0) {
           nb = rv;
           y = 0;
+          dx = 0;
           for (i = 0; i < 100 && e == 0; i++) {
             dy = y - wms->hist_bucket[i];
             if (dy != 0) {
-              size = wms->html_n - nb;
-              rv = snprintf(wms->html_lp + nb, size, "v%d", dy);
-              e = rv < 0 || rv >= size;
-              nb += rv;
-              y -= dy;
+              if (dx > 0) {
+                size = wms->html_n - nb;
+                rv = snprintf(wms->html_lp + nb, size, "h%d", dx);
+                e = rv < 0 || rv >= size;
+                nb += rv;
+                dx = 0;
+              }
+              if (e == 0) {
+                size = wms->html_n - nb;
+                rv = snprintf(wms->html_lp + nb, size, "v%d", dy);
+                e = rv < 0 || rv >= size;
+                nb += rv;
+                y -= dy;
+              }
             }
-            if (e == 0) {
-              size = wms->html_n - nb;
-              rv = snprintf(wms->html_lp + nb, size, "h1");
-              e = rv < 0 || rv >= size;
-              nb += rv;
-            }
+            dx++;
           }
           if (e == 0) {
             size = wms->html_n - nb;
-            rv = snprintf(wms->html_lp + nb, size, "v%d", y);
+            rv = snprintf(wms->html_lp + nb, size, "h%d", dx);
             e = rv < 0 || rv >= size;
             nb += rv;
             if (e == 0) {
-              size = wms->html_n - nb;
-              rv = snprintf(wms->html_lp + nb, size, "z");
-              e = rv < 0 || rv >= size;
-              nb += rv;
+              if (y > 0) {
+                size = wms->html_n - nb;
+                rv = snprintf(wms->html_lp + nb, size, "v%d", y);
+                e = rv < 0 || rv >= size;
+                nb += rv;
+              }
+              if (e == 0) {
+                size = wms->html_n - nb;
+                rv = snprintf(wms->html_lp + nb, size, "z");
+                e = rv < 0 || rv >= size;
+                nb += rv;
+              }
             }
           }
           if (e == 0) {
@@ -3247,14 +3261,15 @@ static int gen_html(struct WebMemorySurfer *wms) {
                           "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Refresh\">\n"
                           "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Done\"></p>\n"
                           "\t\t</form>\n"
-                          "\t\t<code>%s; gaps=%d, gaps_size=%d, Details: %s</code>\n"
+                          "\t\t<code>%s; gaps=%d, gaps_size=%d, Details: %s, nb=%d</code>\n"
                           "\t</body>\n"
                           "</html>\n",
                   wms->html_lp,
                   sw_info_str,
                   wms->ms.imf.stats_gaps,
                   wms->ms.imf.stats_gaps_space,
-                  wms->ms.imf.stats_gaps_str);
+                  wms->ms.imf.stats_gaps_str,
+                  nb);
               e = rv < 0;
             }
           }
