@@ -264,7 +264,7 @@ struct WebMemorySurfer {
   int32_t mtime[2];
   int hist_bucket[100]; // histogram
   int hist_max;
-  int lvl_bucket[21];
+  int lvl_bucket[2][21]; // 0 = total, 1 = eligible
   uint8_t tok_digest[SHA1_HASH_SIZE];
   char tok_str[41];
 };
@@ -1891,8 +1891,7 @@ static char *sa_get(struct StringArray *sa, int16_t sa_i) {
 
 enum { ESC_AMP = 1, ESC_LT = 2, ESC_QUOT = 4 };
 
-static int xml_escape(char **xml_str_ptr, size_t *xml_n_ptr, char *str_text, int escape_mask)
-{
+static int xml_escape(char **xml_str_ptr, size_t *xml_n_ptr, char *str_text, int escape_mask) {
   int e;
   char ch;
   int src;
@@ -2351,7 +2350,6 @@ static int gen_html(struct WebMemorySurfer *wms) {
   struct stat file_stat;
   int nb; // number (of) bytes
   int dy;
-  char path_str[10];
   static const char *TIMEOUTS[] = { "5 m", "15 m", "1 h", "3 h", "12 h" };
   size_t size;
   size_t len;
@@ -3028,7 +3026,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.24</h1>\n"
+        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.25</h1>\n"
                     "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p>Copyright 2016-2021</p>\n"
                     "\t\t\t<p>Send bugs and suggestions to\n"
@@ -3202,50 +3200,64 @@ static int gen_html(struct WebMemorySurfer *wms) {
         break;
       case B_HISTOGRAM:
         wms->html_lp[0] = '\0';
-        strcat(wms->html_lp, "M1 61");
-        nb = 5;
-        y = 0;
-        for (i = 0; i < 100 && e == 0; i++) {
-          e = nb + 3 * sizeof(path_str) + 1 > wms->html_n;
-          if (e == 0) {
+        rv = snprintf(wms->html_lp, wms->html_n, "M1 61");
+        e = rv < 0 || rv >= wms->html_n;
+        if (e == 0) {
+          nb = rv;
+          y = 0;
+          for (i = 0; i < 100 && e == 0; i++) {
             dy = y - wms->hist_bucket[i];
             if (dy != 0) {
-              nb += sprintf(path_str, "v%d", dy);
-              strcat(wms->html_lp, path_str);
+              size = wms->html_n - nb;
+              rv = snprintf(wms->html_lp + nb, size, "v%d", dy);
+              e = rv < 0 || rv >= size;
+              nb += rv;
               y -= dy;
             }
-            strcat(wms->html_lp, "h1");
-            nb += 2;
+            if (e == 0) {
+              size = wms->html_n - nb;
+              rv = snprintf(wms->html_lp + nb, size, "h1");
+              e = rv < 0 || rv >= size;
+              nb += rv;
+            }
           }
-        }
-        if (e == 0) {
-          sprintf(path_str, "v%d", y);
-          strcat(wms->html_lp, path_str);
-          strcat(wms->html_lp, "z");
-        }
-        e = imf_info_gaps(&wms->ms.imf);
-        notice_str[0] = e == 0 ? wms->ms.imf.stats_gaps_str : "error";
-        if (e == 0) {
-          rv = printf("\t\t\t<h1>Histogram</h1>\n"
-                      "\t\t\t<p>Retention</p>\n"
-                      "\t\t\t<svg viewbox=\"0 0 101 62\">\n"
-                      "\t\t\t\t<path d=\"%s\" />\n"
-                      "\t\t\t</svg>\n"
-                      "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Edit\">\n"
-                      "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Learn\">\n"
-                      "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Search\">\n"
-                      "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Refresh\">\n"
-                      "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Done\"></p>\n"
-                      "\t\t</form>\n"
-                      "\t\t<code>%s; gaps=%d, gaps_size=%d, Details: %s</code>\n"
-                      "\t</body>\n"
-                      "</html>\n",
-              wms->html_lp,
-              sw_info_str,
-              wms->ms.imf.stats_gaps,
-              wms->ms.imf.stats_gaps_space,
-              notice_str[0]);
-          e = rv < 0;
+          if (e == 0) {
+            size = wms->html_n - nb;
+            rv = snprintf(wms->html_lp + nb, size, "v%d", y);
+            e = rv < 0 || rv >= size;
+            nb += rv;
+            if (e == 0) {
+              size = wms->html_n - nb;
+              rv = snprintf(wms->html_lp + nb, size, "z");
+              e = rv < 0 || rv >= size;
+              nb += rv;
+            }
+          }
+          if (e == 0) {
+            e = imf_info_gaps(&wms->ms.imf);
+            if (e == 0) {
+              rv = printf("\t\t\t<h1>Histogram</h1>\n"
+                          "\t\t\t<p>Retention</p>\n"
+                          "\t\t\t<svg viewbox=\"0 0 101 62\">\n"
+                          "\t\t\t\t<path d=\"%s\" />\n"
+                          "\t\t\t</svg>\n"
+                          "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Edit\">\n"
+                          "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Learn\">\n"
+                          "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Search\">\n"
+                          "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Refresh\">\n"
+                          "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Done\"></p>\n"
+                          "\t\t</form>\n"
+                          "\t\t<code>%s; gaps=%d, gaps_size=%d, Details: %s</code>\n"
+                          "\t</body>\n"
+                          "</html>\n",
+                  wms->html_lp,
+                  sw_info_str,
+                  wms->ms.imf.stats_gaps,
+                  wms->ms.imf.stats_gaps_space,
+                  wms->ms.imf.stats_gaps_str);
+              e = rv < 0;
+            }
+          }
         }
         break;
       case B_TABLE:
@@ -3255,7 +3267,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         e = rv < 0;
         for (i = 0; i < 21 && e == 0; i++) {
           set_time_str(time_str, lvl_s[i]);
-          rv = printf("\t\t\t\t<tr><td class=\"histogram\">%d</td><td class=\"histogram\"><code>(%s)</code></td><td class=\"histogram\">%d</td></tr>\n", i, time_str, wms->lvl_bucket[i]);
+          rv = printf("\t\t\t\t<tr><td class=\"histogram\">%d</td><td class=\"histogram\"><code>(%s)</code></td><td class=\"histogram\">%d</td></tr>\n", i, time_str, wms->lvl_bucket[0][i]);
           e = rv < 0;
         }
         if (e == 0) {
@@ -3266,10 +3278,11 @@ static int gen_html(struct WebMemorySurfer *wms) {
                       "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Refresh\">\n"
                       "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Done\"></p>\n"
                       "\t\t</form>\n"
-                      "\t\t<code>%s</code>\n"
+                      "\t\t<code>%s, sizeof(double)=%zu</code>\n"
                       "\t</body>\n"
                       "</html>\n",
-              sw_info_str);
+              sw_info_str,
+              sizeof(double));
           e = rv < 0;
         }
         break;
@@ -3394,8 +3407,7 @@ void ms_free (struct MemorySurfer *ms)
   sw_free(&ms->imf.sw);
 }
 
-void wms_free (struct WebMemorySurfer *wms)
-{
+static void wms_free(struct WebMemorySurfer *wms) {
   int i;
   free(wms->html_lp);
   for (i = 0; i < wms->fl_c; i++) {
@@ -3457,8 +3469,7 @@ static int ms_get_card_sa(struct MemorySurfer *ms) {
 
 static int RANK = 6;
 
-static int ms_determine_card(struct MemorySurfer *ms)
-{
+static int ms_determine_card(struct MemorySurfer *ms) {
   int e;
   time_t time_diff;
   int32_t card_strength_thr; // threshold
@@ -3483,7 +3494,7 @@ static int ms_determine_card(struct MemorySurfer *ms)
       for (card_i = 0; card_i < ms->card_a && e == 0; card_i++) {
         time_diff = ms->timestamp - ms->card_l[card_i].card_time;
         reten = exp(-(double)time_diff / ms->card_l[card_i].card_strength);
-        if (reten <= 0.36788) { // 1/e
+        if (reten <= 0.36787944) { // 1/e
           card_state = ms->card_l[card_i].card_state;
           switch (card_state)
           {
@@ -5340,14 +5351,14 @@ int main(int argc, char *argv[])
             break;
           case A_TABLE:
             for (i = 0; i < 21; i++)
-              wms->lvl_bucket[i] = 0;
+              wms->lvl_bucket[0][i] = 0;
             if (wms->ms.card_a > 0) {
               for (card_i = 0; card_i < wms->ms.card_a; card_i++) {
                 if (wms->ms.card_l[card_i].card_state == STATE_SCHEDULED) {
                   for (i = 0; i < 21; i++)
                     if (lvl_s[i] >= wms->ms.card_l[card_i].card_strength)
                       break;
-                  wms->lvl_bucket[i]++;
+                  wms->lvl_bucket[0][i]++;
                 }
                 wms->page = P_TABLE;
               }
