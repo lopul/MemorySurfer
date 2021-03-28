@@ -2351,6 +2351,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
   int nb; // number (of) bytes
   int dx; // delta
   int dy;
+  int vby; // viewbox
   static const char *TIMEOUTS[] = { "5 m", "15 m", "1 h", "3 h", "12 h" };
   size_t size;
   size_t len;
@@ -3027,7 +3028,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.26</h1>\n"
+        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.27</h1>\n"
                     "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p>Copyright 2016-2021</p>\n"
                     "\t\t\t<p>Send bugs and suggestions to\n"
@@ -3200,8 +3201,13 @@ static int gen_html(struct WebMemorySurfer *wms) {
         }
         break;
       case B_HISTOGRAM:
+        vby = wms->hist_max;
+        if (vby < 61)
+          vby = 61;
+        else if (vby > 121)
+          vby = 121;
         wms->html_lp[0] = '\0';
-        rv = snprintf(wms->html_lp, wms->html_n, "M1 61");
+        rv = snprintf(wms->html_lp, wms->html_n, "M1 %d", vby);
         e = rv < 0 || rv >= wms->html_n;
         if (e == 0) {
           nb = rv;
@@ -3252,7 +3258,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
             if (e == 0) {
               rv = printf("\t\t\t<h1>Histogram</h1>\n"
                           "\t\t\t<p>Retention</p>\n"
-                          "\t\t\t<svg viewbox=\"0 0 101 62\">\n"
+                          "\t\t\t<svg viewbox=\"0 0 101 %d\">\n"
                           "\t\t\t\t<path d=\"%s\" />\n"
                           "\t\t\t</svg>\n"
                           "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Edit\">\n"
@@ -3264,6 +3270,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
                           "\t\t<code>%s; gaps=%d, gaps_size=%d, Details: %s, nb=%d</code>\n"
                           "\t</body>\n"
                           "</html>\n",
+                  vby + 1,
                   wms->html_lp,
                   sw_info_str,
                   wms->ms.imf.stats_gaps,
