@@ -253,6 +253,7 @@ struct WebMemorySurfer {
   int reveal_pos;
   int saved_reveal_pos;
   int sw_i;
+  const char *static_header;
   const char *static_msg;
   char *static_btn_main; // left
   char *static_btn_alt; // right
@@ -2373,7 +2374,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
   if (e == 0) {
     size = sizeof(title_str);
     rv = snprintf(title_str, size, "MemorySurfer - Welcome");
-    e = rv < 0;
+    e = rv < 0 || rv >= size;
     if (wms->file_title_str != NULL && e == 0) {
       e = xml_escape(&wms->html_lp, &wms->html_n, wms->file_title_str, ESC_AMP | ESC_LT);
       if (e == 0) {
@@ -3028,7 +3029,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.27</h1>\n"
+        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.28</h1>\n"
                     "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p>Copyright 2016-2021</p>\n"
                     "\t\t\t<p>Send bugs and suggestions to\n"
@@ -3168,7 +3169,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           e = 0x0583cf25; // WMSBLN (Web)MemorySurfer B_LEARN failed
         break;
       case B_MSG:
-        assert(wms->static_msg != NULL && wms->static_btn_main != NULL);
+        assert(wms->static_header != NULL && wms->static_btn_main != NULL);
         assert(wms->todo_main >= S_FILE && wms->todo_main <= S_END);
         rv = printf("\t\t\t\t<input type=\"hidden\" name=\"todo_main\" value=\"%d\">\n", wms->todo_main);
         e = rv < 0;
@@ -3179,12 +3180,19 @@ static int gen_html(struct WebMemorySurfer *wms) {
         }
         if (e == 0) {
           rv = printf("\t\t\t</div>\n"
-                      "\t\t\t<h1>%s</h1>\n"
-                      "\t\t\t<p>\n"
-                      "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"%s\">\n",
-              wms->static_msg,
-              wms->static_btn_main);
+                      "\t\t\t<h1>%s</h1>\n",
+              wms->static_header);
           e = rv < 0;
+          if (wms->static_msg != NULL && e == 0) {
+            rv = printf("\t\t\t<p>%s</p>\n", wms->static_msg);
+            e = rv < 0;
+          }
+          if (e == 0) {
+            rv = printf("\t\t\t<p>\n"
+                        "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"%s\">\n",
+                wms->static_btn_main);
+            e = rv < 0;
+          }
         }
         if (e == 0 && wms->static_btn_alt != NULL) {
           rv = printf("\t\t\t\t<input type=\"submit\" name=\"event\" value=\"%s\">\n", wms->static_btn_alt);
@@ -3385,6 +3393,7 @@ int wms_init(struct WebMemorySurfer *wms)
       wms->reveal_pos = -1;
       wms->saved_reveal_pos = -1;
       wms->sw_i = -1;
+      wms->static_header = NULL;
       wms->static_msg = NULL;
       wms->static_btn_main = NULL;
       wms->static_btn_alt = NULL;
@@ -3893,7 +3902,7 @@ int main(int argc, char *argv[])
             break;
           case A_WARN_UPLOAD:
             if (wms->ms.n_first != -1) {
-              wms->static_msg = "Warning: Before importing, the content of the current file is erased (and rebuild during the import).";
+              wms->static_header = "Warning: Before importing, the content of the current file is erased (and rebuild during the import).";
               wms->static_btn_main = "Erase";
               wms->static_btn_alt = "Cancel";
               wms->todo_main = S_UPLOAD;
@@ -3909,7 +3918,7 @@ int main(int argc, char *argv[])
               assert(wms->file_title_str != NULL);
               free(wms->file_title_str);
               wms->file_title_str = NULL;
-              wms->static_msg = strerror(e);
+              wms->static_header = strerror(e);
               wms->static_btn_main = "OK";
               wms->todo_main = S_NONE;
               wms->page = P_MSG;
@@ -3976,6 +3985,12 @@ int main(int argc, char *argv[])
                 wms->file_title_str = NULL;
                 free(wms->ms.imf_filename);
                 wms->ms.imf_filename = NULL;
+                e2str(e, e_str);
+                wms->static_header = "Can't open file";
+                wms->static_msg = e_str;
+                wms->static_btn_main = "OK";
+                wms->todo_main = S_NONE;
+                wms->page = P_MSG;
               }
             }
             else
@@ -4013,7 +4028,7 @@ int main(int argc, char *argv[])
               if (e == 0)
                 e = imf_get (&wms->ms.imf, PW_INDEX, &wms->ms.passwd);
               if (e != 0) {
-                wms->static_msg = "Read of password hash failed";
+                wms->static_header = "Read of password hash failed";
                 wms->static_btn_main = "OK";
                 wms->todo_main = S_GO_LOGIN;
                 wms->page = P_MSG;
@@ -4025,7 +4040,7 @@ int main(int argc, char *argv[])
           case A_CHECK_PASSWORD:
             e = wms->ms.passwd.pw_flag != 0;
             if (e != 0) {
-              wms->static_msg = "A password is already set";
+              wms->static_header = "A password is already set";
               wms->static_btn_main = "OK";
               wms->todo_main = S_GO_LOGIN;
               wms->page = P_MSG;
@@ -4046,7 +4061,7 @@ int main(int argc, char *argv[])
             }
             if (e != 0) {
               sleep (1);
-              wms->static_msg = "Invalid password";
+              wms->static_header = "Invalid password";
               wms->static_btn_main = "OK";
               wms->todo_main = S_GO_LOGIN;
               wms->page = P_MSG;
@@ -4077,7 +4092,7 @@ int main(int argc, char *argv[])
               }
               if (e != 0) {
                 sleep (1);
-                wms->static_msg = "Invalid session token";
+                wms->static_header = "Invalid session token";
                 wms->static_btn_main = "OK";
                 wms->todo_main = S_GO_LOGIN;
                 wms->page = P_MSG;
@@ -4133,7 +4148,7 @@ int main(int argc, char *argv[])
             if (e == 0) {
               e = mtime_test == 0;
               if (e != 0) {
-                wms->static_msg = "Error: Invalid mtime value";
+                wms->static_header = "Error: Invalid mtime value";
                 wms->static_btn_main = "OK";
                 wms->todo_main = S_SELECT_EDIT_CAT; // S_EDIT S_QUESTION
                 wms->page = P_MSG;
@@ -4147,7 +4162,7 @@ int main(int argc, char *argv[])
             if (e == 0) {
               e = wms->ms.card_i < 0 || wms->ms.card_i >= wms->ms.card_a;
               if (e != 0) {
-                wms->static_msg = "Warning: Invalid card";
+                wms->static_header = "Warning: Invalid card";
                 wms->static_btn_main = "OK";
                 wms->todo_main = S_NONE;
                 wms->page = P_MSG;
@@ -4157,7 +4172,7 @@ int main(int argc, char *argv[])
           case A_TEST_CAT_SELECTED:
             e = wms->ms.cat_i < 0;
             if (e == 1) {
-              wms->static_msg = "Please select a category to learn";
+              wms->static_header = "Please select a category to learn";
               wms->static_btn_main = "OK";
               wms->todo_main = S_SELECT_LEARN_CAT;
               wms->page = P_MSG;
@@ -4167,7 +4182,7 @@ int main(int argc, char *argv[])
             e = wms->ms.cat_i >= wms->ms.cat_a || wms->ms.cat_t[wms->ms.cat_i].cat_used == 0;
             if (e == 1) {
               wms->ms.cat_i = -1;
-              wms->static_msg = "Warning: Invalid category";
+              wms->static_header = "Warning: Invalid category";
               wms->static_btn_main = "OK";
               wms->todo_main = S_SELECT_LEARN_CAT;
               wms->page = P_MSG;
@@ -4178,22 +4193,22 @@ int main(int argc, char *argv[])
             if (e != 0 && wms->seq == S_CREATE_CAT)
               e = wms->ms.cat_i != -1 || wms->ms.n_first != -1;
             if (e != 0) {
-              wms->static_msg = "Warning: Invalid category";
+              wms->static_header = "Warning: Invalid category";
               wms->static_btn_main = "OK";
               wms->todo_main = S_START_CAT;
               wms->page = P_MSG;
               if (wms->from_page == P_SELECT_CREATE_CAT) {
-                wms->static_msg = "Please select a category were to arrange the new category to";
+                wms->static_header = "Please select a category were to arrange the new category to";
                 wms->todo_main = S_SELECT_CREATE_CAT;
               }
               else if (wms->from_page == P_SELECT_CAT) {
                 if (wms->seq == S_SELECT_DEST_CAT) {
-                  wms->static_msg = "Please select a category to move";
+                  wms->static_header = "Please select a category to move";
                   wms->todo_main = S_SELECT_MOVE_CAT;
                 }
                 else {
                   assert(wms->seq == S_ASK_DELETE_CAT);
-                  wms->static_msg = "Please select a category to delete";
+                  wms->static_header = "Please select a category to delete";
                   wms->todo_main = S_SELECT_DELETE_CAT;
                 }
               }
@@ -4207,7 +4222,7 @@ int main(int argc, char *argv[])
               if (e != 0) {
                 free(wms->file_title_str);
                 wms->file_title_str = NULL;
-                wms->static_msg = "Error: Slash ('/')";
+                wms->static_header = "Error: Slash ('/')";
                 wms->static_btn_main = "OK";
                 wms->todo_main = S_FILE;
                 wms->page = P_MSG;
@@ -4223,7 +4238,7 @@ int main(int argc, char *argv[])
             if (e != 0) {
               free(wms->file_title_str);
               wms->file_title_str = NULL;
-              wms->static_msg = "Error: No filename";
+              wms->static_header = "Error: No filename";
               wms->static_btn_main = "OK";
               wms->todo_main = S_FILE;
               wms->page = P_MSG;
@@ -4298,7 +4313,7 @@ int main(int argc, char *argv[])
               }
               else {
                 wms->ms.cat_i = -1;
-                wms->static_msg = "Warning: Invalid category";
+                wms->static_header = "Warning: Invalid category";
                 wms->static_btn_main = "OK";
                 wms->todo_main = S_NONE; // S_SELECT_EDIT_CAT S_SELECT_SEARCH_CAT S_SELECT_LEARN_CAT S_DELETE_CARD S_APPEND
                 wms->page = P_MSG;
@@ -4306,7 +4321,7 @@ int main(int argc, char *argv[])
             }
             else {
               assert (wms->ms.cat_i == -1);
-              wms->static_msg = "Please select a category";
+              wms->static_header = "Please select a category";
               wms->static_btn_main = "OK";
               wms->todo_main = S_START; // S_NONE S_SELECT_EDIT_CAT S_SELECT_SEARCH_CAT S_SELECT_LEARN_CAT S_DELETE_CARD
               wms->page = P_MSG;
@@ -4319,7 +4334,7 @@ int main(int argc, char *argv[])
                   wms->ms.can_resume = 1;
             break;
           case A_ASK_REMOVE:
-            wms->static_msg = "Remove file of the file system?";
+            wms->static_header = "Remove file of the file system?";
             wms->static_btn_main = "Remove";
             wms->static_btn_alt = "Cancel";
             wms->todo_main = S_REMOVE;
@@ -4339,7 +4354,7 @@ int main(int argc, char *argv[])
             }
             break;
           case A_ASK_ERASE:
-            wms->static_msg = "Erase all decks & cards?";
+            wms->static_header = "Erase all decks & cards?";
             wms->static_btn_main = "Erase";
             wms->static_btn_alt = "Cancel";
             wms->todo_main = S_ERASE;
@@ -4493,7 +4508,7 @@ int main(int argc, char *argv[])
                           }
                         }
                         else {
-                          wms->static_msg = "Please select how to arrange the new category";
+                          wms->static_header = "Please select how to arrange the new category";
                           wms->static_btn_main = "OK";
                           wms->todo_main = S_SELECT_ARRANGE;
                           wms->page = P_MSG;
@@ -4505,7 +4520,7 @@ int main(int argc, char *argv[])
               }
             }
             else {
-              wms->static_msg = "Please enter a name for the new category";
+              wms->static_header = "Please enter a name for the new category";
               wms->static_btn_main = "OK";
               wms->todo_main = S_SELECT_CREATE_CAT;
               wms->page = P_MSG;
@@ -4527,7 +4542,7 @@ int main(int argc, char *argv[])
           case A_ASK_DELETE_CAT:
             assert(wms->ms.cat_t[wms->ms.cat_i].cat_used != 0);
             if (wms->ms.cat_t[wms->ms.cat_i].cat_n_child == -1) {
-              wms->static_msg = "Delete Category?";
+              wms->static_header = "Delete Category?";
               wms->static_btn_main = "Delete";
               wms->static_btn_alt = "Cancel";
               wms->todo_main = S_DELETE_CAT;
@@ -4535,7 +4550,7 @@ int main(int argc, char *argv[])
               wms->page = P_MSG;
             }
             else {
-              wms->static_msg = "A category to delete must be a leaf";
+              wms->static_header = "A category to delete must be a leaf";
               wms->static_btn_main = "OK";
               wms->todo_main = S_SELECT_DELETE_CAT;
               wms->page = P_MSG;
@@ -4692,7 +4707,7 @@ int main(int argc, char *argv[])
               }
             }
             else {
-              wms->static_msg = "Invalid topology";
+              wms->static_header = "Invalid topology";
               wms->static_btn_main = "OK";
               wms->todo_main = S_START_CAT;
               wms->page = P_MSG;
@@ -4730,7 +4745,7 @@ int main(int argc, char *argv[])
               else
               {
                 wms->ms.cat_i = -1;
-                wms->static_msg = "Warning: Invalid category";
+                wms->static_header = "Warning: Invalid category";
                 wms->static_btn_main = "OK";
                 wms->todo_main = S_SELECT_EDIT_CAT;
                 wms->page = P_MSG;
@@ -4738,7 +4753,7 @@ int main(int argc, char *argv[])
             }
             else
             {
-              wms->static_msg = "Please select a category to edit";
+              wms->static_header = "Please select a category to edit";
               wms->static_btn_main = "OK";
               wms->todo_main = S_SELECT_EDIT_CAT;
               wms->page = P_MSG;
@@ -4756,7 +4771,7 @@ int main(int argc, char *argv[])
                   if (e == 0)
                     e = imf_sync(&wms->ms.imf);
                   else {
-                    wms->static_msg = "Error: Invalid mtime value";
+                    wms->static_header = "Error: Invalid mtime value";
                     wms->static_btn_main = "OK";
                     wms->todo_main = S_SELECT_EDIT_CAT; // S_EDIT S_QUESTION
                     wms->page = P_MSG;
@@ -4843,7 +4858,7 @@ int main(int argc, char *argv[])
             }
             break;
           case A_ASK_DELETE_CARD:
-            wms->static_msg = "Delete Item?";
+            wms->static_header = "Delete Item?";
             wms->static_btn_main = "Delete";
             wms->static_btn_alt = "Cancel";
             wms->todo_main = S_DELETE_CARD;
@@ -5084,7 +5099,7 @@ int main(int argc, char *argv[])
                 }
               }
             } else {
-              wms->static_msg = "Error: Src == Dest";
+              wms->static_header = "Error: Src == Dest";
               wms->static_btn_main = "OK";
               wms->todo_main = S_EDIT;
               wms->page = P_MSG;
@@ -5180,7 +5195,7 @@ int main(int argc, char *argv[])
                 wms->page = P_LEARN;
                 wms->mode = M_ASK;
               } else if (e < 0) {
-                wms->static_msg = "Notification: No card eligible for repetition.";
+                wms->static_header = "Notification: No card eligible for repetition.";
                 wms->static_btn_main = "OK";
                 wms->todo_main = S_SELECT_LEARN_CAT;
                 wms->page = P_MSG;
@@ -5262,7 +5277,7 @@ int main(int argc, char *argv[])
                     wms->page = P_LEARN;
                     wms->mode = M_ASK;
                   } else if (e < 0) {
-                    wms->static_msg = "Notification: No card eligible for repetition.";
+                    wms->static_header = "Notification: No card eligible for repetition.";
                     wms->static_btn_main = "OK";
                     wms->todo_main = S_SELECT_LEARN_CAT;
                     wms->page = P_MSG;
@@ -5288,7 +5303,7 @@ int main(int argc, char *argv[])
                     wms->page = P_LEARN;
                     wms->mode = M_ASK;
                   } else if (e < 0) {
-                    wms->static_msg = "Notification: No card eligible for repetition.";
+                    wms->static_header = "Notification: No card eligible for repetition.";
                     wms->static_btn_main = "OK";
                     wms->todo_main = S_SELECT_LEARN_CAT;
                     wms->page = P_MSG;
@@ -5297,7 +5312,7 @@ int main(int argc, char *argv[])
               }
             }
             else {
-              wms->static_msg = "Warning: Invalid card";
+              wms->static_header = "Warning: Invalid card";
               wms->static_btn_main = "OK";
               wms->todo_main = S_NONE;
               wms->page = P_MSG;
@@ -5325,7 +5340,7 @@ int main(int argc, char *argv[])
                       wms->page = P_LEARN;
                       wms->mode = M_ASK;
                     } else if (e < 0) {
-                      wms->static_msg = "Notification: No card eligible for repetition.";
+                      wms->static_header = "Notification: No card eligible for repetition.";
                       wms->static_btn_main = "OK";
                       wms->todo_main = S_SELECT_LEARN_CAT;
                       wms->page = P_MSG;
@@ -5338,7 +5353,7 @@ int main(int argc, char *argv[])
           case A_CHECK_FILE:
             e = wms->file_title_str == NULL;
             if (e != 0) {
-              wms->static_msg = "Please select a file.";
+              wms->static_header = "Please select a file.";
               wms->static_btn_main = "OK";
               wms->todo_main = S_FILELIST;
               wms->page = P_MSG;
@@ -5411,10 +5426,12 @@ int main(int argc, char *argv[])
       if (saved_e != 0 && wms->page != P_MSG) {
         free(wms->file_title_str);
         wms->file_title_str = NULL;
+        free(wms->ms.imf_filename);
+        wms->ms.imf_filename = NULL;
         size = sizeof(msg);
         rv = snprintf(msg, size, "Unexpected error (%s)", e_str);
         e = rv < 0;
-        wms->static_msg = msg;
+        wms->static_header = msg;
         wms->static_btn_main = "OK";
         wms->todo_main = S_NONE;
         wms->page = P_MSG;
