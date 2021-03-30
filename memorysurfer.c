@@ -1149,7 +1149,7 @@ int parse_post(struct WebMemorySurfer *wms) {
                   field = F_SEARCH_ACTION;
                 break;
               default:
-                e = -1;
+                e = 0x00014618; // WMFD Web(MemorySurfer) malformed form data
                 break;
               }
             }
@@ -3029,7 +3029,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.28</h1>\n"
+        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.29</h1>\n"
                     "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p>Copyright 2016-2021</p>\n"
                     "\t\t\t<p>Send bugs and suggestions to\n"
@@ -3846,7 +3846,6 @@ int main(int argc, char *argv[])
   struct Category *cat_ptr;
   struct Card *card_ptr;
   char e_str[8]; // JTLWQNE + '\0' (0x7fffffff)
-  char msg[64];
   struct tm bd_time; // broken-down
   dbg_stream = NULL;
   size = sizeof(struct WebMemorySurfer);
@@ -3880,8 +3879,14 @@ int main(int argc, char *argv[])
         e = 0x00020585; // WSSF Web(MemorySurfer) starting stopwatch failed
       if (e == 0) {
         e = parse_post(wms);
-        if (e == 1)
-          e = 0x00014618; // WMFD Web(MemorySurfer) malformed form data
+        if (e != 0) {
+          e2str(e, e_str);
+          wms->static_header = "Invalid form data";
+          wms->static_msg = e_str;
+          wms->static_btn_main = "OK";
+          wms->todo_main = S_NONE;
+          wms->page = P_MSG;
+        }
       }
       if (e == 0) {
         mtime_test = -1;
@@ -5428,10 +5433,8 @@ int main(int argc, char *argv[])
         wms->file_title_str = NULL;
         free(wms->ms.imf_filename);
         wms->ms.imf_filename = NULL;
-        size = sizeof(msg);
-        rv = snprintf(msg, size, "Unexpected error (%s)", e_str);
-        e = rv < 0;
-        wms->static_header = msg;
+        wms->static_header = "Unexpected error";
+        wms->static_msg = e_str;
         wms->static_btn_main = "OK";
         wms->todo_main = S_NONE;
         wms->page = P_MSG;
