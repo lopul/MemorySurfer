@@ -2442,8 +2442,12 @@ static int gen_html(struct WebMemorySurfer *wms) {
           rv = printf("\t\t\t\t<input type=\"hidden\" name=\"reveal-pos\" value=\"%d\">\n", wms->reveal_pos);
           e = rv < 0;
         }
-        if (wms->ms.match_case > 0 && wms->page != P_SEARCH) {
+        if (e == 0 && wms->ms.match_case > 0 && wms->page != P_SEARCH) {
           rv = printf("\t\t\t\t<input type=\"hidden\" name=\"match-case\" value=\"on\">\n");
+          e = rv < 0;
+        }
+        if (e == 0 && wms->ms.mov_cat_i >= 0) {
+          rv = printf("\t\t\t\t<input type=\"hidden\" name=\"mov-cat\" value=\"%d\">\n", wms->ms.mov_cat_i);
           e = rv < 0;
         }
         break;
@@ -2857,8 +2861,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
       case B_SELECT_DEST_DECK:
         assert(wms->file_title_str != NULL && strlen(wms->tok_str) == 40);
         assert(wms->seq == S_SELECT_SEND_CAT);
-        printf("\t\t\t\t<input type=\"hidden\" name=\"mov-cat\" value=\"%d\">\n",
-          wms->ms.cat_i);
+        assert(wms->ms.mov_cat_i >= 0);
         assert(wms->seq == S_SELECT_SEND_CAT);
         notice_str[0] = "to move the card to";
         submit_str = "Send";
@@ -3048,7 +3051,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.30</h1>\n"
+        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.31</h1>\n"
                     "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p>Copyright 2016-2021</p>\n"
                     "\t\t\t<p>Send bugs and suggestions to\n"
@@ -4425,6 +4428,9 @@ int main(int argc, char *argv[])
             break;
           case A_SELECT_SEND_CAT:
             wms->ms.mov_card_i = wms->ms.card_i;
+            wms->ms.card_i = -1;
+            wms->ms.mov_cat_i = wms->ms.cat_i;
+            wms->ms.cat_i = -1;
             wms->page = P_SELECT_DEST_DECK;
             break;
           case A_SELECT_ARRANGE:
