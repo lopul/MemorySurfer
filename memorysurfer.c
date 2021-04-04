@@ -68,7 +68,7 @@ static enum Action action_seq[S_END+1][13] = {
   { A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_UPLOAD_REPORT, A_END }, // S_UPLOAD_REPORT
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_EXPORT, A_END }, // S_EXPORT
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_ASK_REMOVE, A_END }, // S_ASK_REMOVE
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_REMOVE, A_CLOSE, A_END }, // S_REMOVE
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_REMOVE, A_FILELIST, A_CLOSE, A_END }, // S_REMOVE
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_ASK_ERASE, A_END }, // S_ASK_ERASE
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_ERASE, A_END }, // S_ERASE
   { A_FILELIST, A_CLOSE, A_END }, // S_CLOSE
@@ -2861,7 +2861,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           submit_str = "Select";
           break;
         default:
-          e = 1;
+          e = 0x0392159c; // WUMSDD Web(MemorySurfer) unexpected mode B_SELECT_DEST_DECK
           break;
         }
         if (e == 0) {
@@ -2896,7 +2896,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
             header_str = "Select a category to search";
             break;
           default:
-            e = 1;
+            e = 0x00264bf0; // WUMSD Web(MemorySurfer) unexpected mode B_SELECT_DECK
             break;
           }
           if (e == 0) {
@@ -2923,55 +2923,52 @@ static int gen_html(struct WebMemorySurfer *wms) {
       case B_EDIT:
         q_str = sa_get(&wms->ms.card_sa, 0);
         a_str = sa_get(&wms->ms.card_sa, 1);
-      //  e = q_str == NULL || a_str == NULL;
+        e = xml_escape(&wms->html_lp, &wms->html_n, q_str, ESC_AMP | ESC_LT);
         if (e == 0) {
-          e = xml_escape(&wms->html_lp, &wms->html_n, q_str, ESC_AMP | ESC_LT);
+          assert(strlen(mtime_str) == 16 && wms->file_title_str != NULL && strlen(wms->tok_str) == 40);
+          rv = printf("\t\t\t<h1>Editing</h1>\n"
+                      "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Insert\"%s>\n"
+                      "\t\t\t\t<input type=\"submit\" name=\"edit_action\" value=\"Append\">\n"
+                      "\t\t\t\t<input type=\"submit\" name=\"edit_action\" value=\"Delete\"%s>\n"
+                      "\t\t\t\t<input type=\"submit\" name=\"edit_action\" value=\"Previous\"%s>\n"
+                      "\t\t\t\t<input type=\"submit\" name=\"edit_action\" value=\"Next\"%s></p>\n"
+                      "\t\t\t<div><textarea name=\"q\" rows=\"10\" cols=\"46\"%s>%s</textarea></div>\n"
+                      "\t\t\t<p><input type=\"submit\" name=\"edit_action\" value=\"Schedule\"%s>\n"
+                      "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Set\"%s>\n"
+                      "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Move\"%s>\n"
+                      "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Send\"%s></p>\n",
+              wms->ms.card_a > 0 ? "" : " disabled",
+              wms->ms.card_a > 0 ? "" : " disabled",
+              wms->ms.card_a > 0 && wms->ms.card_i > 0 ? "" : " disabled",
+              wms->ms.card_a > 0 && wms->ms.card_i + 1 < wms->ms.card_a ? "" : " disabled",
+              q_str != NULL ? "" : " disabled",
+              wms->html_lp,
+              wms->ms.card_i >= 0 && wms->ms.card_a > 0 && wms->ms.card_i < wms->ms.card_a && wms->ms.card_l[wms->ms.card_i].card_state >= STATE_NEW ? "" : " disabled",
+              wms->ms.card_i != wms->ms.mov_card_i ? "" : " disabled",
+              wms->ms.mov_card_i != -1 && wms->ms.card_i != wms->ms.mov_card_i ? "" : " disabled",
+              wms->ms.card_i != -1 ? "" : " disabled");
+          e = rv < 0;
           if (e == 0) {
-            assert(strlen(mtime_str) == 16 && wms->file_title_str != NULL && strlen(wms->tok_str) == 40);
-            rv = printf("\t\t\t<h1>Editing</h1>\n"
-                        "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Insert\"%s>\n"
-                        "\t\t\t\t<input type=\"submit\" name=\"edit_action\" value=\"Append\">\n"
-                        "\t\t\t\t<input type=\"submit\" name=\"edit_action\" value=\"Delete\"%s>\n"
-                        "\t\t\t\t<input type=\"submit\" name=\"edit_action\" value=\"Previous\"%s>\n"
-                        "\t\t\t\t<input type=\"submit\" name=\"edit_action\" value=\"Next\"%s></p>\n"
-                        "\t\t\t<div><textarea name=\"q\" rows=\"10\" cols=\"46\"%s>%s</textarea></div>\n"
-                        "\t\t\t<p><input type=\"submit\" name=\"edit_action\" value=\"Schedule\"%s>\n"
-                        "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Set\"%s>\n"
-                        "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Move\"%s>\n"
-                        "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Send\"%s></p>\n",
-                wms->ms.card_a > 0 ? "" : " disabled",
-                wms->ms.card_a > 0 ? "" : " disabled",
-                wms->ms.card_a > 0 && wms->ms.card_i > 0 ? "" : " disabled",
-                wms->ms.card_a > 0 && wms->ms.card_i + 1 < wms->ms.card_a ? "" : " disabled",
-                q_str != NULL ? "" : " disabled",
-                wms->html_lp,
-                wms->ms.card_i >= 0 && wms->ms.card_a > 0 && wms->ms.card_i < wms->ms.card_a && wms->ms.card_l[wms->ms.card_i].card_state >= STATE_NEW ? "" : " disabled",
-                wms->ms.card_i != wms->ms.mov_card_i ? "" : " disabled",
-                wms->ms.mov_card_i != -1 && wms->ms.card_i != wms->ms.mov_card_i ? "" : " disabled",
-                wms->ms.card_i != -1 ? "" : " disabled");
-            e = rv < 0;
+            e = xml_escape(&wms->html_lp, &wms->html_n, a_str, ESC_AMP | ESC_LT);
             if (e == 0) {
-              e = xml_escape(&wms->html_lp, &wms->html_n, a_str, ESC_AMP | ESC_LT);
+              rv = printf("\t\t\t<div><textarea name=\"a\" rows=\"10\" cols=\"46\"%s>%s</textarea></div>\n"
+                          "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Learn\">\n"
+                          "\t\t\t\t<input type=\"submit\" name=\"edit_action\" value=\"Search\">\n"
+                          "\t\t\t\t<input type=\"submit\" name=\"edit_action\" value=\"Stop\"></p>\n",
+                  a_str != NULL ? "" : " disabled",
+                  wms->html_lp);
+              e = rv < 0;
               if (e == 0) {
-                rv = printf("\t\t\t<div><textarea name=\"a\" rows=\"10\" cols=\"46\"%s>%s</textarea></div>\n"
-                            "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Learn\">\n"
-                            "\t\t\t\t<input type=\"submit\" name=\"edit_action\" value=\"Search\">\n"
-                            "\t\t\t\t<input type=\"submit\" name=\"edit_action\" value=\"Stop\"></p>\n",
-                    a_str != NULL ? "" : " disabled",
-                    wms->html_lp);
+                imf_info_swaps(&wms->ms.imf);
+                rv = printf("\t\t</form>\n"
+                            "\t\t<code>%s; chunks=%d, swaps=%d, avg=%d</code>\n"
+                            "\t</body>\n"
+                            "</html>\n",
+                    sw_info_str,
+                    wms->ms.imf.chunk_count,
+                    wms->ms.imf.stat_swap,
+                    wms->ms.imf.stat_swap / wms->ms.imf.chunk_count);
                 e = rv < 0;
-                if (e == 0) {
-                  imf_info_swaps(&wms->ms.imf);
-                  rv = printf("\t\t</form>\n"
-                              "\t\t<code>%s; chunks=%d, swaps=%d, avg=%d</code>\n"
-                              "\t</body>\n"
-                              "</html>\n",
-                      sw_info_str,
-                      wms->ms.imf.chunk_count,
-                      wms->ms.imf.stat_swap,
-                      wms->ms.imf.stat_swap / wms->ms.imf.chunk_count);
-                  e = rv < 0;
-                }
               }
             }
           }
@@ -3054,7 +3051,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.32</h1>\n"
+        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.33</h1>\n"
                     "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p>Copyright 2016-2021</p>\n"
                     "\t\t\t<p>Send bugs and suggestions to\n"
