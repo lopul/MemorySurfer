@@ -2988,35 +2988,32 @@ static int gen_html(struct WebMemorySurfer *wms) {
           if (e == 0) {
             q_str = sa_get(&wms->ms.card_sa, 0);
             a_str = sa_get(&wms->ms.card_sa, 1);
-            e = q_str == NULL || a_str == NULL;
+            e = xml_escape(&wms->html_lp, &wms->html_n, q_str, ESC_AMP | ESC_LT);
             if (e == 0) {
-              e = xml_escape(&wms->html_lp, &wms->html_n, q_str, ESC_AMP | ESC_LT);
+              rv = printf("\t\t\t<div><textarea rows=\"10\" cols=\"46\"%s>%s</textarea></div>\n"
+                          "\t\t\t<p><input type=\"submit\" name=\"search_action\" value=\"Reverse\"%s>\n"
+                          "\t\t\t<input type=\"submit\" name=\"search_action\" value=\"Forward\"%s></p>\n",
+                  wms->found_str != NULL ? " readonly" : " disabled",
+                  wms->html_lp,
+                  wms->ms.card_a > 0 ? "" : " disabled",
+                  wms->ms.card_a > 0 ? "" : " disabled");
+              e = rv < 0;
               if (e == 0) {
-                rv = printf("\t\t\t<div><textarea rows=\"10\" cols=\"46\"%s>%s</textarea></div>\n"
-                            "\t\t\t<p><input type=\"submit\" name=\"search_action\" value=\"Reverse\"%s>\n"
-                            "\t\t\t<input type=\"submit\" name=\"search_action\" value=\"Forward\"%s></p>\n",
-                    wms->found_str != NULL ? " readonly" : " disabled",
-                    wms->html_lp,
-                    wms->ms.card_a > 0 ? "" : " disabled",
-                    wms->ms.card_a > 0 ? "" : " disabled");
-                e = rv < 0;
+                e = xml_escape(&wms->html_lp, &wms->html_n, a_str, ESC_AMP | ESC_LT);
                 if (e == 0) {
-                  e = xml_escape(&wms->html_lp, &wms->html_n, a_str, ESC_AMP | ESC_LT);
-                  if (e == 0) {
-                    rv = printf("\t\t\t<div><textarea rows=\"10\" cols=\"46\"%s>%s</textarea></div>\n"
-                                "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Edit\">\n"
-                                "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Learn\"%s>\n"
-                                "\t\t\t\t<input type=\"submit\" name=\"search_action\" value=\"Stop\"></p>\n"
-                                "\t\t</form>\n"
-                                "\t\t<code>%s</code>\n"
-                                "\t</body>\n"
-                                "</html>\n",
-                        wms->found_str != NULL ? " readonly" : " disabled",
-                        wms->html_lp,
-                        wms->ms.card_a > 0 ? "" : " disabled",
-                        sw_info_str);
-                    e = rv < 0;
-                  }
+                  rv = printf("\t\t\t<div><textarea rows=\"10\" cols=\"46\"%s>%s</textarea></div>\n"
+                              "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Edit\">\n"
+                              "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Learn\"%s>\n"
+                              "\t\t\t\t<input type=\"submit\" name=\"search_action\" value=\"Stop\"></p>\n"
+                              "\t\t</form>\n"
+                              "\t\t<code>%s</code>\n"
+                              "\t</body>\n"
+                              "</html>\n",
+                      wms->found_str != NULL ? " readonly" : " disabled",
+                      wms->html_lp,
+                      wms->ms.card_a > 0 ? "" : " disabled",
+                      sw_info_str);
+                  e = rv < 0;
                 }
               }
             }
