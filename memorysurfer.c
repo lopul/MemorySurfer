@@ -3048,7 +3048,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.34</h1>\n"
+        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.35</h1>\n"
                     "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p>Copyright 2016-2021</p>\n"
                     "\t\t\t<p>Send bugs and suggestions to\n"
@@ -3637,20 +3637,21 @@ sa_move (struct StringArray *sa_dest, struct StringArray *sa_src)
   sa_src->sa_n = 0;
 }
 
-int ms_modify_qa (struct StringArray *sa, struct MemorySurfer *ms)
-{
+static int ms_modify_qa(struct StringArray *sa, struct MemorySurfer *ms, char *need_sync) {
   int e;
   int eq;
   int32_t data_size;
   struct Card *card_ptr;
-  e = 0;
-  eq = sa_cmp (sa, &ms->card_sa);
-  if (eq == 0)
-  {
+  e = need_sync == NULL;
+  if (e == 0) {
+    eq = sa_cmp(sa, &ms->card_sa);
+    if (eq == 0) {
+      (*need_sync)++;
     sa_move (&ms->card_sa, sa);
     data_size = sa_length (&ms->card_sa);
     card_ptr = ms->card_l + ms->card_i;
-    e = imf_put (&ms->imf, card_ptr->card_qai, ms->card_sa.sa_d, data_size) == 0 ? 1 : -1;
+      e = imf_put(&ms->imf, card_ptr->card_qai, ms->card_sa.sa_d, data_size);
+    }
   }
   return e;
 }
@@ -3866,7 +3867,9 @@ int main(int argc, char *argv[])
   struct Card *card_ptr;
   char e_str[8]; // JTLWQNE + '\0' (0x7fffffff)
   struct tm bd_time; // broken-down
+  char need_sync;
   dbg_stream = NULL;
+  need_sync = 0;
   size = sizeof(struct WebMemorySurfer);
   wms = malloc(size);
   e = wms == NULL;
@@ -4799,8 +4802,8 @@ int main(int argc, char *argv[])
             if (qa_err == 0) {
               e = ms_get_card_sa(&wms->ms);
               if (e == 0) {
-                e = ms_modify_qa(&wms->qa_sa, &wms->ms);
-                if (e > 0) {
+                e = ms_modify_qa(&wms->qa_sa, &wms->ms, &need_sync);
+                if (e == 0 && need_sync > 0) {
                   e = mtime_test == 0;
                   if (e == 0)
                     e = imf_sync(&wms->ms.imf);
@@ -4946,8 +4949,8 @@ int main(int argc, char *argv[])
                 e = ms_get_card_sa (&wms->ms);
                 if (e == 0)
                 {
-                  e = ms_modify_qa(&wms->qa_sa, &wms->ms);
-                  if (e > 0)
+                  e = ms_modify_qa(&wms->qa_sa, &wms->ms, &need_sync);
+                  if (e == 0 && need_sync > 0)
                   {
                     e = imf_sync (&wms->ms.imf);
                   }
@@ -4978,8 +4981,8 @@ int main(int argc, char *argv[])
                 e = ms_get_card_sa (&wms->ms);
                 if (e == 0)
                 {
-                  e = ms_modify_qa(&wms->qa_sa, &wms->ms);
-                  if (e > 0)
+                  e = ms_modify_qa(&wms->qa_sa, &wms->ms, &need_sync);
+                  if (e == 0 && need_sync > 0)
                   {
                     e = imf_sync (&wms->ms.imf);
                   }
