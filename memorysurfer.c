@@ -3048,7 +3048,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.33</h1>\n"
+        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.34</h1>\n"
                     "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p>Copyright 2016-2021</p>\n"
                     "\t\t\t<p>Send bugs and suggestions to\n"
@@ -3544,7 +3544,7 @@ static int ms_determine_card(struct MemorySurfer *ms) {
       for (card_i = 0; card_i < ms->card_a && e == 0; card_i++) {
         time_diff = ms->timestamp - ms->card_l[card_i].card_time;
         reten = exp(-(double)time_diff / ms->card_l[card_i].card_strength);
-        if (reten <= 0.36787944) { // 1/e
+        if (reten <= 1 / M_E) {
           card_state = ms->card_l[card_i].card_state;
           switch (card_state)
           {
