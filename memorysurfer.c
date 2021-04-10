@@ -36,15 +36,15 @@
 #include <fcntl.h> // O_TRUNC / O_EXCL
 #include <errno.h>
 
-enum Field { F_UNKNOWN, F_FILENAME, F_FILE_TITLE, F_START_ACTION, F_FILE_ACTION, F_ARRANGE, F_CAT_NAME, F_MOVED_CAT, F_EDIT_ACTION, F_LEARN_ACTION, F_SEARCH_TXT, F_MATCH_CASE, F_SEARCH_ACTION, F_CAT, F_CARD, F_MOV_CARD, F_LVL, F_Q, F_A, F_REVEAL_POS, F_TODO_MAIN, F_TODO_ALT, F_MTIME, F_PASSWORD, F_NEW_PASSWORD, F_TOKEN, F_EVENT, F_PAGE, F_MODE, F_TIMEOUT };
-enum Action { A_END, A_NONE, A_FILE, A_WARN_UPLOAD, A_CREATE, A_NEW, A_OPEN_DLG, A_FILELIST, A_OPEN, A_CHANGE_PASSWD, A_WRITE_PASSWD, A_READ_PASSWD, A_CHECK_PASSWORD, A_AUTH_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_CHECK_RESUME, A_SLASH, A_VOID, A_FILE_EXTENSION, A_GATHER, A_UPLOAD, A_UPLOAD_REPORT, A_EXPORT, A_ASK_REMOVE, A_REMOVE, A_ASK_ERASE, A_ERASE, A_CLOSE, A_START_CAT, A_SELECT_CREATE_CAT, A_SELECT_CAT, A_SELECT_DEST_DECK, A_SELECT_SEND_CAT, A_SELECT_ARRANGE, A_CAT_NAME, A_CREATE_CAT, A_RENAME_CAT, A_ASK_DELETE_CAT, A_DELETE_CAT, A_TOGGLE, A_MOVE_CAT, A_SELECT_EDIT_CAT, A_EDIT, A_UPDATE_QA, A_SYNC, A_INSERT, A_APPEND, A_ASK_DELETE_CARD, A_DELETE_CARD, A_PREVIOUS, A_NEXT, A_SCHEDULE, A_SET, A_CARD_ARRANGE, A_MOVE_CARD, A_SEND_CARD, A_SELECT_LEARN_CAT, A_SELECT_SEARCH_CAT, A_PREFERENCES, A_ABOUT, A_APPLY, A_SEARCH, A_QUESTION, A_SHOW, A_REVEAL, A_PROCEED, A_SUSPEND, A_RESUME, A_CHECK_FILE, A_LOGIN, A_HISTOGRAM, A_TABLE, A_RETRIEVE_MTIME, A_MTIME_TEST, A_CARD_TEST, A_TEST_CAT_SELECTED, A_TEST_CAT_VALID, A_TEST_CAT };
+enum Field { F_UNKNOWN, F_FILENAME, F_FILE_TITLE, F_START_ACTION, F_FILE_ACTION, F_ARRANGE, F_CAT_NAME, F_MOVED_CAT, F_EDIT_ACTION, F_LEARN_ACTION, F_SEARCH_TXT, F_MATCH_CASE, F_IS_HTML, F_SEARCH_ACTION, F_CAT, F_CARD, F_MOV_CARD, F_LVL, F_Q, F_A, F_REVEAL_POS, F_TODO_MAIN, F_TODO_ALT, F_MTIME, F_PASSWORD, F_NEW_PASSWORD, F_TOKEN, F_EVENT, F_PAGE, F_MODE, F_TIMEOUT };
+enum Action { A_END, A_NONE, A_FILE, A_WARN_UPLOAD, A_CREATE, A_NEW, A_OPEN_DLG, A_FILELIST, A_OPEN, A_CHANGE_PASSWD, A_WRITE_PASSWD, A_READ_PASSWD, A_CHECK_PASSWORD, A_AUTH_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_CHECK_RESUME, A_SLASH, A_VOID, A_FILE_EXTENSION, A_GATHER, A_UPLOAD, A_UPLOAD_REPORT, A_EXPORT, A_ASK_REMOVE, A_REMOVE, A_ASK_ERASE, A_ERASE, A_CLOSE, A_START_CAT, A_SELECT_CREATE_CAT, A_SELECT_CAT, A_SELECT_DEST_DECK, A_SELECT_SEND_CAT, A_SELECT_ARRANGE, A_CAT_NAME, A_CREATE_CAT, A_RENAME_CAT, A_ASK_DELETE_CAT, A_DELETE_CAT, A_TOGGLE, A_MOVE_CAT, A_SELECT_EDIT_CAT, A_EDIT, A_UPDATE_QA, A_UPDATE_HTML, A_SYNC, A_INSERT, A_APPEND, A_ASK_DELETE_CARD, A_DELETE_CARD, A_PREVIOUS, A_NEXT, A_SCHEDULE, A_SET, A_CARD_ARRANGE, A_MOVE_CARD, A_SEND_CARD, A_SELECT_LEARN_CAT, A_SELECT_SEARCH_CAT, A_PREFERENCES, A_ABOUT, A_APPLY, A_SEARCH, A_QUESTION, A_SHOW, A_REVEAL, A_PROCEED, A_SUSPEND, A_RESUME, A_CHECK_FILE, A_LOGIN, A_HISTOGRAM, A_TABLE, A_RETRIEVE_MTIME, A_MTIME_TEST, A_CARD_TEST, A_TEST_CAT_SELECTED, A_TEST_CAT_VALID, A_TEST_CAT };
 enum Page { P_START, P_FILE, P_PASSWORD, P_NEW, P_OPEN, P_UPLOAD, P_UPLOAD_REPORT, P_EXPORT, P_START_CAT, P_CAT_NAME, P_SELECT_CREATE_CAT, P_SELECT_CAT, P_SELECT_ARRANGE, P_SELECT_CARD_ARRANGE, P_SELECT_DEST_DECK, P_SELECT_DECK, P_EDIT, P_SEARCH, P_PREFERENCES, P_ABOUT, P_LEARN, P_MSG, P_HISTOGRAM, P_TABLE };
 enum Block { B_END, B_START_HTML, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_HIDDEN_MOV_CARD, B_CLOSE_DIV, B_START, B_FILE, B_PASSWORD, B_NEW, B_OPEN, B_UPLOAD, B_UPLOAD_REPORT, B_EXPORT, B_START_CAT, B_CAT_NAME, B_SELECT_CREATE_CAT, B_SELECT_CAT, B_SELECT_ARRANGE, B_SELECT_CARD_ARRANGE, B_SELECT_DEST_DECK, B_SELECT_DECK, B_EDIT, B_SEARCH, B_PREFERENCES, B_ABOUT, B_LEARN, B_MSG, B_HISTOGRAM, B_TABLE };
 enum Mode { M_NONE = -1, M_DEFAULT, M_CHANGE_PASSWD, M_ASK, M_RATE, M_LEARN, M_SEARCH, M_SEND, M_MOVE };
 enum Sequence { S_FILE, S_START_CAT, S_SELECT_CREATE_CAT, S_SELECT_ARRANGE, S_SELECT_MOVE_ARRANGE, S_CAT_NAME, S_SELECT_EDIT_CAT, S_SELECT_LEARN_CAT, S_SELECT_SEARCH_CAT, S_PREFERENCES, S_ABOUT, S_APPLY, S_NEW, S_FILELIST, S_WARN_UPLOAD, S_UPLOAD, S_LOGIN, S_ENTER, S_CHANGE, S_START, S_UPLOAD_REPORT, S_EXPORT, S_ASK_REMOVE, S_REMOVE, S_ASK_ERASE, S_ERASE, S_CLOSE, S_NONE, S_CREATE, S_GO_LOGIN, S_GO_CHANGE, S_SELECT_RENAME_CAT, S_RENAME_ENTER, S_RENAME_CAT, S_SELECT_MOVE_CAT, S_SELECT_DEST_CAT, S_MOVE_CAT, S_CREATE_CAT, S_SELECT_DELETE_CAT, S_ASK_DELETE_CAT, S_DELETE_CAT, S_SELECT_TOGGLE_CAT, S_TOGGLE, S_EDIT, S_INSERT, S_APPEND, S_ASK_DELETE_CARD, S_DELETE_CARD, S_PREVIOUS, S_NEXT, S_SCHEDULE, S_SET, S_CARD_ARRANGE, S_MOVE_CARD, S_SELECT_SEND_CAT, S_SEND_CARD, S_SEARCH_SYNCED, S_QUESTION, S_SHOW, S_REVEAL, S_PROCEED, S_SUSPEND, S_RESUME, S_SEARCH, S_HISTOGRAM, S_TABLE, S_END };
 enum Stage { T_NULL, T_URLENCODE, T_BOUNDARY_INIT, T_CONTENT, T_NAME, T_BOUNDARY_BEGIN, T_BOUNDARY_CHECK };
 
-static enum Action action_seq[S_END+1][13] = {
+static enum Action action_seq[S_END+1][14] = {
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_FILELIST, A_FILE, A_END }, // S_FILE
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_START_CAT, A_END }, // S_START_CAT
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_SELECT_CREATE_CAT, A_END }, // S_SELECT_CREATE_CAT
@@ -89,20 +89,20 @@ static enum Action action_seq[S_END+1][13] = {
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_SELECT_CAT, A_END }, // S_SELECT_TOGGLE_CAT
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_TEST_CAT, A_TOGGLE, A_END }, // S_TOGGLE
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_EDIT, A_END }, // S_EDIT
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_LOAD_CARDLIST, A_UPDATE_QA, A_INSERT, A_SYNC, A_END }, // S_INSERT
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_LOAD_CARDLIST, A_UPDATE_QA, A_APPEND, A_SYNC, A_END }, // S_APPEND
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_LOAD_CARDLIST, A_CARD_TEST, A_ASK_DELETE_CARD, A_END }, // S_ASK_DELETE_CARD
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_DELETE_CARD, A_END }, // S_DELETE_CARD
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_PREVIOUS, A_END }, // S_PREVIOUS
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_NEXT, A_END }, // S_NEXT
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_LOAD_CARDLIST, A_CARD_TEST, A_UPDATE_QA, A_SCHEDULE, A_SYNC, A_END }, // S_SCHEDULE
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_UPDATE_QA, A_SET, A_SYNC, A_END }, // S_SET
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_LOAD_CARDLIST, A_UPDATE_QA, A_CARD_ARRANGE, A_SYNC, A_END }, // S_CARD_ARRANGE
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_MOVE_CARD, A_END }, // S_MOVE_CARD
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_UPDATE_QA, A_SELECT_SEND_CAT, A_SYNC, A_END }, // S_SELECT_SEND_CAT
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_LOAD_CARDLIST, A_UPDATE_QA, A_UPDATE_HTML, A_INSERT, A_SYNC, A_END }, // S_INSERT
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_LOAD_CARDLIST, A_UPDATE_QA, A_UPDATE_HTML, A_APPEND, A_SYNC, A_END }, // S_APPEND
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_CARD_TEST, A_UPDATE_QA, A_UPDATE_HTML, A_SYNC, A_ASK_DELETE_CARD, A_END }, // S_ASK_DELETE_CARD
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_LOAD_CARDLIST, A_DELETE_CARD, A_END }, // S_DELETE_CARD
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_UPDATE_QA, A_UPDATE_HTML, A_PREVIOUS, A_SYNC, A_END }, // S_PREVIOUS
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_UPDATE_QA, A_UPDATE_HTML, A_NEXT, A_SYNC, A_END }, // S_NEXT
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_LOAD_CARDLIST, A_CARD_TEST, A_UPDATE_QA, A_UPDATE_HTML, A_SCHEDULE, A_SYNC, A_END }, // S_SCHEDULE
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_UPDATE_QA, A_UPDATE_HTML, A_SET, A_SYNC, A_END }, // S_SET
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_LOAD_CARDLIST, A_UPDATE_QA, A_UPDATE_HTML, A_CARD_ARRANGE, A_SYNC, A_END }, // S_CARD_ARRANGE
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_LOAD_CARDLIST, A_MOVE_CARD, A_END }, // S_MOVE_CARD
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_UPDATE_QA, A_UPDATE_HTML, A_SELECT_SEND_CAT, A_SYNC, A_END }, // S_SELECT_SEND_CAT
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_LOAD_CARDLIST, A_SEND_CARD, A_END }, // S_SEND_CARD
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_UPDATE_QA, A_SEARCH, A_SYNC, A_END }, // S_SEARCH_SYNCED
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_CHECK_RESUME, A_UPDATE_QA, A_QUESTION, A_SYNC, A_END }, // S_QUESTION
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_UPDATE_QA, A_UPDATE_HTML, A_SEARCH, A_SYNC, A_END }, // S_SEARCH_SYNCED
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_CHECK_RESUME, A_UPDATE_QA, A_UPDATE_HTML, A_QUESTION, A_SYNC, A_END }, // S_QUESTION
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_TEST_CAT_SELECTED, A_TEST_CAT_VALID, A_LOAD_CARDLIST, A_SHOW, A_CHECK_RESUME, A_END }, // S_SHOW
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_TEST_CAT, A_LOAD_CARDLIST, A_REVEAL, A_CHECK_RESUME, A_END }, // S_REVEAL
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT, A_LOAD_CARDLIST, A_CARD_TEST, A_PROCEED, A_CHECK_RESUME, A_END }, // S_PROCEED
@@ -170,7 +170,7 @@ struct Card {
   int64_t card_time;
   int32_t card_strength;
   int32_t card_qai; // question/answer index
-  char card_state;
+  uint8_t card_state; // ----hsss '-' = unused, h = HTML, s = state
 };
 
 struct Password {
@@ -202,6 +202,7 @@ struct MemorySurfer {
   int lvl; // level
   char *search_txt;
   int8_t match_case;
+  int8_t is_html;
   int8_t srch_dir; // search
   int8_t can_resume;
   char *password;
@@ -1080,7 +1081,9 @@ int parse_post(struct WebMemorySurfer *wms) {
                 }
                 break;
               case 7:
-                if (memcmp(wms->mult.post_lp, "arrange", 7) == 0)
+                if (memcmp(wms->mult.post_lp, "is-html", 7) == 0)
+                  field = F_IS_HTML;
+                else if (memcmp(wms->mult.post_lp, "arrange", 7) == 0)
                   field = F_ARRANGE;
                 else if (memcmp(wms->mult.post_lp, "mov-cat", 7) == 0)
                   field = F_MOVED_CAT;
@@ -1300,6 +1303,18 @@ int parse_post(struct WebMemorySurfer *wms) {
                   e = strncmp(wms->mult.post_lp, "on", len) != 0;
                   if (e == 0)
                     wms->ms.match_case = 1;
+                }
+                break;
+              case F_IS_HTML:
+                if (wms->mult.post_fp >= 0)
+                  len = wms->mult.post_fp;
+                else
+                  len = wms->mult.post_wp;
+                e = wms->ms.is_html != -1;
+                if (e == 0) {
+                  e = strncmp(wms->mult.post_lp, "on", len) != 0;
+                  if (e == 0)
+                    wms->ms.is_html = 1;
                 }
                 break;
               case F_SEARCH_ACTION:
@@ -2226,7 +2241,7 @@ static int gen_xml_category (int16_t cat_i, struct XmlGenerator *xg, struct Memo
                               rv = snprintf(strength_str, sizeof(strength_str), "%d", card_ptr->card_strength);
                               e = rv < 0 || rv >= sizeof(strength_str);
                               if (e == 0) {
-                                state_ch = card_ptr->card_state + '0';
+                                state_ch = (card_ptr->card_state & 0x07) + '0';
                                 e = fprintf(xg->w_stream, "%s</strength>%s<state>%c</state>%s<question>",
                                     strength_str, xg->indent_str, state_ch, xg->indent_str) <= 0;
                                 if (e == 0) {
@@ -2943,7 +2958,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
               wms->ms.card_a > 0 && wms->ms.card_i + 1 < wms->ms.card_a ? "" : " disabled",
               q_str != NULL ? "" : " disabled",
               wms->html_lp,
-              wms->ms.card_i >= 0 && wms->ms.card_a > 0 && wms->ms.card_i < wms->ms.card_a && wms->ms.card_l[wms->ms.card_i].card_state >= STATE_NEW ? "" : " disabled",
+              wms->ms.card_i >= 0 && wms->ms.card_a > 0 && wms->ms.card_i < wms->ms.card_a && (wms->ms.card_l[wms->ms.card_i].card_state & 0x07) >= STATE_NEW ? "" : " disabled",
               wms->ms.card_i != wms->ms.mov_card_i ? "" : " disabled",
               wms->ms.mov_card_i != -1 && wms->ms.card_i != wms->ms.mov_card_i ? "" : " disabled",
               wms->ms.card_i != -1 ? "" : " disabled");
@@ -2954,9 +2969,11 @@ static int gen_html(struct WebMemorySurfer *wms) {
               rv = printf("\t\t\t<div><textarea name=\"a\" rows=\"10\" cols=\"46\"%s>%s</textarea></div>\n"
                           "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Learn\">\n"
                           "\t\t\t\t<input type=\"submit\" name=\"edit_action\" value=\"Search\">\n"
-                          "\t\t\t\t<input type=\"submit\" name=\"edit_action\" value=\"Stop\"></p>\n",
+                          "\t\t\t\t<input type=\"submit\" name=\"edit_action\" value=\"Stop\">\n"
+                          "\t\t\t\t<label><input type=\"checkbox\" name=\"is-html\"%s>HTML</label></p>\n",
                   a_str != NULL ? "" : " disabled",
-                  wms->html_lp);
+                  wms->html_lp,
+                  (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? " checked" : "");
               e = rv < 0;
               if (e == 0) {
                 imf_info_swaps(&wms->ms.imf);
@@ -3048,7 +3065,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.36</h1>\n"
+        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.37</h1>\n"
                     "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p>Copyright 2016-2021</p>\n"
                     "\t\t\t<p>Send bugs and suggestions to\n"
@@ -3082,23 +3099,35 @@ static int gen_html(struct WebMemorySurfer *wms) {
               header_str = "Rating";
           }
           if (e == 0) {
-            e = xml_escape(&wms->html_lp, &wms->html_n, q_str, ESC_AMP | ESC_LT);
-            if (e == 0) {
-              rv = printf("\t\t\t<h1>%s</h1>\n"
-                          "\t\t\t<p><input type=\"submit\" name=\"learn_action\" value=\"Proceed\"%s>\n"
-                          "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Show\"%s>\n"
-                          "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Reveal\"%s>\n"
-                          "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Histogram\">\n"
-                          "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Table\"></p>\n"
-                          "\t\t\t<div><textarea rows=\"10\" cols=\"46\" readonly>%s</textarea></div>\n"
-                          "\t\t\t<table>\n",
-                  header_str,
-                  wms->mode != M_RATE ? " disabled" : "",
-                  wms->mode != M_ASK ? " disabled" : "",
-                  wms->mode != M_ASK ? " disabled" : "",
-                  wms->html_lp);
+            rv = printf("\t\t\t<h1>%s</h1>\n"
+                        "\t\t\t<p><input type=\"submit\" name=\"learn_action\" value=\"Proceed\"%s>\n"
+                        "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Show\"%s>\n"
+                        "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Reveal\"%s>\n"
+                        "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Histogram\">\n"
+                        "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Table\"></p>\n",
+                header_str,
+                wms->mode != M_RATE ? " disabled" : "",
+                wms->mode != M_ASK ? " disabled" : "",
+                wms->mode != M_ASK ? " disabled" : "");
+            e = rv < 0;
+          }
+          if (e == 0) {
+            if ((wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0) {
+              rv = printf("\t\t\t<div class=\"qa\">%s</div>\n",
+                  q_str != NULL ? q_str : "");
               e = rv < 0;
+            } else {
+              e = xml_escape(&wms->html_lp, &wms->html_n, q_str, ESC_AMP | ESC_LT);
+              if (e == 0) {
+                rv = printf("\t\t\t<div><textarea rows=\"10\" cols=\"46\" readonly>%s</textarea></div>\n",
+                    wms->html_lp);
+                e = rv < 0;
+              }
             }
+          }
+          if (e == 0) {
+            rv = printf("\t\t\t<table>\n");
+            e = rv < 0;
           }
           if (e == 0) {
             if (wms->mode == M_ASK) {
@@ -3116,7 +3145,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
               }
             } else {
               assert(wms->ms.card_i != -1);
-              if (wms->ms.card_l[wms->ms.card_i].card_state == STATE_NEW) {
+              if ((wms->ms.card_l[wms->ms.card_i].card_state & 0x07) == STATE_NEW) {
                 time_diff = lvl_s[1];
                 lvl = 0;
               } else {
@@ -3159,29 +3188,41 @@ static int gen_html(struct WebMemorySurfer *wms) {
             }
           }
           if (e == 0) {
-            assert(wms->mode == M_ASK && wms->reveal_pos == -1 ? wms->ms.cards_nel >= 0 : 1);
-            e = xml_escape(&wms->html_lp, &wms->html_n, a_str, ESC_AMP | ESC_LT);
-            if (e == 0) {
-              rv = printf("\t\t\t</table>\n"
-                          "\t\t\t<div><textarea rows=\"10\" cols=\"46\"%s>%s</textarea></div>\n"
-                          "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Edit\">\n"
-                          "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Search\">\n"
-                          "\t\t\t\t<input type=\"submit\" name=\"learn_action\" value=\"Stop\">\n"
-                          "\t\t\t\t<input type=\"submit\" name=\"learn_action\" value=\"Suspend\"%s>\n"
-                          "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Resume\"%s></p>\n"
-                          "\t\t</form>\n"
-                          "\t\t<code>%s; nel: %d; html_n: %zu</code>\n"
-                          "\t</body>\n"
-                          "</html>\n",
-                  wms->mode == M_RATE || wms->reveal_pos > 0 ? " readonly" : " disabled",
-                  wms->mode == M_RATE || wms->reveal_pos > 0 ? wms->html_lp : "",
-                  wms->ms.card_l[wms->ms.card_i].card_state != STATE_SUSPENDED ? "" : " disabled",
-                  wms->ms.can_resume != 0 ? "" : " disabled",
-                  sw_info_str,
-                  wms->ms.cards_nel,
-                  wms->html_n);
+            rv = printf("\t\t\t</table>\n");
+            e = rv < 0;
+          }
+          if (e == 0) {
+            if ((wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0) {
+              rv = printf("\t\t\t<div class=\"qa\">%s</div>\n",
+                  a_str != NULL && wms->mode == M_RATE ? a_str : "");
               e = rv < 0;
+            } else {
+              assert(wms->mode == M_ASK && wms->reveal_pos == -1 ? wms->ms.cards_nel >= 0 : 1);
+              e = xml_escape(&wms->html_lp, &wms->html_n, a_str, ESC_AMP | ESC_LT);
+              if (e == 0) {
+                rv = printf("\t\t\t<div><textarea rows=\"10\" cols=\"46\"%s>%s</textarea></div>\n",
+                    wms->mode == M_RATE || wms->reveal_pos > 0 ? " readonly" : " disabled",
+                    wms->mode == M_RATE || wms->reveal_pos > 0 ? wms->html_lp : "");
+                e = rv < 0;
+              }
             }
+          }
+          if (e == 0) {
+            rv = printf("\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Edit\">\n"
+                        "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Search\">\n"
+                        "\t\t\t\t<input type=\"submit\" name=\"learn_action\" value=\"Stop\">\n"
+                        "\t\t\t\t<input type=\"submit\" name=\"learn_action\" value=\"Suspend\"%s>\n"
+                        "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Resume\"%s></p>\n"
+                        "\t\t</form>\n"
+                        "\t\t<code>%s; nel: %d; html_n: %zu</code>\n"
+                        "\t</body>\n"
+                        "</html>\n",
+                (wms->ms.card_l[wms->ms.card_i].card_state & 0x07) != STATE_SUSPENDED ? "" : " disabled",
+                wms->ms.can_resume != 0 ? "" : " disabled",
+                sw_info_str,
+                wms->ms.cards_nel,
+                wms->html_n);
+            e = rv < 0;
           }
         }
         if (e != 0)
@@ -3371,6 +3412,7 @@ int ms_init(struct MemorySurfer *ms)
   if (e == 0) {
     ms->search_txt = NULL;
     ms->match_case = -1;
+    ms->is_html = -1;
     ms->srch_dir = 0;
     ms->can_resume = 0;
     ms->password = NULL;
@@ -3545,7 +3587,7 @@ static int ms_determine_card(struct MemorySurfer *ms) {
         time_diff = ms->timestamp - ms->card_l[card_i].card_time;
         reten = exp(-(double)time_diff / ms->card_l[card_i].card_strength);
         if (reten <= 1 / M_E) {
-          card_state = ms->card_l[card_i].card_state;
+          card_state = ms->card_l[card_i].card_state & 0x07;
           switch (card_state)
           {
           case STATE_SCHEDULED:
@@ -3647,9 +3689,9 @@ static int ms_modify_qa(struct StringArray *sa, struct MemorySurfer *ms, char *n
     eq = sa_cmp(sa, &ms->card_sa);
     if (eq == 0) {
       (*need_sync)++;
-    sa_move (&ms->card_sa, sa);
-    data_size = sa_length (&ms->card_sa);
-    card_ptr = ms->card_l + ms->card_i;
+      sa_move(&ms->card_sa, sa);
+      data_size = sa_length(&ms->card_sa);
+      card_ptr = ms->card_l + ms->card_i;
       e = imf_put(&ms->imf, card_ptr->card_qai, ms->card_sa.sa_d, data_size);
     }
   }
@@ -4185,7 +4227,7 @@ int main(int argc, char *argv[])
               e = 0x01c21fdf; // WMSMAB (Web)MemorySurfer main assert B (failed)
             break;
           case A_CARD_TEST:
-            e = wms->ms.card_a <= 0 ? 0x19b4a393 : 0; // WMSMACA (Web)MemorySurfer main assert Card (test) (failed)
+            e = wms->ms.card_a <= 0;
             if (e == 0) {
               e = wms->ms.card_i < 0 || wms->ms.card_i >= wms->ms.card_a;
               if (e != 0) {
@@ -4195,6 +4237,8 @@ int main(int argc, char *argv[])
                 wms->page = P_MSG;
               }
             }
+            else
+              e = 0x19b4a393; // WMSMACA (Web)MemorySurfer main assert Card (test) (failed)
             break;
           case A_TEST_CAT_SELECTED:
             e = wms->ms.cat_i < 0;
@@ -4357,7 +4401,7 @@ int main(int argc, char *argv[])
           case A_CHECK_RESUME:
             if (wms->ms.card_a > 0)
               for (card_i = 0; card_i < wms->ms.card_a && wms->ms.can_resume == 0; card_i++)
-                if (wms->ms.card_l[card_i].card_state == STATE_SUSPENDED)
+                if ((wms->ms.card_l[card_i].card_state & 0x07) == STATE_SUSPENDED)
                   wms->ms.can_resume = 1;
             break;
           case A_ASK_REMOVE:
@@ -4805,6 +4849,15 @@ int main(int argc, char *argv[])
                 e = ms_modify_qa(&wms->qa_sa, &wms->ms, &need_sync);
             }
             break;
+          case A_UPDATE_HTML:
+            if (((wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0) != (wms->ms.is_html > 0)) {
+              wms->ms.card_l[wms->ms.card_i].card_state = (wms->ms.card_l[wms->ms.card_i].card_state & 0x07) | (wms->ms.is_html > 0) << 3;
+              data_size = wms->ms.card_a * sizeof(struct Card);
+              index = wms->ms.cat_t[wms->ms.cat_i].cat_cli;
+              e = imf_put(&wms->ms.imf, index, wms->ms.card_l, data_size);
+              need_sync++;
+            }
+            break;
           case A_SYNC:
             if (need_sync > 0) {
               assert(mtime_test != -1);
@@ -4943,73 +4996,41 @@ int main(int argc, char *argv[])
             }
             break;
           case A_PREVIOUS:
-            e = ms_load_card_list(&wms->ms);
-            if (e == 0) {
-              qa_err = sa_get(&wms->qa_sa, 0) == NULL;
-              qa_err |= sa_get(&wms->qa_sa, 1) == NULL;
-              if (qa_err == 0) {
-                e = ms_get_card_sa (&wms->ms);
-                if (e == 0)
-                {
-                  e = ms_modify_qa(&wms->qa_sa, &wms->ms, &need_sync);
-                  if (e == 0 && need_sync > 0)
-                  {
-                    e = imf_sync (&wms->ms.imf);
-                  }
-                }
-              }
-              if (wms->ms.card_a > 0) {
-                wms->ms.card_i--;
-                if (wms->ms.card_i < 0)
-                  wms->ms.card_i = 0;
-                if (wms->ms.card_i >= wms->ms.card_a)
-                  wms->ms.card_i = wms->ms.card_a - 1;
-              }
-              else
-                wms->ms.card_i = -1;
-              if (wms->ms.card_i != -1) {
-                e = ms_get_card_sa(&wms->ms);
-                if (e == 0)
-                  wms->page = P_EDIT;
-              }
+            if (wms->ms.card_a > 0) {
+              wms->ms.card_i--;
+              if (wms->ms.card_i < 0)
+                wms->ms.card_i = 0;
+              if (wms->ms.card_i >= wms->ms.card_a)
+                wms->ms.card_i = wms->ms.card_a - 1;
+            }
+            else
+              wms->ms.card_i = -1;
+            if (wms->ms.card_i != -1) {
+              e = ms_get_card_sa(&wms->ms);
+              if (e == 0)
+                wms->page = P_EDIT;
             }
             break;
           case A_NEXT:
-            e = ms_load_card_list(&wms->ms);
-            if (e == 0) {
-              qa_err = sa_get(&wms->qa_sa, 0) == NULL;
-              qa_err |= sa_get(&wms->qa_sa, 1) == NULL;
-              if (qa_err == 0) {
-                e = ms_get_card_sa (&wms->ms);
-                if (e == 0)
-                {
-                  e = ms_modify_qa(&wms->qa_sa, &wms->ms, &need_sync);
-                  if (e == 0 && need_sync > 0)
-                  {
-                    e = imf_sync (&wms->ms.imf);
-                  }
-                }
-              }
-              if (wms->ms.card_a > 0) {
-                wms->ms.card_i++;
-                if (wms->ms.card_i < 0)
-                  wms->ms.card_i = 0;
-                if (wms->ms.card_i >= wms->ms.card_a)
-                  wms->ms.card_i = wms->ms.card_a - 1;
-              }
-              else
-                wms->ms.card_i = -1;
-              if (wms->ms.card_i != -1) {
-                e = ms_get_card_sa(&wms->ms);
-                if (e == 0)
-                  wms->page = P_EDIT;
-              }
+            if (wms->ms.card_a > 0) {
+              wms->ms.card_i++;
+              if (wms->ms.card_i < 0)
+                wms->ms.card_i = 0;
+              if (wms->ms.card_i >= wms->ms.card_a)
+                wms->ms.card_i = wms->ms.card_a - 1;
+            }
+            else
+              wms->ms.card_i = -1;
+            if (wms->ms.card_i != -1) {
+              e = ms_get_card_sa(&wms->ms);
+              if (e == 0)
+                wms->page = P_EDIT;
             }
             break;
           case A_SCHEDULE:
-            e = wms->ms.card_l[wms->ms.card_i].card_state < STATE_NEW;
+            e = (wms->ms.card_l[wms->ms.card_i].card_state & 0x07) < STATE_NEW;
             if (e == 0) {
-              wms->ms.card_l[wms->ms.card_i].card_state = STATE_SCHEDULED;
+              wms->ms.card_l[wms->ms.card_i].card_state = (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) | STATE_SCHEDULED;
               data_size = wms->ms.card_a * sizeof(struct Card);
               index = wms->ms.cat_t[wms->ms.cat_i].cat_cli;
               e = imf_put(&wms->ms.imf, index, wms->ms.card_l, data_size);
@@ -5299,13 +5320,13 @@ int main(int argc, char *argv[])
             assert(wms->ms.timestamp > 0);
             assert(wms->ms.card_i >= 0 && wms->ms.card_i < wms->ms.card_a);
             card_ptr = wms->ms.card_l + wms->ms.card_i;
-            if (card_ptr->card_state == STATE_NEW || card_ptr->card_state == STATE_SUSPENDED)
-              card_ptr->card_state = STATE_SCHEDULED;
+            if ((card_ptr->card_state & 0x07) == STATE_NEW || (card_ptr->card_state & 0x07) == STATE_SUSPENDED)
+              card_ptr->card_state = (card_ptr->card_state & 0x08) | STATE_SCHEDULED;
             card_ptr->card_strength = lvl_s[wms->ms.lvl]; // S = -t / log(R)
             card_ptr->card_time = time(NULL);
             e = card_ptr->card_time == -1;
             if (e == 0) {
-              assert(card_ptr->card_state == STATE_SCHEDULED || card_ptr->card_state == STATE_SUSPENDED);
+              assert((card_ptr->card_state & 0x07) == STATE_SCHEDULED || (card_ptr->card_state & 0x07) == STATE_SUSPENDED);
               data_size = wms->ms.card_a * sizeof(struct Card);
               e = imf_put(&wms->ms.imf, wms->ms.cat_t[wms->ms.cat_i].cat_cli, wms->ms.card_l, data_size);
               if (e == 0) {
@@ -5329,8 +5350,8 @@ int main(int argc, char *argv[])
             assert(wms->ms.card_a > 0);
             e = wms->ms.card_i < 0 || wms->ms.card_i >= wms->ms.card_a;
             if (e == 0) {
-              assert(wms->ms.card_l[wms->ms.card_i].card_state == STATE_SCHEDULED || wms->ms.card_l[wms->ms.card_i].card_state == STATE_NEW);
-              wms->ms.card_l[wms->ms.card_i].card_state = STATE_SUSPENDED;
+              assert((wms->ms.card_l[wms->ms.card_i].card_state & 0x07) == STATE_SCHEDULED || (wms->ms.card_l[wms->ms.card_i].card_state & 0x07) == STATE_NEW);
+              wms->ms.card_l[wms->ms.card_i].card_state = (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) | STATE_SUSPENDED;
               data_size = wms->ms.card_a * sizeof(struct Card);
               index = wms->ms.cat_t[wms->ms.cat_i].cat_cli;
               e = imf_put(&wms->ms.imf, index, wms->ms.card_l, data_size);
@@ -5362,8 +5383,8 @@ int main(int argc, char *argv[])
             if (e == 0) {
               n = 0;
               for (card_i = 0; card_i < wms->ms.card_a; card_i++)
-                if (wms->ms.card_l[card_i].card_state == STATE_SUSPENDED) {
-                  wms->ms.card_l[card_i].card_state = STATE_SCHEDULED;
+                if ((wms->ms.card_l[card_i].card_state & 0x07) == STATE_SUSPENDED) {
+                  wms->ms.card_l[card_i].card_state = (wms->ms.card_l[card_i].card_state & 0x08) | STATE_SCHEDULED;
                   n++;
                 }
               e = n == 0;
@@ -5410,7 +5431,7 @@ int main(int argc, char *argv[])
               e = wms->ms.timestamp == -1;
               if (e == 0) {
                 for (card_i = 0; card_i < wms->ms.card_a; card_i++)
-                  if (wms->ms.card_l[card_i].card_state == STATE_SCHEDULED) {
+                  if ((wms->ms.card_l[card_i].card_state & 0x07) == STATE_SCHEDULED) {
                     time_diff = wms->ms.timestamp - wms->ms.card_l[card_i].card_time;
                     retention = exp (- ((double)(time_diff) / wms->ms.card_l[card_i].card_strength));
                     i = retention * 100;
@@ -5430,7 +5451,7 @@ int main(int argc, char *argv[])
               wms->lvl_bucket[0][i] = 0;
             if (wms->ms.card_a > 0) {
               for (card_i = 0; card_i < wms->ms.card_a; card_i++) {
-                if (wms->ms.card_l[card_i].card_state == STATE_SCHEDULED) {
+                if ((wms->ms.card_l[card_i].card_state & 0x07) == STATE_SCHEDULED) {
                   for (i = 0; i < 21; i++)
                     if (lvl_s[i] >= wms->ms.card_l[card_i].card_strength)
                       break;

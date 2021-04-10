@@ -36,6 +36,16 @@ textarea {
 	padding: 0;
 	margin: 0 0.5ex 0 0.5ex;
 }
+div.qa {
+	width: 100%;
+	max-width: 80ex;
+	padding: 0;
+	margin: 0 0.5ex 0 0.5ex;
+  overflow-y: auto;
+	border-width: 1px;
+	border-style: solid;
+	height: 9em;
+}
 ul {
 	list-style-type: none;
 	margin: 0 0 0 2ex;
