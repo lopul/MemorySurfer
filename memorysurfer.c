@@ -201,7 +201,7 @@ struct MemorySurfer {
   time_t timestamp;
   int lvl; // level
   char *search_txt;
-  char match_case;
+  int8_t match_case;
   int8_t srch_dir; // search
   int8_t can_resume;
   char *password;
