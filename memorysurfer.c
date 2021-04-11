@@ -1500,7 +1500,7 @@ int parse_post(struct WebMemorySurfer *wms) {
                     if (wms->from_page == P_EDIT)
                       wms->seq = S_QUESTION_SYNCED;
                     else {
-                      e = wms->from_page != P_SELECT_DECK;
+                      e = wms->from_page != P_SELECT_DECK && wms->from_page != P_SEARCH && wms->from_page != P_HISTOGRAM && wms->from_page != P_TABLE;
                       if (e == 0)
                         wms->seq = S_QUESTION;
                     }
@@ -3072,7 +3072,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.38</h1>\n"
+        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.39</h1>\n"
                     "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p>Copyright 2016-2021</p>\n"
                     "\t\t\t<p>Send bugs and suggestions to\n"
