@@ -89,7 +89,7 @@ static enum Action action_seq[S_END+1][14] = {
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_SELECT_CAT, A_END }, // S_SELECT_TOGGLE_CAT
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_TEST_CAT, A_TOGGLE, A_END }, // S_TOGGLE
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_EDIT, A_END }, // S_EDIT
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_LOAD_CARDLIST, A_UPDATE_QA, A_UPDATE_HTML, A_INSERT, A_SYNC, A_END }, // S_INSERT
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_UPDATE_QA, A_UPDATE_HTML, A_INSERT, A_SYNC, A_END }, // S_INSERT
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_LOAD_CARDLIST, A_UPDATE_QA, A_UPDATE_HTML, A_APPEND, A_SYNC, A_END }, // S_APPEND
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_CARD_TEST, A_UPDATE_QA, A_UPDATE_HTML, A_SYNC, A_ASK_DELETE_CARD, A_END }, // S_ASK_DELETE_CARD
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_LOAD_CARDLIST, A_DELETE_CARD, A_END }, // S_DELETE_CARD
@@ -3072,7 +3072,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.39</h1>\n"
+        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.40</h1>\n"
                     "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p>Copyright 2016-2021</p>\n"
                     "\t\t\t<p>Send bugs and suggestions to\n"
@@ -3375,11 +3375,10 @@ static int gen_html(struct WebMemorySurfer *wms) {
                       "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Refresh\">\n"
                       "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Done\"></p>\n"
                       "\t\t</form>\n"
-                      "\t\t<code>%s, sizeof(double)=%zu</code>\n"
+                      "\t\t<code>%s</code>\n"
                       "\t</body>\n"
                       "</html>\n",
-              sw_info_str,
-              sizeof(double));
+              sw_info_str);
           e = rv < 0;
         }
         break;
@@ -3686,7 +3685,7 @@ sa_move (struct StringArray *sa_dest, struct StringArray *sa_src)
   sa_src->sa_n = 0;
 }
 
-static int ms_modify_qa(struct StringArray *sa, struct MemorySurfer *ms, char *need_sync) {
+static int ms_modify_qa(struct StringArray *sa, struct MemorySurfer *ms, uint8_t *need_sync) {
   int e;
   int eq;
   int32_t data_size;
@@ -3916,9 +3915,8 @@ int main(int argc, char *argv[])
   struct Card *card_ptr;
   char e_str[8]; // JTLWQNE + '\0' (0x7fffffff)
   struct tm bd_time; // broken-down
-  char need_sync;
+  uint8_t need_sync;
   dbg_stream = NULL;
-  need_sync = 0;
   size = sizeof(struct WebMemorySurfer);
   wms = malloc(size);
   e = wms == NULL;
@@ -3962,6 +3960,7 @@ int main(int argc, char *argv[])
       if (e == 0) {
         mtime_test = -1;
         act_i = 0;
+        need_sync = 0;
         assert(wms->seq <= S_END);
         while ((act_c = action_seq[wms->seq][act_i++]) != A_END && e == 0)
         {
@@ -4907,11 +4906,8 @@ int main(int argc, char *argv[])
                         wms->ms.card_l[wms->ms.card_i].card_qai = index;
                         wms->ms.card_l[wms->ms.card_i].card_state = STATE_NEW;
                         e = imf_put(&wms->ms.imf, wms->ms.cat_t[wms->ms.cat_i].cat_cli, wms->ms.card_l, data_size);
-                        if (e == 0) {
-                          e = imf_sync (&wms->ms.imf);
-                          if (e == 0)
-                            wms->page = P_EDIT;
-                        }
+                        need_sync++;
+                        wms->page = P_EDIT;
                       }
                     }
                   }
@@ -5333,7 +5329,7 @@ int main(int argc, char *argv[])
             card_ptr->card_time = time(NULL);
             e = card_ptr->card_time == -1;
             if (e == 0) {
-              assert((card_ptr->card_state & 0x07) == STATE_SCHEDULED || (card_ptr->card_state & 0x07) == STATE_SUSPENDED);
+              assert((card_ptr->card_state & 0x07) == STATE_SCHEDULED);
               data_size = wms->ms.card_a * sizeof(struct Card);
               e = imf_put(&wms->ms.imf, wms->ms.cat_t[wms->ms.cat_i].cat_cli, wms->ms.card_l, data_size);
               if (e == 0) {

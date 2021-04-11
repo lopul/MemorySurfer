@@ -31,20 +31,21 @@ h1 {
 	font-weight: bolder;
 }
 textarea {
-	width: 100%;
+	width: 98.5%;
 	max-width: 80ex;
 	padding: 0;
-	margin: 0 0.5ex 0 0.5ex;
+	margin: 0 auto 0 auto;
 }
 div.qa {
-	width: 100%;
+	width: 98.5%;
 	max-width: 80ex;
 	padding: 0;
-	margin: 0 0.5ex 0 0.5ex;
-  overflow-y: auto;
+	margin: 0 auto 0 auto;
 	border-width: 1px;
 	border-style: solid;
-	height: 9em;
+	border-radius: 0.3ex;
+	border-color: rgba(0, 0, 0, .25);
+	min-height: 1.5em;
 }
 ul {
 	list-style-type: none;
