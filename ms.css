@@ -39,14 +39,22 @@ textarea {
 div.qa {
 	width: 98.5%;
 	max-width: 80ex;
-	padding: 0;
-	margin: 0 auto 0 auto;
+	padding: 0.5ex 0.2ex 0.5ex 0.2ex;
+	margin: 0.3ex auto 0.3ex auto;
 	border-width: 1px;
 	border-style: solid;
 	border-radius: 0.3ex;
 	border-color: rgba(0, 0, 0, .25);
-	min-height: 1.5em;
+	min-height: 2.5em;
 }
+div.txt {
+	font-family: monospace;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+div.hidden {
+	background-color: #c0c0c040;
+} 
 ul {
 	list-style-type: none;
 	margin: 0 0 0 2ex;

@@ -90,7 +90,7 @@ static enum Action action_seq[S_END+1][14] = {
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_TEST_CAT, A_TOGGLE, A_END }, // S_TOGGLE
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_EDIT, A_END }, // S_EDIT
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_UPDATE_QA, A_UPDATE_HTML, A_INSERT, A_SYNC, A_END }, // S_INSERT
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_LOAD_CARDLIST, A_UPDATE_QA, A_UPDATE_HTML, A_APPEND, A_SYNC, A_END }, // S_APPEND
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_UPDATE_QA, A_UPDATE_HTML, A_APPEND, A_SYNC, A_END }, // S_APPEND
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_CARD_TEST, A_UPDATE_QA, A_UPDATE_HTML, A_SYNC, A_ASK_DELETE_CARD, A_END }, // S_ASK_DELETE_CARD
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_LOAD_CARDLIST, A_DELETE_CARD, A_END }, // S_DELETE_CARD
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_UPDATE_QA, A_UPDATE_HTML, A_PREVIOUS, A_SYNC, A_END }, // S_PREVIOUS
@@ -1117,7 +1117,7 @@ int parse_post(struct WebMemorySurfer *wms) {
               case 10:
                 if (memcmp(wms->mult.post_lp, "reveal-pos", 10) == 0)
                   field = F_REVEAL_POS;
-                else if (memcmp(wms->mult.post_lp, "search_txt", 10) == 0)
+                else if (memcmp(wms->mult.post_lp, "search-txt", 10) == 0)
                   field = F_SEARCH_TXT;
                 else if (memcmp(wms->mult.post_lp, "match-case", 10) == 0)
                   field = F_MATCH_CASE;
@@ -2498,7 +2498,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         if (wms->ms.search_txt != NULL && strlen(wms->ms.search_txt) > 0) {
           e = xml_escape(&wms->html_lp, &wms->html_n, wms->ms.search_txt, ESC_AMP | ESC_QUOT);
           if (e == 0) {
-            rv = printf("\t\t\t\t<input type=\"hidden\" name=\"search_txt\" value=\"%s\">\n", wms->html_lp);
+            rv = printf("\t\t\t\t<input type=\"hidden\" name=\"search-txt\" value=\"%s\">\n", wms->html_lp);
             e = rv < 0;
           }
         }
@@ -3004,7 +3004,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           assert(wms->file_title_str != NULL && strlen(wms->tok_str) == 40);
           assert(wms->ms.match_case == -1 || wms->ms.match_case == 1);
           rv = printf("\t\t\t<h1>Searching</h1>\n"
-                      "\t\t\t<p><input type=\"text\" name=\"search_txt\" value=\"%s\" size=25>\n"
+                      "\t\t\t<p><input type=\"text\" name=\"search-txt\" value=\"%s\" size=25>\n"
                       "\t\t\t\t<label><input type=\"checkbox\" name=\"match-case\"%s>Match Case</label></p>\n",
               wms->html_lp,
               wms->ms.match_case > 0 ? " checked" : "");
@@ -3072,7 +3072,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.40</h1>\n"
+        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.41</h1>\n"
                     "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p>Copyright 2016-2021</p>\n"
                     "\t\t\t<p>Send bugs and suggestions to\n"
@@ -3119,17 +3119,12 @@ static int gen_html(struct WebMemorySurfer *wms) {
             e = rv < 0;
           }
           if (e == 0) {
-            if ((wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0) {
-              rv = printf("\t\t\t<div class=\"qa\">%s</div>\n",
-                  q_str != NULL ? q_str : "");
+            e = xml_escape(&wms->html_lp, &wms->html_n, q_str, (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? 0 : ESC_AMP | ESC_LT);
+            if (e == 0) {
+              rv = printf("\t\t\t<div class=\"qa%s\">%s</div>\n",
+                  (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? "" : " txt",
+                  wms->mode == M_RATE || wms->reveal_pos > 0 ? wms->html_lp : "");
               e = rv < 0;
-            } else {
-              e = xml_escape(&wms->html_lp, &wms->html_n, q_str, ESC_AMP | ESC_LT);
-              if (e == 0) {
-                rv = printf("\t\t\t<div><textarea rows=\"10\" cols=\"46\" readonly>%s</textarea></div>\n",
-                    wms->html_lp);
-                e = rv < 0;
-              }
             }
           }
           if (e == 0) {
@@ -3199,19 +3194,14 @@ static int gen_html(struct WebMemorySurfer *wms) {
             e = rv < 0;
           }
           if (e == 0) {
-            if ((wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0) {
-              rv = printf("\t\t\t<div class=\"qa\">%s</div>\n",
-                  a_str != NULL && wms->mode == M_RATE ? a_str : "");
+            assert(wms->mode == M_ASK && wms->reveal_pos == -1 ? wms->ms.cards_nel >= 0 : 1);
+            e = xml_escape(&wms->html_lp, &wms->html_n, a_str, (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? 0 : ESC_AMP | ESC_LT);
+            if (e == 0) {
+              rv = printf("\t\t\t<div class=\"qa%s%s\">%s</div>\n",
+                  (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? "" : " txt",
+                  wms->mode == M_RATE || wms->reveal_pos > 0 ? "" : " hidden",
+                  wms->mode == M_RATE || wms->reveal_pos > 0 ? wms->html_lp : "");
               e = rv < 0;
-            } else {
-              assert(wms->mode == M_ASK && wms->reveal_pos == -1 ? wms->ms.cards_nel >= 0 : 1);
-              e = xml_escape(&wms->html_lp, &wms->html_n, a_str, ESC_AMP | ESC_LT);
-              if (e == 0) {
-                rv = printf("\t\t\t<div><textarea rows=\"10\" cols=\"46\"%s>%s</textarea></div>\n",
-                    wms->mode == M_RATE || wms->reveal_pos > 0 ? " readonly" : " disabled",
-                    wms->mode == M_RATE || wms->reveal_pos > 0 ? wms->html_lp : "");
-                e = rv < 0;
-              }
             }
           }
           if (e == 0) {
@@ -3493,7 +3483,7 @@ void ms_free (struct MemorySurfer *ms)
   ms->card_a = 0;
   ms->card_i = -1;
   sa_free (&ms->card_sa);
-  free (ms->search_txt);
+  free(ms->search_txt);
   free (ms->password);
   free(ms->new_password);
   char b;
@@ -4940,11 +4930,8 @@ int main(int argc, char *argv[])
                         card_ptr->card_state = STATE_NEW;
                         cat_ptr = wms->ms.cat_t + wms->ms.cat_i;
                         e = imf_put(&wms->ms.imf, cat_ptr->cat_cli, wms->ms.card_l, data_size);
-                        if (e == 0) {
-                          e = imf_sync(&wms->ms.imf);
-                          if (e == 0)
-                            wms->page = P_EDIT;
-                        }
+                        need_sync++;
+                        wms->page = P_EDIT;
                       }
                     }
                   }
