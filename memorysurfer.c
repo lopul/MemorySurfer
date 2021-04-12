@@ -3072,7 +3072,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.41</h1>\n"
+        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.42</h1>\n"
                     "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p>Copyright 2016-2021</p>\n"
                     "\t\t\t<p>Send bugs and suggestions to\n"
@@ -3123,7 +3123,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
             if (e == 0) {
               rv = printf("\t\t\t<div class=\"qa%s\">%s</div>\n",
                   (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? "" : " txt",
-                  wms->mode == M_RATE || wms->reveal_pos > 0 ? wms->html_lp : "");
+                  wms->html_lp);
               e = rv < 0;
             }
           }
