@@ -23,7 +23,7 @@ The setup is described
 ## Features
 
  - HTML or TXT cards
- - XML export / import (for backup)
+ - XML export / import (for backup and version control tracking)
  - hierarchical decks
  - passphrase (access control of session / file)
  - searching
