@@ -1,3 +1,4 @@
+
 /*
 	Author: Lorenz Pullwitt <memorysurfer@lorenz-pullwitt.de>
 	Copyright 2016-2021
@@ -18,24 +19,28 @@
 	along with this program; if not, you can find it here:
 	https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 */
+
 body {
 	width: 100%;
 	max-width: 80ex;
 	margin: 0 auto 0 auto;
 	overflow-y: scroll;
 }
+
 h1 {
 	margin: 0;
 	padding: 0;
 	font-size: inherit;
 	font-weight: bolder;
 }
+
 textarea {
 	width: 98.5%;
 	padding: 0;
 	margin: 0 auto 0 auto;
 }
-div.qa {
+
+div.msf_qa {
 	width: 98%;
 	padding: 0.5ex 0.2ex 0.5ex 0.2ex;
 	margin: 0.3ex auto 0.3ex auto;
@@ -45,43 +50,54 @@ div.qa {
 	border-color: rgba(0, 0, 0, .25);
 	min-height: 2.5em;
 }
-div.txt {
+
+div.msf_txt {
 	font-family: monospace;
 	white-space: pre-wrap;
 	overflow-wrap: break-word;
 }
-div.hidden {
+
+div.msf_hidden {
 	background-color: #c0c0c040;
 } 
+
 ul {
 	list-style-type: none;
 	margin: 0 0 0 2ex;
 	padding: 0;
 }
+
 td {
 	min-width: 19ex;
 }
-td.histogram {
+
+td.msf_histogram {
 	min-width: auto;
 }
+
 svg {
 	width: 100%;
 	max-width: 50ex;
 }
+
 p {
 	margin: 1.1ex 0 1ex 0.5ex;
 }
+
 label {
 	margin: 0.1ex 0 0.1ex 0;
 	padding: 0.4ex 0 0.4ex 0;
 }
+
 input[type=submit] {
 	padding: 0.5ex 0.4ex 0.5ex 0.4ex;
 	min-width: 6.5ex;
 }
+
 code {
 	opacity: 0.2;
 }
+
 cite {
 	display: block;
 	width: 94%;
