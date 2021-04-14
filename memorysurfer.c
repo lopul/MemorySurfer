@@ -95,7 +95,7 @@ static enum Action action_seq[S_END+1][14] = {
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_LOAD_CARDLIST, A_DELETE_CARD, A_END }, // S_DELETE_CARD
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_UPDATE_QA, A_UPDATE_HTML, A_PREVIOUS, A_SYNC, A_END }, // S_PREVIOUS
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_UPDATE_QA, A_UPDATE_HTML, A_NEXT, A_SYNC, A_END }, // S_NEXT
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_LOAD_CARDLIST, A_CARD_TEST, A_UPDATE_QA, A_UPDATE_HTML, A_SCHEDULE, A_SYNC, A_END }, // S_SCHEDULE
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_CARD_TEST, A_UPDATE_QA, A_UPDATE_HTML, A_SCHEDULE, A_SYNC, A_END }, // S_SCHEDULE
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_UPDATE_QA, A_UPDATE_HTML, A_SET, A_SYNC, A_END }, // S_SET
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_LOAD_CARDLIST, A_UPDATE_QA, A_UPDATE_HTML, A_CARD_ARRANGE, A_SYNC, A_END }, // S_CARD_ARRANGE
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_LOAD_CARDLIST, A_MOVE_CARD, A_END }, // S_MOVE_CARD
@@ -3072,7 +3072,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.42</h1>\n"
+        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.43</h1>\n"
                     "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p>Copyright 2016-2021</p>\n"
                     "\t\t\t<p>Send bugs and suggestions to\n"
@@ -4897,7 +4897,8 @@ int main(int argc, char *argv[])
                         wms->ms.card_l[wms->ms.card_i].card_state = STATE_NEW;
                         e = imf_put(&wms->ms.imf, wms->ms.cat_t[wms->ms.cat_i].cat_cli, wms->ms.card_l, data_size);
                         need_sync++;
-                        wms->page = P_EDIT;
+                        if (e == 0)
+                          wms->page = P_EDIT;
                       }
                     }
                   }
@@ -5024,13 +5025,11 @@ int main(int argc, char *argv[])
               data_size = wms->ms.card_a * sizeof(struct Card);
               index = wms->ms.cat_t[wms->ms.cat_i].cat_cli;
               e = imf_put(&wms->ms.imf, index, wms->ms.card_l, data_size);
+              need_sync++;
               if (e == 0) {
-                e = imf_sync(&wms->ms.imf);
-                if (e == 0) {
-                  e = ms_get_card_sa(&wms->ms);
-                  if (e == 0)
-                    wms->page = P_EDIT;
-                }
+                e = ms_get_card_sa(&wms->ms);
+                if (e == 0)
+                  wms->page = P_EDIT;
               }
             }
             break;
