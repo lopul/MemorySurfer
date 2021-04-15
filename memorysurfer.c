@@ -1450,7 +1450,8 @@ int parse_post(struct WebMemorySurfer *wms) {
                       wms->ms.cat_i = wms->ms.mov_cat_i;
                       wms->ms.card_i = wms->ms.mov_card_i;
                       wms->seq = S_EDIT;
-                    }
+                    } else if (wms->from_page == P_PREVIEW)
+                      wms->seq = S_SELECT_EDIT_CAT;
                     else
                       wms->seq = S_START_CAT;
                   }
@@ -1502,7 +1503,7 @@ int parse_post(struct WebMemorySurfer *wms) {
                     if (wms->from_page == P_EDIT)
                       wms->seq = S_QUESTION_SYNCED;
                     else {
-                      e = wms->from_page != P_SELECT_DECK && wms->from_page != P_SEARCH && wms->from_page != P_HISTOGRAM && wms->from_page != P_TABLE;
+                      e = wms->from_page != P_SELECT_DECK && wms->from_page != P_SEARCH && wms->from_page != P_HISTOGRAM && wms->from_page != P_TABLE && wms->from_page != P_PREVIEW;
                       if (e == 0)
                         wms->seq = S_QUESTION;
                     }
@@ -3008,13 +3009,10 @@ static int gen_html(struct WebMemorySurfer *wms) {
         a_str = sa_get(&wms->ms.card_sa, 1);
         e = q_str == NULL || a_str == NULL || strlen(mtime_str) != 16 || wms->file_title_str == NULL || strlen(wms->tok_str) != 40;
         if (e == 0) {
-          rv = printf("\t\t\t<h1>Preview</h1>\n");
-          e = rv < 0;
-        }
-        if (e == 0) {
           e = xml_escape(&wms->html_lp, &wms->html_n, q_str, (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? 0 : ESC_AMP | ESC_LT);
           if (e == 0) {
-            rv = printf("\t\t\t<div class=\"msf_qa%s\">%s</div>\n",
+            rv = printf("\t\t\t<h1>Preview</h1>\n"
+                        "\t\t\t<div class=\"msf_qa%s\">%s</div>\n",
                 (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? "" : " msf_txt",
                 wms->html_lp);
             e = rv < 0;
@@ -3030,8 +3028,10 @@ static int gen_html(struct WebMemorySurfer *wms) {
           }
         }
         if (e == 0) {
-          rv = printf("\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Edit\">\n"
-                      "\t\t\t\t</p>\n");
+          rv = printf("\t\t\t<p><button type=\"submit\" name=\"event\" value=\"Edit\">Edit</button>\n"
+                      "\t\t\t\t<button type=\"submit\" name=\"event\" value=\"Learn\">Learn</button>\n"
+                      "\t\t\t\t<button type=\"submit\" name=\"event\" value=\"Search\">Search</button>\n"
+                      "\t\t\t\t<button type=\"submit\" name=\"event\" value=\"Stop\">Stop</button></p>\n");
           e = rv < 0;
         }
         if (e == 0) {
@@ -3119,7 +3119,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.44</h1>\n"
+        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.45</h1>\n"
                     "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p>Copyright 2016-2021</p>\n"
                     "\t\t\t<p>Send bugs and suggestions to\n"
