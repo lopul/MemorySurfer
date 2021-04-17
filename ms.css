@@ -75,6 +75,11 @@ td.msf_histogram {
 	min-width: auto;
 }
 
+button.msf {
+	padding: 0.5ex 0.4ex 0.5ex 0.4ex;
+	min-width: 6.5ex;
+}
+
 svg {
 	width: 100%;
 	max-width: 50ex;

@@ -127,8 +127,8 @@ static enum Block block_seq[P_TABLE+1][9] = {
   { B_EXPORT, B_END }, // P_EXPORT
   { B_START_HTML, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_START_CAT, B_END }, // P_START_CAT
   { B_START_HTML, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_CAT_NAME, B_END }, // P_CAT_NAME
-  { B_START_HTML, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_SELECT_CREATE_CAT, B_END }, // P_SELECT_CREATE_CAT
-  { B_START_HTML, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_SELECT_CAT, B_END }, // P_SELECT_CAT
+  { B_START_HTML, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_SELECT_CREATE_CAT, B_END }, // P_SELECT_CREATE_CAT
+  { B_START_HTML, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_SELECT_CAT, B_END }, // P_SELECT_CAT
   { B_START_HTML, B_HIDDEN_CAT, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_SELECT_ARRANGE, B_END }, // P_SELECT_ARRANGE
   { B_START_HTML, B_HIDDEN_CAT, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_HIDDEN_MOV_CARD, B_CLOSE_DIV, B_SELECT_CARD_ARRANGE, B_END }, // P_SELECT_CARD_ARRANGE
   { B_START_HTML, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_HIDDEN_MOV_CARD, B_CLOSE_DIV, B_SELECT_DEST_DECK, B_END }, // P_SELECT_DEST_DECK
@@ -2707,9 +2707,9 @@ static int gen_html(struct WebMemorySurfer *wms) {
                "\t\t</form>\n"
                "\t</body>\n"
                "</html>\n",
-          title_str,
-          wms->file_title_str,
-          wms->tok_str);
+            title_str,
+            wms->file_title_str,
+            wms->tok_str);
         break;
       case B_UPLOAD_REPORT:
         printf("\t\t\t<h1>XML File imported</h1>\n"
@@ -2801,8 +2801,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           assert(1);
         }
         assert(strlen(mtime_str) == 16);
-        printf("\t\t\t</div>\n"
-               "\t\t\t<h1>Select the category %s</h1>\n",
+        printf("\t\t\t<h1>Select the category %s</h1>\n",
           notice_str[0]);
         gen_html_cat(wms->ms.n_first, 3, H_CHILD, wms);
         printf("\t\t\t<p><input type=\"submit\" name=\"event\" value=\"%s\">\n"
@@ -2960,10 +2959,10 @@ static int gen_html(struct WebMemorySurfer *wms) {
                       "\t\t\t\t<input type=\"submit\" name=\"edit_action\" value=\"Previous\"%s>\n"
                       "\t\t\t\t<input type=\"submit\" name=\"edit_action\" value=\"Next\"%s></p>\n"
                       "\t\t\t<div><textarea name=\"q\" rows=\"10\" cols=\"46\"%s>%s</textarea></div>\n"
-                      "\t\t\t<p><input type=\"submit\" name=\"edit_action\" value=\"Schedule\"%s>\n"
-                      "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Set\"%s>\n"
-                      "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Move\"%s>\n"
-                      "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Send\"%s></p>\n",
+                      "\t\t\t<p><button class=\"msf\" type=\"submit\" name=\"edit_action\" value=\"Schedule\"%s>Schedule</button>\n"
+                      "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Set\"%s>Set</button>\n"
+                      "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Move\"%s>Move</button>\n"
+                      "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Send\"%s>Send</button></p>\n",
               wms->ms.card_a > 0 ? "" : " disabled",
               wms->ms.card_a > 0 ? "" : " disabled",
               wms->ms.card_a > 0 && wms->ms.card_i > 0 ? "" : " disabled",
@@ -3028,10 +3027,10 @@ static int gen_html(struct WebMemorySurfer *wms) {
           }
         }
         if (e == 0) {
-          rv = printf("\t\t\t<p><button type=\"submit\" name=\"event\" value=\"Edit\">Edit</button>\n"
-                      "\t\t\t\t<button type=\"submit\" name=\"event\" value=\"Learn\">Learn</button>\n"
-                      "\t\t\t\t<button type=\"submit\" name=\"event\" value=\"Search\">Search</button>\n"
-                      "\t\t\t\t<button type=\"submit\" name=\"event\" value=\"Stop\">Stop</button></p>\n");
+          rv = printf("\t\t\t<p><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Edit\">Edit</button>\n"
+                      "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Learn\">Learn</button>\n"
+                      "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Search\">Search</button>\n"
+                      "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Stop\">Stop</button></p>\n");
           e = rv < 0;
         }
         if (e == 0) {
@@ -3073,9 +3072,9 @@ static int gen_html(struct WebMemorySurfer *wms) {
                 e = xml_escape(&wms->html_lp, &wms->html_n, a_str, ESC_AMP | ESC_LT);
                 if (e == 0) {
                   rv = printf("\t\t\t<div><textarea rows=\"10\" cols=\"46\"%s>%s</textarea></div>\n"
-                              "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Edit\">\n"
-                              "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Learn\"%s>\n"
-                              "\t\t\t\t<input type=\"submit\" name=\"search_action\" value=\"Stop\"></p>\n"
+                              "\t\t\t<p><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Edit\">Edit</button>\n"
+                              "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Learn\"%s>Learn</button>\n"
+                              "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"search_action\" value=\"Stop\">Stop</button></p>\n"
                               "\t\t</form>\n"
                               "\t\t<code>%s</code>\n"
                               "\t</body>\n"
@@ -3119,7 +3118,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.45</h1>\n"
+        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.46</h1>\n"
                     "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p>Copyright 2016-2021</p>\n"
                     "\t\t\t<p>Send bugs and suggestions to\n"
@@ -3247,11 +3246,11 @@ static int gen_html(struct WebMemorySurfer *wms) {
             }
           }
           if (e == 0) {
-            rv = printf("\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Edit\">\n"
-                        "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Search\">\n"
-                        "\t\t\t\t<input type=\"submit\" name=\"learn_action\" value=\"Stop\">\n"
-                        "\t\t\t\t<input type=\"submit\" name=\"learn_action\" value=\"Suspend\"%s>\n"
-                        "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Resume\"%s></p>\n"
+            rv = printf("\t\t\t<p><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Edit\">Edit</button>\n"
+                        "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Search\">Search</button>\n"
+                        "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"learn_action\" value=\"Stop\">Stop</button>\n"
+                        "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"learn_action\" value=\"Suspend\"%s>Suspend</button>\n"
+                        "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Resume\"%s>Resume</button></p>\n"
                         "\t\t</form>\n"
                         "\t\t<code>%s; nel: %d; html_n: %zu</code>\n"
                         "\t</body>\n"
