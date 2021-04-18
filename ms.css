@@ -76,8 +76,8 @@ td.msf_histogram {
 }
 
 button.msf {
-	padding: 0.5ex 0.4ex 0.5ex 0.4ex;
-	min-width: 6.5ex;
+	padding: 1.0ex 1.5ex 1.0ex 1.5ex;
+	min-width: 10.5ex;
 }
 
 svg {
@@ -95,8 +95,8 @@ label {
 }
 
 input[type=submit] {
-	padding: 0.5ex 0.4ex 0.5ex 0.4ex;
-	min-width: 6.5ex;
+	padding: 0.9ex 1.2ex 0.9ex 1.2ex;
+	min-width: 9.5ex;
 }
 
 code {
