@@ -99,7 +99,7 @@ input[type=submit] {
 	min-width: 10.0ex;
 }
 
-code {
+code.msf {
 	opacity: 0.2;
 }
 
