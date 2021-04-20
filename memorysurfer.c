@@ -56,7 +56,7 @@ static enum Action action_seq[S_END+1][14] = {
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_SELECT_SEARCH_CAT, A_END }, // S_SELECT_SEARCH_CAT
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_PREFERENCES, A_END }, // S_PREFERENCES
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_ABOUT, A_END }, // S_ABOUT
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_APPLY, A_GEN_TOK, A_END }, // S_APPLY
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_APPLY, A_GEN_TOK, A_END }, // S_APPLY
   { A_FILELIST, A_NEW, A_END }, // S_NEW
   { A_FILELIST, A_OPEN_DLG, A_END }, // S_FILELIST
   { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_WARN_UPLOAD, A_END }, // S_WARN_UPLOAD
@@ -3123,7 +3123,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.48</h1>\n" 
+        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.49</h1>\n" 
                     "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p>Copyright 2016-2021</p>\n"
                     "\t\t\t<p>Send bugs and suggestions to\n"
@@ -3372,11 +3372,11 @@ static int gen_html(struct WebMemorySurfer *wms) {
                           "\t\t\t<svg viewbox=\"0 0 101 %d\">\n"
                           "\t\t\t\t<path d=\"%s\" />\n"
                           "\t\t\t</svg>\n"
-                          "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Edit\">\n"
-                          "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Learn\">\n"
-                          "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Search\">\n"
-                          "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Refresh\">\n"
-                          "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Done\"></p>\n"
+                          "\t\t\t<p><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Edit\">Edit</button>\n"
+                          "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Learn\">Learn</button>\n"
+                          "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Search\">Search</button>\n"
+                          "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Refresh\">Refresh</button>\n"
+                          "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Done\">Done</button></p>\n"
                           "\t\t</form>\n"
                           "\t\t<code>%s; gaps=%d, gaps_size=%d, Details: %s, nb=%d</code>\n"
                           "\t</body>\n"
