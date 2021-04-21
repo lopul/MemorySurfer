@@ -67,11 +67,11 @@ ul {
 	padding: 0;
 }
 
-td {
+td.msf_lvl {
 	min-width: 19ex;
 }
 
-td.msf_histogram {
+td.msf_strength {
 	min-width: auto;
 }
 

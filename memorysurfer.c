@@ -171,7 +171,7 @@ struct Card {
   int64_t card_time;
   int32_t card_strength;
   int32_t card_qai; // question/answer index
-  uint8_t card_state; // ----hsss '-' = unused, h = HTML, s = state
+  uint8_t card_state; // ----hsss '-' = unused, h = HTML / TXT, s = state
 };
 
 struct Password {
@@ -234,6 +234,12 @@ struct XML
   int parsed_cat_i;
 };
 
+struct IndentStr {
+  char *str;
+  size_t size;
+  int indent_n;
+};
+
 struct WebMemorySurfer {
   struct MemorySurfer ms;
   enum Sequence seq;
@@ -270,6 +276,7 @@ struct WebMemorySurfer {
   int lvl_bucket[2][21]; // 0 = total, 1 = eligible
   uint8_t tok_digest[SHA1_HASH_SIZE];
   char tok_str[41];
+  struct IndentStr inds;
 };
 
 static int append_part(struct WebMemorySurfer *wms)
@@ -1989,49 +1996,52 @@ static int gen_html_cat(int16_t n_create, int indent_n, enum HIERARCHY hierarchy
   char indent_str[32];
   int i;
   char *checked;
-  e = indent_n >= 32 || n_create < 0;
-  if (e == 0) {
-    for (i = 0; i < indent_n; i++)
-      indent_str[i] = '\t';
-    indent_str[i] = '\0';
-    if (hierarchy == H_CHILD) {
-      rv = printf("%s<ul>\n", indent_str);
-      e = rv < 0;
-    }
+  e = 0;
+  if (n_create >= 0) {
+    e = indent_n >= 32;
     if (e == 0) {
-      checked = n_create == wms->ms.cat_i ? " checked" : "";
-      c_str = sa_get(&wms->ms.cat_sa, n_create);
-      e = c_str == NULL;
+      for (i = 0; i < indent_n; i++)
+        indent_str[i] = '\t';
+      indent_str[i] = '\0';
+      if (hierarchy == H_CHILD) {
+        rv = printf("%s<ul>\n", indent_str);
+        e = rv < 0;
+      }
       if (e == 0) {
-        e = xml_escape(&wms->html_lp, &wms->html_n, c_str, ESC_AMP | ESC_LT);
+        checked = n_create == wms->ms.cat_i ? " checked" : "";
+        c_str = sa_get(&wms->ms.cat_sa, n_create);
+        e = c_str == NULL;
         if (e == 0) {
-          rv = printf("%s\t<li><label><input type=\"radio\" name=\"cat\" value=\"%d\"%s>%s</label>%s\n",
-              indent_str,
-              n_create,
-              checked,
-              wms->html_lp,
-              wms->ms.cat_t[n_create].cat_n_child == -1 ? "</li>" : "");
-          e = rv < 0;
+          e = xml_escape(&wms->html_lp, &wms->html_n, c_str, ESC_AMP | ESC_LT);
           if (e == 0) {
-            if (wms->ms.cat_t[n_create].cat_n_child != -1) {
-              if (wms->ms.cat_t[n_create].cat_x != 0)
-                e = gen_html_cat(wms->ms.cat_t[n_create].cat_n_child, indent_n + 2, H_CHILD, wms);
-              else {
-                rv = printf ("%s\t\t...\n", indent_str);
-                e = rv < 0;
-              }
-              if (e == 0) {
-                rv = printf ("%s\t</li>\n", indent_str);
-                e = rv < 0;
-              }
-            }
+            rv = printf("%s\t<li><label><input type=\"radio\" name=\"cat\" value=\"%d\"%s>%s</label>%s\n",
+                indent_str,
+                n_create,
+                checked,
+                wms->html_lp,
+                wms->ms.cat_t[n_create].cat_n_child == -1 ? "</li>" : "");
+            e = rv < 0;
             if (e == 0) {
-              if (wms->ms.cat_t[n_create].cat_n_sibling != -1)
-                e = gen_html_cat(wms->ms.cat_t[n_create].cat_n_sibling, indent_n, H_SIBLING, wms);
-              if (e == 0) {
-                if (hierarchy == H_CHILD) {
-                  rv = printf ("%s</ul>\n", indent_str);
+              if (wms->ms.cat_t[n_create].cat_n_child != -1) {
+                if (wms->ms.cat_t[n_create].cat_x != 0)
+                  e = gen_html_cat(wms->ms.cat_t[n_create].cat_n_child, indent_n + 2, H_CHILD, wms);
+                else {
+                  rv = printf ("%s\t\t...\n", indent_str);
                   e = rv < 0;
+                }
+                if (e == 0) {
+                  rv = printf ("%s\t</li>\n", indent_str);
+                  e = rv < 0;
+                }
+              }
+              if (e == 0) {
+                if (wms->ms.cat_t[n_create].cat_n_sibling != -1)
+                  e = gen_html_cat(wms->ms.cat_t[n_create].cat_n_sibling, indent_n, H_SIBLING, wms);
+                if (e == 0) {
+                  if (hierarchy == H_CHILD) {
+                    rv = printf ("%s</ul>\n", indent_str);
+                    e = rv < 0;
+                  }
                 }
               }
             }
@@ -2344,6 +2354,47 @@ static time_t lvl_s[21] = { // level strength
   315360000, // 10Y (19)
   630720000 // 20Y (20)
 };
+
+static int inds_set(struct IndentStr *inds, int indent_n, int change_flag) {
+  int e;
+  char *str;
+  size_t size;
+  int i;
+  e = inds->indent_n == -1 && change_flag != 0;
+  if (e == 0) {
+    if (change_flag > 0) {
+      indent_n = inds->indent_n + indent_n;
+    } else if (change_flag < 0) {
+      indent_n = inds->indent_n - indent_n;
+    }
+    e = indent_n >= 2048;
+    if (e == 0) {
+      if (indent_n >= inds->size) {
+        size = (indent_n / 32 + 1) * 32;
+        str = realloc(inds->str, size);
+        e = str == NULL;
+        if (e == 0) {
+          inds->str = str;
+          inds->size = size;
+        }
+      }
+      if (e == 0) {
+        if (inds->indent_n == -1) {
+          inds->indent_n = 0;
+        }
+        if (inds->indent_n < indent_n) {
+          for (i = inds->indent_n; i < indent_n; i++)
+            inds->str[i] = '\t';
+          inds->str[i] = '\0';
+        } else if (inds->indent_n >= indent_n) {
+          inds->str[indent_n] = '\0';
+        }
+        inds->indent_n = indent_n;
+      }
+    }
+  }
+  return e;
+}
 
 static int gen_html(struct WebMemorySurfer *wms) {
   int e;
@@ -2932,6 +2983,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
             rv = printf("\t\t\t<h1>%s</h1>\n", header_str);
             e = rv < 0;
             if (e == 0) {
+              e = inds_set(&wms->inds, 3, 0);
               e = gen_html_cat(wms->ms.n_first, 3, H_CHILD, wms);
               if (e == 0) {
                 rv = printf("\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Edit\">\n"
@@ -2956,11 +3008,11 @@ static int gen_html(struct WebMemorySurfer *wms) {
         if (e == 0) {
           assert(strlen(mtime_str) == 16 && wms->file_title_str != NULL && strlen(wms->tok_str) == 40);
           rv = printf("\t\t\t<h1>Editing</h1>\n"
-                      "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Insert\"%s>\n"
-                      "\t\t\t\t<input type=\"submit\" name=\"edit_action\" value=\"Append\">\n"
-                      "\t\t\t\t<input type=\"submit\" name=\"edit_action\" value=\"Delete\"%s>\n"
-                      "\t\t\t\t<input type=\"submit\" name=\"edit_action\" value=\"Previous\"%s>\n"
-                      "\t\t\t\t<input type=\"submit\" name=\"edit_action\" value=\"Next\"%s></p>\n"
+                      "\t\t\t<p><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Insert\"%s>Insert</button>\n"
+                      "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"edit_action\" value=\"Append\">Append</button>\n"
+                      "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"edit_action\" value=\"Delete\"%s>Delete</button>\n"
+                      "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"edit_action\" value=\"Previous\"%s>Previous</button>\n"
+                      "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"edit_action\" value=\"Next\"%s>Next</button></p>\n"
                       "\t\t\t<div><textarea name=\"q\" rows=\"10\" cols=\"46\"%s>%s</textarea></div>\n"
                       "\t\t\t<p><button class=\"msf\" type=\"submit\" name=\"edit_action\" value=\"Schedule\"%s>Schedule</button>\n"
                       "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Set\"%s>Set</button>\n"
@@ -2981,10 +3033,10 @@ static int gen_html(struct WebMemorySurfer *wms) {
             e = xml_escape(&wms->html_lp, &wms->html_n, a_str, ESC_AMP | ESC_LT);
             if (e == 0) {
               rv = printf("\t\t\t<div><textarea name=\"a\" rows=\"10\" cols=\"46\"%s>%s</textarea></div>\n"
-                          "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Learn\">\n"
-                          "\t\t\t\t<input type=\"submit\" name=\"edit_action\" value=\"Search\">\n"
-                          "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Preview\">\n"
-                          "\t\t\t\t<input type=\"submit\" name=\"edit_action\" value=\"Stop\">\n"
+                          "\t\t\t<p><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Learn\">Learn</button>\n"
+                          "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"edit_action\" value=\"Search\">Search</button>\n"
+                          "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Preview\">Preview</button>\n"
+                          "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"edit_action\" value=\"Stop\">Stop</button>\n"
                           "\t\t\t\t<label><input type=\"checkbox\" name=\"is-html\"%s>HTML</label></p>\n",
                   a_str != NULL ? "" : " disabled",
                   wms->html_lp,
@@ -3121,7 +3173,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.50</h1>\n" 
+        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.51</h1>\n" 
                     "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p>Copyright 2016-2021</p>\n"
                     "\t\t\t<p>Send bugs and suggestions to\n"
@@ -3184,7 +3236,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
                 rv = printf ("\t\t\t\t<tr>\n");
                 e = rv < 0;
                 for (x = 0; x < 2 && e == 0; x++) {
-                  rv = printf("\t\t\t\t\t<td><label><input type=\"radio\" disabled>Level</label></td>\n");
+                  rv = printf("\t\t\t\t\t<td class=\"msf_lvl\"><label><input type=\"radio\" disabled>Level</label></td>\n");
                   e = rv < 0;
                 }
                 if (e == 0) {
@@ -3224,7 +3276,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
                   if (i == lvl_sel)
                     attr_str = " autofocus";
                   set_time_str(time_str, lvl_s[i]);
-                  rv = printf("\t\t\t\t\t<td><label><input type=\"radio\" name=\"lvl\" value=\"%d\"%s>Level %d (%s)</label></td>\n",
+                  rv = printf("\t\t\t\t\t<td class=\"msf_lvl\"><label><input type=\"radio\" name=\"lvl\" value=\"%d\"%s>Level %d (%s)</label></td>\n",
                       i, attr_str,
                       i, time_str);
                   e = rv < 0;
@@ -3398,7 +3450,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         e = rv < 0;
         for (i = 0; i < 21 && e == 0; i++) {
           set_time_str(time_str, lvl_s[i]);
-          rv = printf("\t\t\t\t<tr><td class=\"msf_histogram\">%d</td><td class=\"msf_histogram\"><code class=\"msf\">(%s)</code></td><td class=\"msf_histogram\">%d</td></tr>\n", i, time_str, wms->lvl_bucket[0][i]);
+          rv = printf("\t\t\t\t<tr><td class=\"msf_strength\">%d</td><td class=\"msf_strength\"><code class=\"msf\">(%s)</code></td><td class=\"msf_strength\">%d</td></tr>\n", i, time_str, wms->lvl_bucket[0][i]);
           e = rv < 0;
         }
         if (e == 0) {
@@ -3466,8 +3518,13 @@ int ms_init(struct MemorySurfer *ms)
   return e;
 }
 
-int wms_init(struct WebMemorySurfer *wms)
-{
+static void inds_init(struct IndentStr *inds) {
+  inds->str = NULL;
+  inds->size = 0;
+  inds->indent_n = -1;
+}
+
+static int wms_init(struct WebMemorySurfer *wms) {
   int e;
   e = ms_init(&wms->ms);
   if (e == 0) {
@@ -3507,6 +3564,7 @@ int wms_init(struct WebMemorySurfer *wms)
         memset(wms->mtime, -1, sizeof(wms->mtime));
         memset(wms->tok_digest, -1, sizeof(wms->tok_digest));
         wms->tok_str[0] = '\0';
+        inds_init(&wms->inds);
       }
     }
   }
@@ -3539,8 +3597,16 @@ void ms_free (struct MemorySurfer *ms)
   sw_free(&ms->imf.sw);
 }
 
+static void inds_free(struct IndentStr *inds) {
+  free(inds->str);
+  inds->str = NULL;
+  inds->size = 0;
+  inds->indent_n = -1;
+}
+
 static void wms_free(struct WebMemorySurfer *wms) {
   int i;
+  inds_free(&wms->inds);
   free(wms->html_lp);
   for (i = 0; i < wms->fl_c; i++) {
     assert(wms->fl_v[i] != NULL);
