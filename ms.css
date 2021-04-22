@@ -61,7 +61,7 @@ div.msf_hidden {
 	background-color: #c0c0c040;
 } 
 
-ul {
+ul.msf {
 	list-style-type: none;
 	margin: 0 0 0 2ex;
 	padding: 0;
