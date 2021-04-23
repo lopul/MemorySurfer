@@ -37,16 +37,18 @@
 #include <errno.h>
 
 enum Field { F_UNKNOWN, F_FILENAME, F_FILE_TITLE, F_START_ACTION, F_FILE_ACTION, F_ARRANGE, F_CAT_NAME, F_MOVED_CAT, F_EDIT_ACTION, F_LEARN_ACTION, F_SEARCH_TXT, F_MATCH_CASE, F_IS_HTML, F_SEARCH_ACTION, F_CAT, F_CARD, F_MOV_CARD, F_LVL, F_Q, F_A, F_REVEAL_POS, F_TODO_MAIN, F_TODO_ALT, F_MTIME, F_PASSWORD, F_NEW_PASSWORD, F_TOKEN, F_EVENT, F_PAGE, F_MODE, F_TIMEOUT };
-enum Action { A_END, A_NONE, A_FILE, A_WARN_UPLOAD, A_CREATE, A_NEW, A_OPEN_DLG, A_FILELIST, A_OPEN, A_CHANGE_PASSWD, A_WRITE_PASSWD, A_READ_PASSWD, A_CHECK_PASSWORD, A_AUTH_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_CHECK_RESUME, A_SLASH, A_VOID, A_FILE_EXTENSION, A_GATHER, A_UPLOAD, A_UPLOAD_REPORT, A_EXPORT, A_ASK_REMOVE, A_REMOVE, A_ASK_ERASE, A_ERASE, A_CLOSE, A_START_CAT, A_SELECT_CREATE_CAT, A_SELECT_CAT, A_SELECT_DEST_DECK, A_SELECT_SEND_CAT, A_SELECT_ARRANGE, A_CAT_NAME, A_CREATE_CAT, A_RENAME_CAT, A_ASK_DELETE_CAT, A_DELETE_CAT, A_TOGGLE, A_MOVE_CAT, A_SELECT_EDIT_CAT, A_EDIT, A_UPDATE_QA, A_UPDATE_HTML, A_SYNC, A_INSERT, A_APPEND, A_ASK_DELETE_CARD, A_DELETE_CARD, A_PREVIOUS, A_NEXT, A_SCHEDULE, A_SET, A_CARD_ARRANGE, A_MOVE_CARD, A_SEND_CARD, A_SELECT_LEARN_CAT, A_SELECT_SEARCH_CAT, A_PREFERENCES, A_ABOUT, A_APPLY, A_SEARCH, A_PREVIEW, A_QUESTION, A_SHOW, A_REVEAL, A_PROCEED, A_SUSPEND, A_RESUME, A_CHECK_FILE, A_LOGIN, A_HISTOGRAM, A_TABLE, A_RETRIEVE_MTIME, A_MTIME_TEST, A_CARD_TEST, A_TEST_CAT_SELECTED, A_TEST_CAT_VALID, A_TEST_CAT };
+enum Action { A_END, A_NONE, A_FILE, A_WARN_UPLOAD, A_CREATE, A_NEW, A_OPEN_DLG, A_FILELIST, A_OPEN, A_CHANGE_PASSWD, A_WRITE_PASSWD, A_READ_PASSWD, A_CHECK_PASSWORD, A_AUTH_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_CHECK_RESUME, A_SLASH, A_VOID, A_FILE_EXTENSION, A_GATHER, A_UPLOAD, A_UPLOAD_REPORT, A_EXPORT, A_ASK_REMOVE, A_REMOVE, A_ASK_ERASE, A_ERASE, A_CLOSE, A_START_CAT, A_START_DECKS, A_DECKS_CREATE, A_SELECT_CREATE_CAT, A_SELECT_CAT, A_SELECT_DEST_DECK, A_SELECT_SEND_CAT, A_SELECT_ARRANGE, A_CAT_NAME, A_CREATE_CAT, A_RENAME_CAT, A_ASK_DELETE_CAT, A_DELETE_CAT, A_TOGGLE, A_MOVE_CAT, A_SELECT_EDIT_CAT, A_EDIT, A_UPDATE_QA, A_UPDATE_HTML, A_SYNC, A_INSERT, A_APPEND, A_ASK_DELETE_CARD, A_DELETE_CARD, A_PREVIOUS, A_NEXT, A_SCHEDULE, A_SET, A_CARD_ARRANGE, A_MOVE_CARD, A_SEND_CARD, A_SELECT_LEARN_CAT, A_SELECT_SEARCH_CAT, A_PREFERENCES, A_ABOUT, A_APPLY, A_SEARCH, A_PREVIEW, A_QUESTION, A_SHOW, A_REVEAL, A_PROCEED, A_SUSPEND, A_RESUME, A_CHECK_FILE, A_LOGIN, A_HISTOGRAM, A_TABLE, A_RETRIEVE_MTIME, A_MTIME_TEST, A_CARD_TEST, A_TEST_CAT_SELECTED, A_TEST_CAT_VALID, A_TEST_CAT };
 enum Page { P_START, P_FILE, P_PASSWORD, P_NEW, P_OPEN, P_UPLOAD, P_UPLOAD_REPORT, P_EXPORT, P_START_CAT, P_CAT_NAME, P_SELECT_CAT, P_SELECT_ARRANGE, P_SELECT_DEST_DECK, P_SELECT_DECK, P_EDIT, P_PREVIEW, P_SEARCH, P_PREFERENCES, P_ABOUT, P_LEARN, P_MSG, P_HISTOGRAM, P_TABLE };
 enum Block { B_END, B_START_HTML, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_HIDDEN_MOV_CARD, B_CLOSE_DIV, B_START, B_FILE, B_PASSWORD, B_NEW, B_OPEN, B_UPLOAD, B_UPLOAD_REPORT, B_EXPORT, B_START_CAT, B_CAT_NAME, B_SELECT_CAT, B_SELECT_ARRANGE, B_SELECT_DEST_DECK, B_SELECT_DECK, B_EDIT, B_PREVIEW, B_SEARCH, B_PREFERENCES, B_ABOUT, B_LEARN, B_MSG, B_HISTOGRAM, B_TABLE };
 enum Mode { M_NONE = -1, M_DEFAULT, M_CHANGE_PASSWD, M_ASK, M_RATE, M_EDIT, M_LEARN, M_SEARCH, M_SEND, M_MOVE, M_CARD, M_DECK, M_CREATE, M_END };
-enum Sequence { S_FILE, S_START_CAT, S_SELECT_CREATE_CAT, S_SELECT_ARRANGE, S_SELECT_MOVE_ARRANGE, S_CAT_NAME, S_SELECT_EDIT_CAT, S_SELECT_LEARN_CAT, S_SELECT_SEARCH_CAT, S_PREFERENCES, S_ABOUT, S_APPLY, S_NEW, S_FILELIST, S_WARN_UPLOAD, S_UPLOAD, S_LOGIN, S_ENTER, S_CHANGE, S_START, S_UPLOAD_REPORT, S_EXPORT, S_ASK_REMOVE, S_REMOVE, S_ASK_ERASE, S_ERASE, S_CLOSE, S_NONE, S_CREATE, S_GO_LOGIN, S_GO_CHANGE, S_SELECT_RENAME_CAT, S_RENAME_ENTER, S_RENAME_CAT, S_SELECT_MOVE_CAT, S_SELECT_DEST_CAT, S_MOVE_CAT, S_CREATE_CAT, S_SELECT_DELETE_CAT, S_ASK_DELETE_CAT, S_DELETE_CAT, S_SELECT_TOGGLE_CAT, S_TOGGLE, S_EDIT, S_INSERT, S_APPEND, S_ASK_DELETE_CARD, S_DELETE_CARD, S_PREVIOUS, S_NEXT, S_SCHEDULE, S_SET, S_CARD_ARRANGE, S_MOVE_CARD, S_SELECT_SEND_CAT, S_SEND_CARD, S_SEARCH_SYNCED, S_PREVIEW_SYNC, S_QUESTION_SYNCED, S_QUESTION, S_SHOW, S_REVEAL, S_PROCEED, S_SUSPEND, S_RESUME, S_SEARCH, S_HISTOGRAM, S_TABLE, S_END };
+enum Sequence { S_FILE, S_START_CAT, S_START_DECKS, S_DECKS_CREATE, S_SELECT_CREATE_CAT, S_SELECT_ARRANGE, S_SELECT_MOVE_ARRANGE, S_CAT_NAME, S_SELECT_EDIT_CAT, S_SELECT_LEARN_CAT, S_SELECT_SEARCH_CAT, S_PREFERENCES, S_ABOUT, S_APPLY, S_NEW, S_FILELIST, S_WARN_UPLOAD, S_UPLOAD, S_LOGIN, S_ENTER, S_CHANGE, S_START, S_UPLOAD_REPORT, S_EXPORT, S_ASK_REMOVE, S_REMOVE, S_ASK_ERASE, S_ERASE, S_CLOSE, S_NONE, S_CREATE, S_GO_LOGIN, S_GO_CHANGE, S_SELECT_RENAME_CAT, S_RENAME_ENTER, S_RENAME_CAT, S_SELECT_MOVE_CAT, S_SELECT_DEST_CAT, S_MOVE_CAT, S_CREATE_CAT, S_SELECT_DELETE_CAT, S_ASK_DELETE_CAT, S_DELETE_CAT, S_SELECT_TOGGLE_CAT, S_TOGGLE, S_EDIT, S_INSERT, S_APPEND, S_ASK_DELETE_CARD, S_DELETE_CARD, S_PREVIOUS, S_NEXT, S_SCHEDULE, S_SET, S_CARD_ARRANGE, S_MOVE_CARD, S_SELECT_SEND_CAT, S_SEND_CARD, S_SEARCH_SYNCED, S_PREVIEW_SYNC, S_QUESTION_SYNCED, S_QUESTION, S_SHOW, S_REVEAL, S_PROCEED, S_SUSPEND, S_RESUME, S_SEARCH, S_HISTOGRAM, S_TABLE, S_END };
 enum Stage { T_NULL, T_URLENCODE, T_BOUNDARY_INIT, T_CONTENT, T_NAME, T_BOUNDARY_BEGIN, T_BOUNDARY_CHECK };
 
 static enum Action action_seq[S_END+1][14] = {
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_FILELIST, A_FILE, A_END }, // S_FILE
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_START_CAT, A_END }, // S_START_CAT
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_START_DECKS, A_END }, // S_START_DECKS
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_DECKS_CREATE, A_END }, // S_DECKS_CREATE
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_SELECT_CREATE_CAT, A_END }, // S_SELECT_CREATE_CAT
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_TEST_CAT, A_SELECT_ARRANGE, A_END }, // S_SELECT_ARRANGE
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_SELECT_ARRANGE, A_END }, // S_SELECT_MOVE_ARRANGE
@@ -1512,6 +1514,8 @@ int parse_post(struct WebMemorySurfer *wms) {
                       if (e == 0)
                         wms->seq = S_QUESTION;
                     }
+                  else if (strncmp(wms->mult.post_lp, "Decks", 5) == 0)
+                    wms->seq = S_START_DECKS;
                   else if (strncmp(wms->mult.post_lp, "Table", 5) == 0)
                     wms->seq = S_TABLE;
                   else if (strncmp(wms->mult.post_lp, "Apply", 5) == 0)
@@ -1539,7 +1543,9 @@ int parse_post(struct WebMemorySurfer *wms) {
                   if (strncmp(wms->mult.post_lp, "Reveal", 6) == 0)
                     wms->seq = S_REVEAL;
                   else if (strncmp(wms->mult.post_lp, "Create", 6) == 0) {
-                    if (wms->from_page == P_START_CAT)
+                    if (wms->from_page == P_SELECT_DECK)
+                      wms->seq = S_DECKS_CREATE;
+                    else if (wms->from_page == P_START_CAT)
                       wms->seq = S_SELECT_CREATE_CAT;
                     else {
                       e = wms->from_page != P_CAT_NAME;
@@ -1995,7 +2001,6 @@ static int gen_html_cat(int16_t n_create, enum HIERARCHY hierarchy, struct WebMe
   int e;
   int rv;
   char *c_str;
-  char *checked;
   e = 0;
   if (n_create >= 0) {
     if (hierarchy == H_CHILD) {
@@ -2003,7 +2008,6 @@ static int gen_html_cat(int16_t n_create, enum HIERARCHY hierarchy, struct WebMe
       e = rv < 0;
     }
     if (e == 0) {
-      checked = n_create == wms->ms.cat_i ? " checked" : "";
       c_str = sa_get(&wms->ms.cat_sa, n_create);
       e = c_str == NULL;
       if (e == 0) {
@@ -2012,7 +2016,7 @@ static int gen_html_cat(int16_t n_create, enum HIERARCHY hierarchy, struct WebMe
           rv = printf("%s\t<li><label><input type=\"radio\" name=\"cat\" value=\"%d\"%s%s>%s</label>%s\n",
               wms->inds.str,
               n_create,
-              checked,
+              n_create == wms->ms.cat_i ? " checked" : "",
               n_create == wms->ms.mov_cat_i ? " disabled" : "",
               wms->html_lp,
               wms->ms.cat_t[n_create].cat_n_child == -1 ? "</li>" : "");
@@ -2370,7 +2374,7 @@ int inds_set(struct IndentStr *inds, int indent_n, int change_flag) {
     e = indent_n < 0;
     if (e == 0) {
       if (indent_n >= inds->size) {
-        size = (indent_n / 2 + 1) * 2;
+        size = (indent_n / 32 + 1) * 32;
         str = realloc(inds->str, size);
         e = str == NULL;
         if (e == 0) {
@@ -2570,24 +2574,27 @@ static int gen_html(struct WebMemorySurfer *wms) {
       case B_START:
         dis_str = wms->file_title_str != NULL ? "" : " disabled";
         attr_str = wms->ms.n_first != -1 ? "" : " disabled";
-        printf("\t\t\t<h1>Start</h1>\n"
-               "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"File\"></p>\n"
-               "\t\t\t<p><input type=\"submit\" name=\"start_action\" value=\"Categories\"%s></p>\n"
-               "\t\t\t<p><input type=\"submit\" name=\"start_action\" value=\"Edit\"%s></p>\n"
-               "\t\t\t<p><input type=\"submit\" name=\"start_action\" value=\"Learn\"%s></p>\n"
-               "\t\t\t<p><input type=\"submit\" name=\"start_action\" value=\"Search\"%s></p>\n"
-               "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Preferences\"%s></p>\n"
-               "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"About\"></p>\n"
-               "\t\t</form>\n"
-               "\t\t<code class=\"msf\">%s</code>\n"
-               "\t</body>\n"
-               "</html>\n",
-          dis_str,
-          attr_str,
-          attr_str,
-          attr_str,
-          dis_str,
-          sw_info_str);
+        rv = printf("\t\t\t<h1 class=\"msf\">Start</h1>\n"
+                    "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"File\"></p>\n"
+                    "\t\t\t<p><input type=\"submit\" name=\"start_action\" value=\"Categories\"%s></p>\n"
+                    "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Decks\"%s></p>\n"
+                    "\t\t\t<p><input type=\"submit\" name=\"start_action\" value=\"Edit\"%s></p>\n"
+                    "\t\t\t<p><input type=\"submit\" name=\"start_action\" value=\"Learn\"%s></p>\n"
+                    "\t\t\t<p><input type=\"submit\" name=\"start_action\" value=\"Search\"%s></p>\n"
+                    "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Preferences\"%s></p>\n"
+                    "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"About\"></p>\n"
+                    "\t\t</form>\n"
+                    "\t\t<code class=\"msf\">%s</code>\n"
+                    "\t</body>\n"
+                    "</html>\n",
+            dis_str,
+            dis_str,
+            attr_str,
+            attr_str,
+            attr_str,
+            dis_str,
+            sw_info_str);
+        e = rv < 0;
         break;
       case B_FILE:
         if (wms->file_title_str != NULL) {
@@ -2598,7 +2605,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           dis_str = " disabled";
           attr_str = "";
         }
-        rv = printf("\t\t\t<h1>File</h1>\n"
+        rv = printf("\t\t\t<h1 class=\"msf\">File</h1>\n"
                     "\t\t\t<p><input type=\"submit\" name=\"file_action\" value=\"New\"%s></p>\n"
                     "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Open\"%s></p>\n"
                     "\t\t\t<p><input type=\"submit\" name=\"file_action\" value=\"Password\"%s></p>\n"
@@ -2652,7 +2659,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           y = 1;
         }
         assert(wms->mode != M_NONE && header_str != NULL);
-        printf("\t\t\t<h1>%s</h1>\n", header_str);
+        printf("\t\t\t<h1 class=\"msf\">%s</h1>\n", header_str);
         if (notice_str[0] != NULL) printf("\t\t\t<p>%s</p>\n", notice_str[0]);
         if (x != 0) printf("\t\t\t<p><input type=\"text\" name=\"password\" value=\"\" size=25></p>\n");
         if (notice_str[1] != NULL) printf("\t\t\t<p>%s</p>\n", notice_str[1]);
@@ -2689,7 +2696,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
             ext_str = rindex(str, '.');
             assert(ext_str != NULL);
             *ext_str = '\0';
-            printf("\t\t\t<h1>Create a New file</h1>\n"
+            printf("\t\t\t<h1 class=\"msf\">Create a New file</h1>\n"
                    "\t\t\t<p><input type=\"text\" name=\"file-title\" value=\"%s\" size=25>.imsf</p>\n"
                    "\t\t\t<p><input type=\"submit\" name=\"file_action\" value=\"Create\">\n"
                    "\t\t\t<input type=\"submit\" name=\"file_action\" value=\"Stop\"></p>\n"
@@ -2704,7 +2711,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         }
         break;
       case B_OPEN:
-        rv = printf("\t\t\t<h1>Open file</h1>\n"
+        rv = printf("\t\t\t<h1 class=\"msf\">Open file</h1>\n"
                     "\t\t\t<ul class=\"msf\">\n");
         e = rv < 0;
         for (i = 0; e == 0 && i < wms->fl_c; i++) {
@@ -2748,7 +2755,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
                "\t\t\t\t<input type=\"hidden\" name=\"file-title\" value=\"%s\">\n"
                "\t\t\t\t<input type=\"hidden\" name=\"token\" value=\"%s\">\n"
                "\t\t\t</div>\n"
-               "\t\t\t<h1>Upload</h1>\n"
+               "\t\t\t<h1 class=\"msf\">Upload</h1>\n"
                "\t\t\t<p>Choose a (previously exported .XML) File to upload (which will be used for the Import)</p>\n"
                "\t\t\t<p><input type=\"file\" name=\"file_action\"></p>\n"
                "\t\t\t<p><input type=\"submit\" name=\"file_action\" value=\"Upload\">\n"
@@ -2761,7 +2768,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
             wms->tok_str);
         break;
       case B_UPLOAD_REPORT:
-        printf("\t\t\t<h1>XML File imported</h1>\n"
+        printf("\t\t\t<h1 class=\"msf\">XML File imported</h1>\n"
                "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"OK\"></p>\n"
                "\t\t</form>\n"
                "\t\t<code class=\"msf\">%s; chunks=%d, swaps=%d, avg=%d</code>\n"
@@ -2813,7 +2820,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
       case B_START_CAT:
         assert(wms->file_title_str != NULL && strlen(wms->tok_str) == 40);
         dis_str = wms->ms.n_first >= 0 ? "" : " disabled";
-        printf("\t\t\t<h1>Categories</h1>\n"
+        printf("\t\t\t<h1 class=\"msf\">Categories</h1>\n"
                "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Create\"></p>\n"
                "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Rename\"%s></p>\n"
                "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Move\"%s></p>\n"
@@ -2849,7 +2856,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           assert(1);
         }
         assert(strlen(mtime_str) == 16);
-        printf("\t\t\t<h1>Select the category %s</h1>\n",
+        printf("\t\t\t<h1 class=\"msf\">Select the category %s</h1>\n",
           notice_str[0]);
         e = inds_set(&wms->inds, 3, 0);
         if (e == 0) {
@@ -2868,7 +2875,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         break;
       case B_SELECT_ARRANGE:
         assert(wms->file_title_str != NULL && strlen(wms->tok_str) == 40);
-        if (wms->seq == S_SELECT_ARRANGE)
+        if (wms->seq == S_SELECT_ARRANGE || wms->seq == S_DECKS_CREATE)
           submit_str = "Select";
         else if (wms->seq == S_SELECT_MOVE_ARRANGE) {
           assert(wms->ms.mov_cat_i >= 0);
@@ -2877,7 +2884,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           assert(wms->seq == S_CARD_ARRANGE);
           submit_str = "Move";
         }
-        rv = printf("\t\t\t<h1>Select how to arrange</h1>\n"
+        rv = printf("\t\t\t<h1 class=\"msf\">Select how to arrange</h1>\n"
                     "\t\t\t<p>\n");
         e = rv < 0;
         if (e == 0) {
@@ -2905,9 +2912,9 @@ static int gen_html(struct WebMemorySurfer *wms) {
         break;
       case B_CAT_NAME:
         assert(wms->file_title_str != NULL && strlen(wms->tok_str) == 40);
-        if (wms->seq == S_SELECT_CREATE_CAT || wms->seq == S_CAT_NAME) {
+        if (wms->seq == S_SELECT_CREATE_CAT || wms->seq == S_CAT_NAME || wms->seq == S_DECKS_CREATE) {
           header_str = "Enter the name of the category to create.";
-          text_str = wms->ms.cat_name != NULL ? wms->ms.cat_name : "new category name";
+          text_str = wms->ms.cat_name != NULL ? wms->ms.cat_name : "new deck name";
           submit_str = "Create";
         } else {
           assert(wms->seq == S_RENAME_ENTER && wms->ms.cat_i >= 0 && wms->ms.cat_i < wms->ms.cat_a);
@@ -2917,7 +2924,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           submit_str = "Rename";
         }
         if (e == 0) {
-          rv = printf("\t\t\t<h1>%s</h1>\n"
+          rv = printf("\t\t\t<h1 class=\"msf\">%s</h1>\n"
                       "\t\t\t<p><input type=\"text\" name=\"cat_name\" value=\"%s\" size=25></p>\n"
                       "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"%s\">\n"
                       "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Stop\"></p>\n"
@@ -2951,7 +2958,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         }
         if (e == 0) {
           assert(strlen(mtime_str) == 16);
-          rv = printf("\t\t\t<h1>Select the category %s</h1>\n", notice_str[0]);
+          rv = printf("\t\t\t<h1 class=\"msf\">Select the category %s</h1>\n", notice_str[0]);
           e = rv < 0;
           if (e == 0) {
             e = inds_set(&wms->inds, 3, 0);
@@ -2985,29 +2992,49 @@ static int gen_html(struct WebMemorySurfer *wms) {
           case M_SEARCH:
             header_str = "Select a category to search";
             break;
+          case M_DECK:
+            header_str = "Select a deck (if possible) and / or a action";
+            break;
           default:
             e = 0x00264bf0; // WUMSD Web(MemorySurfer) unexpected mode B_SELECT_DECK
             break;
           }
           if (e == 0) {
-            rv = printf("\t\t\t<h1>%s</h1>\n", header_str);
+            rv = printf("\t\t\t<h1 class=\"msf\">%s</h1>\n", header_str);
             e = rv < 0;
             if (e == 0) {
-              e = inds_set(&wms->inds, 3, 0);
+              dis_str = wms->ms.n_first >= 0 ? "" : " disabled";
+              if (wms->mode == M_DECK) {
+                rv = printf("\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Create\">\n"
+                            "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Rename\"%s>\n"
+                            "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Move\"%s>\n"
+                            "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Delete\"%s>\n"
+                            "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Toggle\"%s></p>\n",
+                    " disabled" /* dis_str */,
+                    " disabled" /* dis_str */,
+                    " disabled" /* dis_str */,
+                    " disabled" /* dis_str */);
+                e = rv < 0;
+              }
               if (e == 0) {
-                e = gen_html_cat(wms->ms.n_first, H_CHILD, wms);
-                if (e == 0) {
-                  rv = printf("\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Edit\">\n"
-                              "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Learn\">\n"
-                              "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Search\">\n"
-                              "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Cancel\"></p>\n"
-                              "\t\t</form>\n"
-                              "\t\t<code class=\"msf\">%s</code>\n"
-                              "\t</body>\n"
-                              "</html>\n",
-                      sw_info_str);
-                  e = rv < 0;
-                }
+                e = inds_set(&wms->inds, 3, 0);
+                if (e == 0)
+                  e = gen_html_cat(wms->ms.n_first, H_CHILD, wms);
+              }
+              if (e == 0) {
+                rv = printf("\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Edit\"%s>\n"
+                            "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Learn\"%s>\n"
+                            "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Search\"%s>\n"
+                            "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Cancel\"></p>\n"
+                            "\t\t</form>\n"
+                            "\t\t<code class=\"msf\">%s</code>\n"
+                            "\t</body>\n"
+                            "</html>\n",
+                    dis_str,
+                    dis_str,
+                    dis_str,
+                    sw_info_str);
+                e = rv < 0;
               }
             }
           }
@@ -3019,7 +3046,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         e = xml_escape(&wms->html_lp, &wms->html_n, q_str, ESC_AMP | ESC_LT);
         if (e == 0) {
           assert(strlen(mtime_str) == 16 && wms->file_title_str != NULL && strlen(wms->tok_str) == 40);
-          rv = printf("\t\t\t<h1>Editing</h1>\n"
+          rv = printf("\t\t\t<h1 class=\"msf\">Editing</h1>\n"
                       "\t\t\t<p><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Insert\"%s>Insert</button>\n"
                       "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"edit_action\" value=\"Append\">Append</button>\n"
                       "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"edit_action\" value=\"Delete\"%s>Delete</button>\n"
@@ -3077,8 +3104,8 @@ static int gen_html(struct WebMemorySurfer *wms) {
         if (e == 0) {
           e = xml_escape(&wms->html_lp, &wms->html_n, q_str, (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? 0 : ESC_AMP | ESC_LT);
           if (e == 0) {
-            rv = printf("\t\t\t<h1>Preview</h1>\n"
-                        "\t\t\t<div class=\"msf_qa%s\">%s</div>\n",
+            rv = printf("\t\t\t<h1 class=\"msf\">Preview</h1>\n"
+                        "\t\t\t<div id=\"q\" class=\"qa msf_qa%s\">%s</div>\n",
                 (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? "" : " msf_txt",
                 wms->html_lp);
             e = rv < 0;
@@ -3087,7 +3114,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         if (e == 0) {
           e = xml_escape(&wms->html_lp, &wms->html_n, a_str, (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? 0 : ESC_AMP | ESC_LT);
           if (e == 0) {
-            rv = printf("\t\t\t<div class=\"msf_qa%s\">%s</div>\n",
+            rv = printf("\t\t\t<div id=\"a\" class=\"qa msf_qa%s\">%s</div>\n",
                 (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? "" : " msf_txt",
                 wms->html_lp);
             e = rv < 0;
@@ -3116,7 +3143,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         if (e == 0) {
           assert(wms->file_title_str != NULL && strlen(wms->tok_str) == 40);
           assert(wms->ms.match_case == -1 || wms->ms.match_case == 1);
-          rv = printf("\t\t\t<h1>Searching</h1>\n"
+          rv = printf("\t\t\t<h1 class=\"msf\">Searching</h1>\n"
                       "\t\t\t<p><input type=\"text\" name=\"search-txt\" value=\"%s\" size=25>\n"
                       "\t\t\t\t<label><input type=\"checkbox\" name=\"match-case\"%s>Match Case</label></p>\n",
               wms->html_lp,
@@ -3159,7 +3186,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         break;
       case B_PREFERENCES:
         assert(wms->file_title_str != NULL && strlen(wms->tok_str) == 40);
-        printf("\t\t\t<h1>Preferences</h1>\n"
+        printf("\t\t\t<h1 class=\"msf\">Preferences</h1>\n"
                "\t\t\t<p>Timeout</p>\n"
                "\t\t\t<div>\n");
         j = -1;
@@ -3185,7 +3212,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1>About MemorySurfer v1.0.1.52</h1>\n" 
+        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.53</h1>\n" 
                     "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p>Copyright 2016-2021</p>\n"
                     "\t\t\t<p>Send bugs and suggestions to\n"
@@ -3220,7 +3247,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
               header_str = "Rating";
           }
           if (e == 0) {
-            rv = printf("\t\t\t<h1>%s</h1>\n"
+            rv = printf("\t\t\t<h1 class=\"msf\">%s</h1>\n"
                         "\t\t\t<p><button class=\"msf\" type=\"submit\" name=\"learn_action\" value=\"Proceed\"%s>Proceed</button>\n"
                         "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Show\"%s>Show</button>\n"
                         "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Reveal\"%s>Reveal</button>\n"
@@ -3235,7 +3262,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           if (e == 0) {
             e = xml_escape(&wms->html_lp, &wms->html_n, q_str, (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? 0 : ESC_AMP | ESC_LT);
             if (e == 0) {
-              rv = printf("\t\t\t<div class=\"msf_qa%s\">%s</div>\n"
+              rv = printf("\t\t\t<div id=\"q\" class=\"qa msf_qa%s\">%s</div>\n"
                           "\t\t\t<table>\n",
                   (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? "" : " msf_txt",
                   wms->html_lp);
@@ -3305,9 +3332,9 @@ static int gen_html(struct WebMemorySurfer *wms) {
             e = xml_escape(&wms->html_lp, &wms->html_n, a_str, (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? 0 : ESC_AMP | ESC_LT);
             if (e == 0) {
               rv = printf("\t\t\t</table>\n"
-                          "\t\t\t<div class=\"msf_qa%s%s\">%s</div>\n",
+                          "\t\t\t<div id=\"a\" class=\"qa msf_qa%s%s\">%s</div>\n",
                   (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? "" : " msf_txt",
-                  wms->mode == M_RATE || wms->reveal_pos > 0 ? "" : " msf_hidden",
+                  wms->mode == M_RATE || wms->reveal_pos > 0 ? "" : " msf_covered",
                   wms->mode == M_RATE || wms->reveal_pos > 0 ? wms->html_lp : "");
               e = rv < 0;
             }
@@ -3345,7 +3372,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         }
         if (e == 0) {
           rv = printf("\t\t\t</div>\n"
-                      "\t\t\t<h1>%s</h1>\n",
+                      "\t\t\t<h1 class=\"msf\">%s</h1>\n",
               wms->static_header);
           e = rv < 0;
           if (wms->static_msg != NULL && e == 0) {
@@ -3429,7 +3456,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           if (e == 0) {
             e = imf_info_gaps(&wms->ms.imf);
             if (e == 0) {
-              rv = printf("\t\t\t<h1>Histogram</h1>\n"
+              rv = printf("\t\t\t<h1 class=\"msf\">Histogram</h1>\n"
                           "\t\t\t<p>Retention</p>\n"
                           "\t\t\t<svg viewbox=\"0 0 101 %d\">\n"
                           "\t\t\t\t<path d=\"%s\" />\n"
@@ -3456,7 +3483,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         }
         break;
       case B_TABLE:
-        rv = printf("\t\t\t<h1>Table</h1>\n"
+        rv = printf("\t\t\t<h1 class=\"msf\">Table</h1>\n"
                     "\t\t\t<p>Strength</p>\n"
                     "\t\t\t<table>\n");
         e = rv < 0;
@@ -4568,6 +4595,17 @@ int main(int argc, char *argv[])
             break;
           case A_START_CAT:
             wms->page = P_START_CAT;
+            break;
+          case A_START_DECKS:
+            wms->page = P_SELECT_DECK;
+            wms->mode = M_DECK;
+            break;
+          case A_DECKS_CREATE:
+            if (wms->ms.n_first >= 0) {
+              wms->page = P_SELECT_ARRANGE;
+              wms->mode = M_DECK;
+            } else
+              wms->page = P_CAT_NAME;
             break;
           case A_SELECT_CREATE_CAT:
             if (wms->ms.n_first >= 0) {
