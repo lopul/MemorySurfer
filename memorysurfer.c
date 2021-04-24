@@ -51,7 +51,7 @@ static enum Action action_seq[S_END+1][14] = {
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_DECKS_CREATE, A_END }, // S_DECKS_CREATE
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_SELECT_CREATE_CAT, A_END }, // S_SELECT_CREATE_CAT
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_TEST_CAT, A_SELECT_ARRANGE, A_END }, // S_SELECT_ARRANGE
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_SELECT_ARRANGE, A_END }, // S_SELECT_MOVE_ARRANGE
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT_SELECTED, A_SELECT_ARRANGE, A_END }, // S_SELECT_MOVE_ARRANGE
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_CAT_NAME, A_END }, // S_CAT_NAME
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_SELECT_EDIT_CAT, A_END }, // S_SELECT_EDIT_CAT
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_SELECT_LEARN_CAT, A_END }, // S_SELECT_LEARN_CAT
@@ -79,15 +79,15 @@ static enum Action action_seq[S_END+1][14] = {
   { A_CHECK_FILE, A_GATHER, A_OPEN, A_READ_PASSWD, A_LOGIN, A_END }, // S_GO_LOGIN
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOGIN, A_END }, // S_GO_CHANGE
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_SELECT_CAT, A_END }, // S_SELECT_RENAME_CAT
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_CAT_NAME, A_END }, // S_RENAME_ENTER
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RENAME_CAT, A_END }, // S_RENAME_CAT
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_CAT_NAME, A_END }, // S_RENAME_ENTER
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_RENAME_CAT, A_END }, // S_RENAME_CAT
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_SELECT_CAT, A_END }, // S_SELECT_MOVE_CAT
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_TEST_CAT, A_SELECT_DEST_DECK, A_END }, // S_SELECT_DEST_CAT
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_MOVE_CAT, A_END }, // S_MOVE_CAT
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT, A_SELECT_DEST_DECK, A_END }, // S_SELECT_DEST_CAT
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_MOVE_CAT, A_END }, // S_MOVE_CAT
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_TEST_CAT, A_CREATE_CAT, A_END }, // S_CREATE_CAT
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_SELECT_CAT, A_END }, // S_SELECT_DELETE_CAT
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_TEST_CAT, A_ASK_DELETE_CAT, A_END }, // S_ASK_DELETE_CAT
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_TEST_CAT, A_DELETE_CAT, A_END }, // S_DELETE_CAT
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT, A_ASK_DELETE_CAT, A_END }, // S_ASK_DELETE_CAT
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT, A_DELETE_CAT, A_END }, // S_DELETE_CAT
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_SELECT_CAT, A_END }, // S_SELECT_TOGGLE_CAT
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_TEST_CAT, A_TOGGLE, A_END }, // S_TOGGLE
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_EDIT, A_END }, // S_EDIT
@@ -1451,16 +1451,31 @@ int parse_post(struct WebMemorySurfer *wms) {
                   if (strncmp(wms->mult.post_lp, "Show", 4) == 0)
                     wms->seq = S_SHOW;
                   else if (strncmp(wms->mult.post_lp, "Stop", 4) == 0) {
-                    if (wms->from_page == P_SELECT_ARRANGE && wms->saved_mode == M_CARD)
-                      wms->seq = S_EDIT;
-                    else if (wms->from_page == P_SELECT_DEST_DECK) {
-                      wms->ms.cat_i = wms->ms.mov_cat_i;
-                      wms->ms.card_i = wms->ms.mov_card_i;
-                      wms->seq = S_EDIT;
-                    } else if (wms->from_page == P_PREVIEW)
-                      wms->seq = S_SELECT_EDIT_CAT;
-                    else
-                      wms->seq = S_START_CAT;
+                    if (wms->from_page == P_SELECT_ARRANGE) {
+                      if (wms->saved_mode == M_CARD)
+                        wms->seq = S_EDIT;
+                      else
+                        wms->seq = S_START_DECKS;
+                    } else if (wms->from_page == P_SELECT_DEST_DECK) {
+                      if (wms->saved_mode == M_SEND) {
+                        wms->ms.cat_i = wms->ms.mov_cat_i;
+                        wms->ms.card_i = wms->ms.mov_card_i;
+                        wms->seq = S_EDIT;
+                      } else {
+                        e = wms->saved_mode != M_MOVE;
+                        if (e == 0) {
+                          wms->ms.cat_i = wms->ms.mov_cat_i;
+                          wms->ms.mov_cat_i = -1;
+                          wms->seq = S_START_DECKS;
+                        }
+                      }
+                    } else if (wms->from_page == P_CAT_NAME)
+                      wms->seq = S_START_DECKS;
+                    else {
+                      e = wms->from_page != P_PREVIEW;
+                      if (e == 0)
+                        wms->seq = S_SELECT_EDIT_CAT;
+                    }
                   }
                   else if (strncmp(wms->mult.post_lp, "Edit", 4) == 0)
                     wms->seq = S_EDIT;
@@ -1474,7 +1489,9 @@ int parse_post(struct WebMemorySurfer *wms) {
                     }
                   }
                   else if (strncmp(wms->mult.post_lp, "Move", 4) == 0) {
-                    if (wms->from_page == P_START_CAT)
+                    if (wms->from_page == P_SELECT_DECK)
+                      wms->seq = S_SELECT_DEST_CAT;
+                    else if (wms->from_page == P_START_CAT)
                       wms->seq = S_SELECT_MOVE_CAT;
                     else if (wms->from_page == P_SELECT_CAT)
                       wms->seq = S_SELECT_DEST_CAT;
@@ -1579,7 +1596,9 @@ int parse_post(struct WebMemorySurfer *wms) {
                     }
                   }
                   else if (strncmp(wms->mult.post_lp, "Delete", 6) == 0) {
-                    if (wms->from_page == P_START_CAT)
+                    if (wms->from_page == P_SELECT_DECK)
+                        wms->seq = S_ASK_DELETE_CAT;
+                    else if (wms->from_page == P_START_CAT)
                       wms->seq = S_SELECT_DELETE_CAT;
                     else if (wms->from_page == P_MSG) {
                       e = wms->todo_main == -1;
@@ -1593,7 +1612,9 @@ int parse_post(struct WebMemorySurfer *wms) {
                     }
                   }
                   else if (strncmp(wms->mult.post_lp, "Rename", 6) == 0) {
-                    if (wms->from_page == P_START_CAT)
+                    if (wms->from_page == P_SELECT_DECK)
+                      wms->seq = S_RENAME_ENTER;
+                    else if (wms->from_page == P_START_CAT)
                       wms->seq = S_SELECT_RENAME_CAT;
                     else if (wms->from_page == P_SELECT_CAT)
                       wms->seq = S_RENAME_ENTER;
@@ -1611,6 +1632,8 @@ int parse_post(struct WebMemorySurfer *wms) {
                   else if (strncmp(wms->mult.post_lp, "Toggle", 6) == 0)
                     if (wms->from_page == P_START_CAT)
                       wms->seq = S_SELECT_TOGGLE_CAT;
+                    else if (wms->from_page == P_SELECT_DECK)
+                      wms->seq = S_TOGGLE;
                     else {
                       e = wms->from_page != P_SELECT_CAT;
                       if (e == 0)
@@ -1995,7 +2018,46 @@ static int xml_escape(char **xml_str_ptr, size_t *xml_n_ptr, char *str_text, int
 
 enum HIERARCHY { H_CHILD, H_SIBLING };
 
-int inds_set(struct IndentStr *inds, int indent_n, int change_flag);
+static int inds_set(struct IndentStr *inds, int indent_n, int change_flag) {
+  int e;
+  char *str;
+  size_t size;
+  int i;
+  e = inds->indent_n == -1 && change_flag != 0;
+  if (e == 0) {
+    if (change_flag > 0) {
+      indent_n = inds->indent_n + indent_n;
+    } else if (change_flag < 0) {
+      indent_n = inds->indent_n - indent_n;
+    }
+    e = indent_n < 0;
+    if (e == 0) {
+      if (indent_n >= inds->size) {
+        size = (indent_n / 32 + 1) * 32;
+        str = realloc(inds->str, size);
+        e = str == NULL;
+        if (e == 0) {
+          inds->str = str;
+          inds->size = size;
+        }
+      }
+      if (e == 0) {
+        if (inds->indent_n == -1) {
+          inds->indent_n = 0;
+        }
+        if (inds->indent_n < indent_n) {
+          for (i = inds->indent_n; i < indent_n; i++)
+            inds->str[i] = '\t';
+          inds->str[i] = '\0';
+        } else {
+          inds->str[indent_n] = '\0';
+        }
+        inds->indent_n = indent_n;
+      }
+    }
+  }
+  return e;
+}
 
 static int gen_html_cat(int16_t n_create, enum HIERARCHY hierarchy, struct WebMemorySurfer *wms) {
   int e;
@@ -2359,47 +2421,6 @@ static time_t lvl_s[21] = { // level strength
   630720000 // 20Y (20)
 };
 
-int inds_set(struct IndentStr *inds, int indent_n, int change_flag) {
-  int e;
-  char *str;
-  size_t size;
-  int i;
-  e = inds->indent_n == -1 && change_flag != 0;
-  if (e == 0) {
-    if (change_flag > 0) {
-      indent_n = inds->indent_n + indent_n;
-    } else if (change_flag < 0) {
-      indent_n = inds->indent_n - indent_n;
-    }
-    e = indent_n < 0;
-    if (e == 0) {
-      if (indent_n >= inds->size) {
-        size = (indent_n / 32 + 1) * 32;
-        str = realloc(inds->str, size);
-        e = str == NULL;
-        if (e == 0) {
-          inds->str = str;
-          inds->size = size;
-        }
-      }
-      if (e == 0) {
-        if (inds->indent_n == -1) {
-          inds->indent_n = 0;
-        }
-        if (inds->indent_n < indent_n) {
-          for (i = inds->indent_n; i < indent_n; i++)
-            inds->str[i] = '\t';
-          inds->str[i] = '\0';
-        } else {
-          inds->str[indent_n] = '\0';
-        }
-        inds->indent_n = indent_n;
-      }
-    }
-  }
-  return e;
-}
-
 static int gen_html(struct WebMemorySurfer *wms) {
   int e;
   int rv;
@@ -2576,7 +2597,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         attr_str = wms->ms.n_first != -1 ? "" : " disabled";
         rv = printf("\t\t\t<h1 class=\"msf\">Start</h1>\n"
                     "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"File\"></p>\n"
-                    "\t\t\t<p><input type=\"submit\" name=\"start_action\" value=\"Categories\"%s></p>\n"
+                 /* "\t\t\t<p><input type=\"submit\" name=\"start_action\" value=\"Categories\"%s></p>\n" */
                     "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Decks\"%s></p>\n"
                     "\t\t\t<p><input type=\"submit\" name=\"start_action\" value=\"Edit\"%s></p>\n"
                     "\t\t\t<p><input type=\"submit\" name=\"start_action\" value=\"Learn\"%s></p>\n"
@@ -2587,7 +2608,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
                     "\t\t<code class=\"msf\">%s</code>\n"
                     "\t</body>\n"
                     "</html>\n",
-            dis_str,
+         /* dis_str, */
             dis_str,
             attr_str,
             attr_str,
@@ -2875,17 +2896,21 @@ static int gen_html(struct WebMemorySurfer *wms) {
         break;
       case B_SELECT_ARRANGE:
         assert(wms->file_title_str != NULL && strlen(wms->tok_str) == 40);
-        if (wms->seq == S_SELECT_ARRANGE || wms->seq == S_DECKS_CREATE)
+        if (wms->seq == S_SELECT_ARRANGE || wms->seq == S_DECKS_CREATE) {
           submit_str = "Select";
-        else if (wms->seq == S_SELECT_MOVE_ARRANGE) {
+          text_str = "the deck to create";
+        } else if (wms->seq == S_SELECT_MOVE_ARRANGE) {
           assert(wms->ms.mov_cat_i >= 0);
           submit_str = "Move";
+          text_str = "the deck to move";
         } else {
           assert(wms->seq == S_CARD_ARRANGE);
           submit_str = "Move";
+          text_str = "the card to move";
         }
-        rv = printf("\t\t\t<h1 class=\"msf\">Select how to arrange</h1>\n"
-                    "\t\t\t<p>\n");
+        rv = printf("\t\t\t<h1 class=\"msf\">Select how to arrange %s</h1>\n"
+                    "\t\t\t<p>\n",
+            text_str);
         e = rv < 0;
         if (e == 0) {
           for (i = 0; i < 3 && e == 0; i++)
@@ -2913,12 +2938,12 @@ static int gen_html(struct WebMemorySurfer *wms) {
       case B_CAT_NAME:
         assert(wms->file_title_str != NULL && strlen(wms->tok_str) == 40);
         if (wms->seq == S_SELECT_CREATE_CAT || wms->seq == S_CAT_NAME || wms->seq == S_DECKS_CREATE) {
-          header_str = "Enter the name of the category to create.";
+          header_str = "Enter the name of the deck to create.";
           text_str = wms->ms.cat_name != NULL ? wms->ms.cat_name : "new deck name";
           submit_str = "Create";
         } else {
           assert(wms->seq == S_RENAME_ENTER && wms->ms.cat_i >= 0 && wms->ms.cat_i < wms->ms.cat_a);
-          header_str = "Enter the name to rename the category to.";
+          header_str = "Enter the name to rename the deck to.";
           text_str = sa_get(&wms->ms.cat_sa, wms->ms.cat_i);
           e = text_str == NULL;
           submit_str = "Rename";
@@ -3010,10 +3035,10 @@ static int gen_html(struct WebMemorySurfer *wms) {
                             "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Move\"%s>\n"
                             "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Delete\"%s>\n"
                             "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Toggle\"%s></p>\n",
-                    " disabled" /* dis_str */,
-                    " disabled" /* dis_str */,
-                    " disabled" /* dis_str */,
-                    " disabled" /* dis_str */);
+                    dis_str,
+                    dis_str,
+                    dis_str,
+                    dis_str);
                 e = rv < 0;
               }
               if (e == 0) {
@@ -3212,7 +3237,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.53</h1>\n" 
+        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.54</h1>\n" 
                     "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p>Copyright 2016-2021</p>\n"
                     "\t\t\t<p>Send bugs and suggestions to\n"
@@ -3458,7 +3483,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
             if (e == 0) {
               rv = printf("\t\t\t<h1 class=\"msf\">Histogram</h1>\n"
                           "\t\t\t<p>Retention</p>\n"
-                          "\t\t\t<svg viewbox=\"0 0 101 %d\">\n"
+                          "\t\t\t<svg class=\"msf\" viewbox=\"0 0 101 %d\">\n"
                           "\t\t\t\t<path d=\"%s\" />\n"
                           "\t\t\t</svg>\n"
                           "\t\t\t<p><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Edit\">Edit</button>\n"
@@ -4388,10 +4413,17 @@ int main(int argc, char *argv[])
           case A_TEST_CAT_SELECTED:
             e = wms->ms.cat_i < 0;
             if (e == 1) {
-              wms->static_header = "Please select a category to learn";
-              wms->static_btn_main = "OK";
-              wms->todo_main = S_SELECT_LEARN_CAT;
-              wms->page = P_MSG;
+              if (wms->from_page == P_LEARN) {
+                wms->static_header = "Please select a category to learn";
+                wms->static_btn_main = "OK";
+                wms->todo_main = S_SELECT_LEARN_CAT;
+                wms->page = P_MSG;
+              } else if (wms->from_page == P_SELECT_DEST_DECK) {
+                wms->static_header = "No deck selected";
+                wms->static_btn_main = "OK";
+                wms->todo_main = S_START_DECKS;
+                wms->page = P_MSG;
+              }
             }
             break;
           case A_TEST_CAT_VALID:
@@ -4427,7 +4459,8 @@ int main(int argc, char *argv[])
                   wms->static_header = "Please select a category to delete";
                   wms->todo_main = S_SELECT_DELETE_CAT;
                 }
-              }
+              } else if (wms->from_page == P_SELECT_DECK)
+                wms->todo_main = S_START_DECKS;
             }
             break;
           case A_SLASH:
@@ -4741,7 +4774,8 @@ int main(int argc, char *argv[])
                               e = imf_sync(&wms->ms.imf);
                               if (e == 0) {
                                 wms->ms.cat_i = cat_i;
-                                wms->page = P_START_CAT;
+                                wms->page = P_SELECT_DECK;
+                                wms->mode = M_DECK;
                               }
                             }
                           }
@@ -4773,23 +4807,25 @@ int main(int argc, char *argv[])
               e = imf_put(&wms->ms.imf, SA_INDEX, wms->ms.cat_sa.sa_d, data_size);
               if (e == 0) {
                 e = imf_sync(&wms->ms.imf);
-                if (e == 0)
-                  wms->page = P_START_CAT;
+                if (e == 0) {
+                  wms->page = P_SELECT_DECK;
+                  wms->mode = M_DECK;
+                }
               }
             }
             break;
           case A_ASK_DELETE_CAT:
             assert(wms->ms.cat_t[wms->ms.cat_i].cat_used != 0);
             if (wms->ms.cat_t[wms->ms.cat_i].cat_n_child == -1) {
-              wms->static_header = "Delete Category?";
+              wms->static_header = "Delete Deck?";
               wms->static_btn_main = "Delete";
               wms->static_btn_alt = "Cancel";
               wms->todo_main = S_DELETE_CAT;
-              wms->todo_alt = S_START_CAT;
+              wms->todo_alt = S_START_DECKS;
               wms->page = P_MSG;
             }
             else {
-              wms->static_header = "A category to delete must be a leaf";
+              wms->static_header = "A Deck to delete must be a leaf";
               wms->static_btn_main = "OK";
               wms->todo_main = S_SELECT_DELETE_CAT;
               wms->page = P_MSG;
@@ -4838,7 +4874,8 @@ int main(int argc, char *argv[])
                 e = imf_sync(&wms->ms.imf);
                 if (e == 0) {
                   wms->ms.cat_i = -1;
-                  wms->page = P_START_CAT;
+                  wms->page = P_SELECT_DECK;
+                  wms->mode = M_DECK;
                 }
               }
             }
@@ -4850,8 +4887,10 @@ int main(int argc, char *argv[])
             e = imf_put(&wms->ms.imf, C_INDEX, wms->ms.cat_t, data_size);
             if (e == 0) {
               e = imf_sync(&wms->ms.imf);
-              if (e == 0)
-                wms->page = P_START_CAT;
+              if (e == 0) {
+                  wms->page = P_SELECT_DECK;
+                  wms->mode = M_DECK;
+              }
             }
             break;
           case A_MOVE_CAT:
@@ -4940,7 +4979,9 @@ int main(int argc, char *argv[])
                   e = imf_sync (&wms->ms.imf);
                   if (e == 0) {
                     wms->ms.cat_i = wms->ms.mov_cat_i;
-                    wms->page = P_START_CAT;
+                    wms->ms.mov_cat_i = -1;
+                    wms->page = P_SELECT_DECK;
+                    wms->mode = M_DECK;
                   }
                 }
               }

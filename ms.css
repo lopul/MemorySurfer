@@ -80,9 +80,10 @@ button.msf {
 	min-width: 10.0ex;
 }
 
-svg {
-	width: 100%;
+svg.msf {
+	width: 98%;
 	max-width: 50ex;
+	background-color: #c0c0c040;
 }
 
 p {
