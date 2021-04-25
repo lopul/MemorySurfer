@@ -3062,7 +3062,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
                           "\t\t\t\t<label><input type=\"checkbox\" name=\"is-html\"%s>HTML</label></p>\n",
                   a_str != NULL ? "" : " disabled",
                   wms->html_lp,
-                  (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? " checked" : "");
+                  wms->ms.card_i >= 0 && wms->ms.card_a > 0 && wms->ms.card_i < wms->ms.card_a && (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? " checked" : "");
               e = rv < 0;
               if (e == 0) {
                 imf_info_swaps(&wms->ms.imf);
@@ -3195,7 +3195,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.56</h1>\n" 
+        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.57</h1>\n" 
                     "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p>Copyright 2016-2021</p>\n"
                     "\t\t\t<p>Send bugs and suggestions to\n"
@@ -4992,7 +4992,7 @@ int main(int argc, char *argv[])
             }
             break;
           case A_UPDATE_HTML:
-            if (((wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0) != (wms->ms.is_html > 0)) {
+            if (wms->ms.card_i >= 0 && (((wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0) != (wms->ms.is_html > 0))) {
               wms->ms.card_l[wms->ms.card_i].card_state = (wms->ms.card_l[wms->ms.card_i].card_state & 0x07) | (wms->ms.is_html > 0) << 3;
               data_size = wms->ms.card_a * sizeof(struct Card);
               index = wms->ms.cat_t[wms->ms.cat_i].cat_cli;
