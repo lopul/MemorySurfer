@@ -76,9 +76,9 @@ static enum Action action_seq[S_END+1][14] = {
   { A_CHECK_FILE, A_GATHER, A_OPEN, A_READ_PASSWD, A_LOGIN, A_END }, // S_GO_LOGIN
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOGIN, A_END }, // S_GO_CHANGE
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT_SELECTED, A_CAT_NAME, A_END }, // S_RENAME_ENTER
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_RENAME_CAT, A_END }, // S_RENAME_CAT
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT, A_TEST_NAME, A_RENAME_CAT, A_END }, // S_RENAME_CAT
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT, A_SELECT_DEST_DECK, A_END }, // S_SELECT_DEST_CAT
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_MOVE_CAT, A_END }, // S_MOVE_CAT
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT, A_TEST_ARRANGE, A_MOVE_CAT, A_END }, // S_MOVE_CAT
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT, A_TEST_ARRANGE, A_TEST_NAME, A_CREATE_CAT, A_END }, // S_CREATE_CAT
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT, A_ASK_DELETE_CAT, A_END }, // S_ASK_DELETE_CAT
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT, A_DELETE_CAT, A_END }, // S_DELETE_CAT
@@ -3140,7 +3140,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.59</h1>\n" 
+        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.60</h1>\n" 
                     "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p>Copyright 2016-2021</p>\n"
                     "\t\t\t<p>Send bugs and suggestions to\n"
@@ -4365,7 +4365,7 @@ int main(int argc, char *argv[])
             else
               e = wms->ms.arrange != -1 || wms->ms.n_first != -1;
             if (e) {
-              wms->static_header = "Please select how to arrange the new category";
+              wms->static_header = "Please select how to arrange the deck";
               wms->static_btn_main = "OK";
               wms->todo_main = S_START_DECKS;
               wms->page = P_MSG;
@@ -4378,7 +4378,7 @@ int main(int argc, char *argv[])
               e = len == 0;
             }
             if (e) {
-              wms->static_header = "Please enter a name for the new category";
+              wms->static_header = "Please enter a name for the deck";
               wms->static_btn_main = "OK";
               wms->todo_main = S_START_DECKS;
               wms->page = P_MSG;
@@ -4662,7 +4662,7 @@ int main(int argc, char *argv[])
                         }
                         break;
                       default:
-                        e = -1;
+                        e = 0x000066ec; // WCIA Web(MemorySurfer) A_CREATE_CAT invalid arrange (value)
                       }
                       if (e == 0) {
                         wms->ms.cat_t[cat_i].cat_used = 1;
@@ -4823,7 +4823,6 @@ int main(int argc, char *argv[])
                 }
                 else
                   wms->ms.n_first = wms->ms.cat_t[wms->ms.mov_cat_i].cat_n_sibling;
-                assert (wms->ms.arrange != -1);
                 switch (wms->ms.arrange)
                 {
                 case 0: // Before
@@ -4861,16 +4860,21 @@ int main(int argc, char *argv[])
                   wms->ms.cat_t[wms->ms.mov_cat_i].cat_n_sibling = wms->ms.cat_t[wms->ms.cat_i].cat_n_sibling;
                   wms->ms.cat_t[wms->ms.cat_i].cat_n_sibling = wms->ms.mov_cat_i;
                   break;
+                default:
+                  e = 0x000ad43b; // WMAIA Web(MemorySurfer) main assert invalid arrange (value)
+                  break;
                 }
-                data_size = sizeof (struct Category) * wms->ms.cat_a;
-                e = imf_put (&wms->ms.imf, C_INDEX, wms->ms.cat_t, data_size);
                 if (e == 0) {
-                  e = imf_sync (&wms->ms.imf);
+                  data_size = sizeof (struct Category) * wms->ms.cat_a;
+                  e = imf_put (&wms->ms.imf, C_INDEX, wms->ms.cat_t, data_size);
                   if (e == 0) {
-                    wms->ms.cat_i = wms->ms.mov_cat_i;
-                    wms->ms.mov_cat_i = -1;
-                    wms->page = P_SELECT_DECK;
-                    wms->mode = M_START;
+                    e = imf_sync (&wms->ms.imf);
+                    if (e == 0) {
+                      wms->ms.cat_i = wms->ms.mov_cat_i;
+                      wms->ms.mov_cat_i = -1;
+                      wms->page = P_SELECT_DECK;
+                      wms->mode = M_START;
+                    }
                   }
                 }
               }
