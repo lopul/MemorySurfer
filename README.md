@@ -6,6 +6,7 @@ A program (cgi-bin) to memorize (text- or HTML-based) flashcards. (Runs in a web
 
 ![slideshow](slideshow.gif)
 ![slideshow](slideshow-reveal.gif)
+![Image](mathml.png "MathML")
 
 Some screenshots could be viewed
 [here](https://www.lorenz-pullwitt.de/MemorySurfer/en/screenshots.html "screenshots").
