@@ -269,7 +269,7 @@ struct WebMemorySurfer {
   int lvl_bucket[2][21]; // 0 = total, 1 = eligible
   uint8_t tok_digest[SHA1_HASH_SIZE];
   char tok_str[41];
-  struct IndentStr inds;
+  struct IndentStr *inds;
 };
 
 static int append_part(struct WebMemorySurfer *wms)
@@ -1941,7 +1941,7 @@ static int xml_escape(char **xml_str_ptr, size_t *xml_n_ptr, char *str_text, int
       switch (ch)
       {
       case '&':
-        if ((escape_mask & ESC_AMP) != 0) {
+        if (escape_mask & ESC_AMP) {
           (*xml_str_ptr)[dest++] = '&';
           (*xml_str_ptr)[dest++] = 'a';
           (*xml_str_ptr)[dest++] = 'm';
@@ -1952,7 +1952,7 @@ static int xml_escape(char **xml_str_ptr, size_t *xml_n_ptr, char *str_text, int
           (*xml_str_ptr)[dest++] = '&';
         break;
       case '<':
-        if ((escape_mask & ESC_LT) != 0) {
+        if (escape_mask & ESC_LT) {
           (*xml_str_ptr)[dest++] = '&';
           (*xml_str_ptr)[dest++] = 'l';
           (*xml_str_ptr)[dest++] = 't';
@@ -1962,7 +1962,7 @@ static int xml_escape(char **xml_str_ptr, size_t *xml_n_ptr, char *str_text, int
           (*xml_str_ptr)[dest++] = '<';
         break;
       case '"':
-        if ((escape_mask & ESC_QUOT) != 0) {
+        if (escape_mask & ESC_QUOT) {
           (*xml_str_ptr)[dest++] = '&';
           (*xml_str_ptr)[dest++] = 'q';
           (*xml_str_ptr)[dest++] = 'u';
@@ -2032,7 +2032,7 @@ static int gen_html_cat(int16_t n_create, enum HIERARCHY hierarchy, struct WebMe
   e = 0;
   if (n_create >= 0) {
     if (hierarchy == H_CHILD) {
-      rv = printf("%s<ul class=\"msf\">\n", wms->inds.str);
+      rv = printf("%s<ul class=\"msf\">\n", wms->inds->str);
       e = rv < 0;
     }
     if (e == 0) {
@@ -2042,7 +2042,7 @@ static int gen_html_cat(int16_t n_create, enum HIERARCHY hierarchy, struct WebMe
         e = xml_escape(&wms->html_lp, &wms->html_n, c_str, ESC_AMP | ESC_LT);
         if (e == 0) {
           rv = printf("%s\t<li><label><input type=\"radio\" name=\"cat\" value=\"%d\"%s%s>%s</label>%s\n",
-              wms->inds.str,
+              wms->inds->str,
               n_create,
               n_create == wms->ms.cat_i ? " checked" : "",
               n_create == wms->ms.mov_cat_i ? " disabled" : "",
@@ -2052,18 +2052,18 @@ static int gen_html_cat(int16_t n_create, enum HIERARCHY hierarchy, struct WebMe
           if (e == 0) {
             if (wms->ms.cat_t[n_create].cat_n_child != -1) {
               if (wms->ms.cat_t[n_create].cat_x != 0) {
-                e = inds_set(&wms->inds, 2, 1);
+                e = inds_set(wms->inds, 2, 1);
                 if (e == 0) {
                   e = gen_html_cat(wms->ms.cat_t[n_create].cat_n_child, H_CHILD, wms);
                   if (e == 0)
-                    e = inds_set(&wms->inds, 2, -1);
+                    e = inds_set(wms->inds, 2, -1);
                 }
               } else {
-                rv = printf("%s\t\t...\n", wms->inds.str);
+                rv = printf("%s\t\t...\n", wms->inds->str);
                 e = rv < 0;
               }
               if (e == 0) {
-                rv = printf("%s\t</li>\n", wms->inds.str);
+                rv = printf("%s\t</li>\n", wms->inds->str);
                 e = rv < 0;
               }
             }
@@ -2072,7 +2072,7 @@ static int gen_html_cat(int16_t n_create, enum HIERARCHY hierarchy, struct WebMe
                   e = gen_html_cat(wms->ms.cat_t[n_create].cat_n_sibling, H_SIBLING, wms);
               if (e == 0) {
                 if (hierarchy == H_CHILD) {
-                  rv = printf("%s</ul>\n", wms->inds.str);
+                  rv = printf("%s</ul>\n", wms->inds->str);
                   e = rv < 0;
                 }
               }
@@ -2176,27 +2176,9 @@ static void set_time_str(char *time_str, time_t time_set) {
 
 struct XmlGenerator {
   FILE *w_stream; // write
-  int indent;
-  char indent_str[32];
   char *w_lineptr;
   size_t w_n;
 };
-
-void set_indent (char *indent_str, int indent, size_t max_size)
-{
-  size_t size;
-  if (indent >= 0)
-  {
-    size = 2 + indent;
-    if (size > max_size)
-    {
-      indent = max_size - 2;
-    }
-    indent_str[0] = '\n';
-    memset (indent_str + 1, '\t', indent);
-    indent_str[1 + indent] = '\0';
-  }
-}
 
 static void sa_init(struct StringArray *sa) {
   sa->sa_c = 0;
@@ -2205,16 +2187,16 @@ static void sa_init(struct StringArray *sa) {
   assert(sizeof(char) == 1);
 }
 
-static void sa_free (struct StringArray *sa)
-{
+static void sa_free(struct StringArray *sa) {
   sa->sa_c = 0;
-  free (sa->sa_d);
+  free(sa->sa_d);
   sa->sa_d = NULL;
   sa->sa_n = 0;
 }
 
-static int gen_xml_category (int16_t cat_i, struct XmlGenerator *xg, struct MemorySurfer *ms) {
+static int gen_xml_category(int16_t cat_i, struct XmlGenerator *xg, struct MemorySurfer *ms, struct IndentStr *inds) {
   int e;
+  int rv;
   struct Category *cat_ptr;
   char *c_str;
   int32_t data_size;
@@ -2226,94 +2208,95 @@ static int gen_xml_category (int16_t cat_i, struct XmlGenerator *xg, struct Memo
   struct tm bd_time; // broken-down
   time_t card_time;
   char time_str[20]; // 1971-01-01T00:00:00
-  int rv;
   char strength_str[16];
   char state_ch;
   char *q_str;
   char *a_str;
-  e = fprintf (xg->w_stream, "%s<deck>", xg->indent_str) <= 0;
-  if (e == 0)
-  {
-    xg->indent++;
-    set_indent (xg->indent_str, xg->indent, sizeof (xg->indent_str));
-    e = fprintf (xg->w_stream, "%s<name>", xg->indent_str) <= 0;
-    if (e == 0)
-    {
-      cat_ptr = ms->cat_t + cat_i;
-      c_str = sa_get(&ms->cat_sa, cat_i);
-      e = c_str == NULL;
-      if (e == 0) {
-        e = xml_escape(&xg->w_lineptr, &xg->w_n, c_str, ESC_AMP | ESC_LT);
-        if (e == 0)
-        {
-          e = fprintf (xg->w_stream, "%s</name>", xg->w_lineptr) <= 0;
+  rv = fprintf(xg->w_stream, "\n%s<deck>", inds->str);
+  e = rv < 0;
+  if (e == 0) {
+    e = inds_set(inds, 1, 1);
+    if (e == 0) {
+      e = fprintf (xg->w_stream, "\n%s<name>", inds->str) <= 0;
+      if (e == 0)
+      {
+        cat_ptr = ms->cat_t + cat_i;
+        c_str = sa_get(&ms->cat_sa, cat_i);
+        e = c_str == NULL;
+        if (e == 0) {
+          e = xml_escape(&xg->w_lineptr, &xg->w_n, c_str, ESC_AMP | ESC_LT);
           if (e == 0)
           {
-            data_size = imf_get_size (&ms->imf, cat_ptr->cat_cli);
-            card_l = malloc (data_size);
-            e = card_l == NULL;
+            e = fprintf (xg->w_stream, "%s</name>", xg->w_lineptr) <= 0;
             if (e == 0)
             {
-              e = imf_get (&ms->imf, cat_ptr->cat_cli, card_l);
+              data_size = imf_get_size (&ms->imf, cat_ptr->cat_cli);
+              card_l = malloc (data_size);
+              e = card_l == NULL;
               if (e == 0)
               {
-                sa_init(&card_sa);
-                card_a = data_size / sizeof (struct Card);
-                card_i = 0;
-                while ((card_i < card_a) && (e == 0))
+                e = imf_get (&ms->imf, cat_ptr->cat_cli, card_l);
+                if (e == 0)
                 {
-                  card_ptr = card_l + card_i;
-                  e = sa_load (&card_sa, &ms->imf, card_ptr->card_qai);
-                  if (e == 0)
+                  sa_init(&card_sa);
+                  card_a = data_size / sizeof (struct Card);
+                  card_i = 0;
+                  while ((card_i < card_a) && (e == 0))
                   {
-                    e = fprintf (xg->w_stream, "%s<card>", xg->indent_str) <= 0;
+                    card_ptr = card_l + card_i;
+                    e = sa_load (&card_sa, &ms->imf, card_ptr->card_qai);
                     if (e == 0)
                     {
-                      xg->indent++;
-                      set_indent (xg->indent_str, xg->indent, sizeof (xg->indent_str));
-                      e = fprintf (xg->w_stream, "%s<time>", xg->indent_str) <= 0;
-                      if (e == 0)
-                      {
-                        memset (&bd_time, 0, sizeof (bd_time));
-                        assert ((card_ptr->card_time < INT32_MAX) || (sizeof (card_time) == 8));
-                        card_time = card_ptr->card_time;
-                        e = gmtime_r(&card_time, &bd_time) == NULL;
+                      e = fprintf (xg->w_stream, "\n%s<card>", inds->str) <= 0;
+                      if (e == 0) {
+                        e = inds_set(inds, 1, 1);
                         if (e == 0) {
-                          bd_time.tm_mon += 1;
-                          bd_time.tm_year += 1900;
-                          rv = snprintf(time_str, sizeof(time_str), "%4d-%02d-%02dT%02d:%02d:%02d",
-                              bd_time.tm_year, bd_time.tm_mon, bd_time.tm_mday,
-                              bd_time.tm_hour, bd_time.tm_min, bd_time.tm_sec);
-                          e = rv != 19;
+                          e = fprintf (xg->w_stream, "\n%s<time>", inds->str) <= 0;
                           if (e == 0)
                           {
-                            e = fprintf (xg->w_stream, "%s</time>%s<strength>", time_str, xg->indent_str) <= 0;
-                            if (e == 0)
-                            {
-                              rv = snprintf(strength_str, sizeof(strength_str), "%d", card_ptr->card_strength);
-                              e = rv < 0 || rv >= sizeof(strength_str);
-                              if (e == 0) {
-                                state_ch = (card_ptr->card_state & 0x07) + '0';
-                                e = fprintf(xg->w_stream, "%s</strength>%s<state>%c</state>%s<question>",
-                                    strength_str, xg->indent_str, state_ch, xg->indent_str) <= 0;
-                                if (e == 0) {
-                                  q_str = sa_get(&card_sa, 0);
-                                  e = q_str == NULL;
+                            memset (&bd_time, 0, sizeof (bd_time));
+                            assert ((card_ptr->card_time < INT32_MAX) || (sizeof (card_time) == 8));
+                            card_time = card_ptr->card_time;
+                            e = gmtime_r(&card_time, &bd_time) == NULL;
+                            if (e == 0) {
+                              bd_time.tm_mon += 1;
+                              bd_time.tm_year += 1900;
+                              rv = snprintf(time_str, sizeof(time_str), "%4d-%02d-%02dT%02d:%02d:%02d",
+                                  bd_time.tm_year, bd_time.tm_mon, bd_time.tm_mday,
+                                  bd_time.tm_hour, bd_time.tm_min, bd_time.tm_sec);
+                              e = rv != 19;
+                              if (e == 0)
+                              {
+                                e = fprintf (xg->w_stream, "%s</time>\n%s<strength>", time_str, inds->str) <= 0;
+                                if (e == 0)
+                                {
+                                  rv = snprintf(strength_str, sizeof(strength_str), "%d", card_ptr->card_strength);
+                                  e = rv < 0 || rv >= sizeof(strength_str);
                                   if (e == 0) {
-                                    e = xml_escape(&xg->w_lineptr, &xg->w_n, q_str, ESC_AMP | ESC_LT);
+                                    state_ch = (card_ptr->card_state & 0x07) + '0';
+                                    e = fprintf(xg->w_stream, "%s</strength>\n%s<state>%c</state>",
+                                        strength_str, inds->str, state_ch) <= 0;
                                     if (e == 0) {
-                                      e = fprintf (xg->w_stream, "%s</question>%s<answer>", xg->w_lineptr, xg->indent_str) <= 0;
+                                      q_str = sa_get(&card_sa, 0);
+                                      e = q_str == NULL;
                                       if (e == 0) {
-                                        a_str = sa_get(&card_sa, 1);
-                                        e = a_str == NULL;
+                                        e = xml_escape(&xg->w_lineptr, &xg->w_n, q_str, ESC_AMP | ESC_LT);
                                         if (e == 0) {
-                                          e = xml_escape(&xg->w_lineptr, &xg->w_n, a_str, ESC_AMP | ESC_LT);
+                                          e = fprintf (xg->w_stream, "\n%s<question>%s</question>\n%s<answer>", inds->str, xg->w_lineptr, inds->str) <= 0;
                                           if (e == 0) {
-                                            e = fprintf (xg->w_stream, "%s</answer></card>", xg->w_lineptr) <= 0;
+                                            a_str = sa_get(&card_sa, 1);
+                                            e = a_str == NULL;
                                             if (e == 0) {
-                                              xg->indent--;
-                                              set_indent (xg->indent_str, xg->indent, sizeof (xg->indent_str));
-                                              card_i++;
+                                              e = xml_escape(&xg->w_lineptr, &xg->w_n, a_str, ESC_AMP | ESC_LT);
+                                              if (e == 0) {
+                                                e = fprintf (xg->w_stream, "%s</answer></card>", xg->w_lineptr) <= 0;
+                                                if (e == 0) {
+                                                  e = inds_set(inds, 1, -1);
+                                                  if (e == 0) {
+                                                    card_i++;
+                                                  }
+                                                }
+                                              }
                                             }
                                           }
                                         }
@@ -2328,30 +2311,28 @@ static int gen_xml_category (int16_t cat_i, struct XmlGenerator *xg, struct Memo
                       }
                     }
                   }
-                }
-                sa_free (&card_sa);
-                if (e == 0)
-                {
-                  if (ms->cat_t[cat_i].cat_n_child != -1)
-                  {
-                    e = gen_xml_category (ms->cat_t[cat_i].cat_n_child, xg, ms);
-                  }
+                  sa_free (&card_sa);
                   if (e == 0)
                   {
-                    e = fputs ("</deck>", xg->w_stream) <= 0;
+                    if (ms->cat_t[cat_i].cat_n_child != -1) {
+                      e = gen_xml_category(ms->cat_t[cat_i].cat_n_child, xg, ms, inds);
+                    }
                     if (e == 0)
                     {
-                      xg->indent--;
-                      set_indent (xg->indent_str, xg->indent, sizeof (xg->indent_str));
-                      if (ms->cat_t[cat_i].cat_n_sibling != -1)
-                      {
-                        e = gen_xml_category (ms->cat_t[cat_i].cat_n_sibling, xg, ms);
+                      e = fputs ("</deck>", xg->w_stream) <= 0;
+                      if (e == 0) {
+                        e = inds_set(inds, 1, -1);
+                        if (e == 0) {
+                          if (ms->cat_t[cat_i].cat_n_sibling != -1) {
+                            e = gen_xml_category(ms->cat_t[cat_i].cat_n_sibling, xg, ms, inds);
+                          }
+                        }
                       }
                     }
                   }
                 }
+                free (card_l);
               }
-              free (card_l);
             }
           }
         }
@@ -2786,16 +2767,20 @@ static int gen_html(struct WebMemorySurfer *wms) {
                 e = rv < 0;
                 if (e == 0) {
                   xg.w_stream = stdout;
-                  e = fputs("<memorysurfer>", xg.w_stream) <= 0;
+                  rv = fputs("<memorysurfer>", xg.w_stream);
+                  e = rv == EOF;
                   if (e == 0) {
-                    xg.indent = 1;
-                    set_indent(xg.indent_str, xg.indent, sizeof(xg.indent_str));
-                    xg.w_lineptr = NULL;
-                    xg.w_n = 0;
-                    e = gen_xml_category(wms->ms.n_first, &xg, &wms->ms);
-                    if (e == 0)
-                      e = fputs("</memorysurfer>", xg.w_stream) <= 0;
-                    free(xg.w_lineptr);
+                    e = inds_set(wms->inds, 1, 0);
+                    if (e == 0) {
+                      xg.w_lineptr = NULL;
+                      xg.w_n = 0;
+                      e = gen_xml_category(wms->ms.n_first, &xg, &wms->ms, wms->inds);
+                      if (e == 0) {
+                        rv = fputs("</memorysurfer>", xg.w_stream);
+                        e = rv == EOF;
+                      }
+                      free(xg.w_lineptr);
+                    }
                   }
                 }
               }
@@ -2896,7 +2881,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           rv = printf("\t\t\t<h1 class=\"msf\">Select the category %s</h1>\n", notice_str[0]);
           e = rv < 0;
           if (e == 0) {
-            e = inds_set(&wms->inds, 3, 0);
+            e = inds_set(wms->inds, 3, 0);
             if (e == 0) {
               e = gen_html_cat(wms->ms.n_first, H_CHILD, wms);
               if (e == 0) {
@@ -2952,7 +2937,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
                 e = rv < 0;
               }
               if (e == 0) {
-                e = inds_set(&wms->inds, 3, 0);
+                e = inds_set(wms->inds, 3, 0);
                 if (e == 0)
                   e = gen_html_cat(wms->ms.n_first, H_CHILD, wms);
               }
@@ -3063,13 +3048,20 @@ static int gen_html(struct WebMemorySurfer *wms) {
           e = rv < 0;
         }
         if (e == 0) {
+          int32_t data_size_5;
+          int32_t data_size_6;
+          int32_t data_size_7;
+          data_size_5 = imf_get_size(&wms->ms.imf, 2);
+          data_size_6 = imf_get_size(&wms->ms.imf, 3);
+          data_size_7 = imf_get_size(&wms->ms.imf, 4);
           rv = printf("\t\t</form>\n"
-                      "\t\t<code class=\"msf\">%s; nel: %d; html_n: %zu</code>\n"
+                      "\t\t<code class=\"msf\">%s; nel: %d; html_n: %zu: data_size: %d %d %d</code>\n"
                       "\t</body>\n"
                       "</html>\n",
               sw_info_str,
               wms->ms.cards_nel,
-              wms->html_n);
+              wms->html_n,
+              data_size_5, data_size_6, data_size_7);
           e = rv < 0;
         }
         break;
@@ -3147,7 +3139,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.63</h1>\n" 
+        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.64</h1>\n" 
                     "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p>Copyright 2016-2021</p>\n"
                     "\t\t\t<p>Send bugs and suggestions to\n"
@@ -3500,6 +3492,7 @@ static void inds_init(struct IndentStr *inds) {
 
 static int wms_init(struct WebMemorySurfer *wms) {
   int e;
+  size_t size;
   e = ms_init(&wms->ms);
   if (e == 0) {
     assert(A_END == 0);
@@ -3538,7 +3531,12 @@ static int wms_init(struct WebMemorySurfer *wms) {
         memset(wms->mtime, -1, sizeof(wms->mtime));
         memset(wms->tok_digest, -1, sizeof(wms->tok_digest));
         wms->tok_str[0] = '\0';
-        inds_init(&wms->inds);
+        size = sizeof(struct IndentStr);
+        wms->inds = malloc(size);
+        e = wms->inds == NULL;
+        if (e == 0) {
+          inds_init(wms->inds);
+        }
       }
     }
   }
@@ -3580,7 +3578,9 @@ static void inds_free(struct IndentStr *inds) {
 
 static void wms_free(struct WebMemorySurfer *wms) {
   int i;
-  inds_free(&wms->inds);
+  inds_free(wms->inds);
+  free(wms->inds);
+  wms->inds = NULL;
   free(wms->html_lp);
   for (i = 0; i < wms->fl_c; i++) {
     assert(wms->fl_v[i] != NULL);
@@ -5350,7 +5350,9 @@ int main(int argc, char *argv[])
                 wms->static_header = "Notification";
                 wms->static_msg = "No card eligible for repetition.";
                 wms->static_btn_main = "OK";
+                wms->static_btn_alt = "Table";
                 wms->todo_main = S_SELECT_LEARN_CAT;
+                wms->todo_alt = S_TABLE;
                 wms->page = P_MSG;
               }
             }
