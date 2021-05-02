@@ -549,8 +549,7 @@ int xml_unescape (char *xml_str)
   return e;
 }
 
-int parse_xml (struct WebMemorySurfer *wms, enum Tag tag, int parent_cat_i)
-{
+static int parse_xml(struct WebMemorySurfer *wms, enum Tag tag, int parent_cat_i) {
   int e;
   ssize_t nread;
   int do_flag;
@@ -571,12 +570,10 @@ int parse_xml (struct WebMemorySurfer *wms, enum Tag tag, int parent_cat_i)
   cat_i = -1;
   do
   {
-    nread = getdelim (&wms->xml.p_lineptr, &wms->xml.n, '<', stdin);
+    nread = getdelim(&wms->xml.p_lineptr, &wms->xml.n, '<', stdin);
     e = nread <= 0;
-    if (e == 0)
-    {
-      if (do_flag != 0)
-      {
+    if (e == 0) {
+      if (do_flag != 0) {
         do_flag = 0;
         switch (tag)
         {
@@ -587,50 +584,40 @@ int parse_xml (struct WebMemorySurfer *wms, enum Tag tag, int parent_cat_i)
           cat_i = 0;
           while (cat_i < wms->ms.cat_a && wms->ms.cat_t[cat_i].cat_used != 0)
             cat_i++;
-          if (cat_i == wms->ms.cat_a)
-          {
+          if (cat_i == wms->ms.cat_a) {
             cat_a = wms->ms.cat_a + 8;
-            size = sizeof (struct Category) * cat_a;
-            wms->ms.cat_t = realloc (wms->ms.cat_t, size);
+            size = sizeof(struct Category) * cat_a;
+            wms->ms.cat_t = realloc(wms->ms.cat_t, size);
             e = wms->ms.cat_t == NULL;
-            if (e == 0)
-            {
+            if (e == 0) {
               for (i = wms->ms.cat_a; i < cat_a; i++)
                 wms->ms.cat_t[i].cat_used = 0;
               wms->ms.cat_a = cat_a;
             }
           }
-          if (e == 0)
-          {
+          if (e == 0) {
             ref_cat_i = -1;
-            if (wms->xml.prev_cat_i != -1)
-            {
+            if (wms->xml.prev_cat_i != -1) {
               ref_cat_i = wms->xml.prev_cat_i;
               wms->ms.cat_t[ref_cat_i].cat_n_sibling = cat_i;
-            }
-            else if (parent_cat_i != -1)
-            {
+            } else if (parent_cat_i != -1) {
               ref_cat_i = parent_cat_i;
               wms->ms.cat_t[ref_cat_i].cat_n_child = cat_i;
             }
             wms->xml.prev_cat_i = -1;
-            if (wms->xml.parsed_cat_i != -1)
-            {
+            if (wms->xml.parsed_cat_i != -1) {
               e = imf_seek_unused (&wms->ms.imf, &index);
-              if (e == 0)
-              {
-                assert (wms->ms.card_a >= 0);
+              if (e == 0) {
+                assert(wms->ms.card_a >= 0);
                 data_size = wms->ms.card_a * sizeof (struct Card);
-                assert (wms->ms.card_l);
+                assert(wms->ms.card_l);
                 e = imf_put (&wms->ms.imf, index, wms->ms.card_l, data_size);
-                if (e == 0)
-                {
+                if (e == 0) {
                   wms->ms.cat_t[wms->xml.parsed_cat_i].cat_cli = index;
                 }
               }
             }
-            if (e == 0)
-            {
+            if (e == 0) {
               wms->ms.cat_t[cat_i].cat_cli = -1;
               wms->ms.cat_t[cat_i].cat_x = 1;
               wms->ms.cat_t[cat_i].cat_n_sibling = -1;
@@ -654,26 +641,23 @@ int parse_xml (struct WebMemorySurfer *wms, enum Tag tag, int parent_cat_i)
           size = wms->ms.card_a * sizeof (struct Card);
           wms->ms.card_l = realloc (wms->ms.card_l, size);
           e = wms->ms.card_l == NULL;
-          if (e == 0)
-          {
+          if (e == 0) {
             wms->ms.card_i++;
           }
           break;
         case TAG_TIME:
-          memset (&bd_time, 0, sizeof (bd_time));
+          memset(&bd_time, 0, sizeof (bd_time));
           str = wms->xml.p_lineptr;
           str[nread - 1] = '\0';
           a_n = sscanf (str, "%d-%d-%dT%d:%d:%d", &bd_time.tm_year, &bd_time.tm_mon, &bd_time.tm_mday,
                                                   &bd_time.tm_hour, &bd_time.tm_min, &bd_time.tm_sec);
           e = a_n != 6;
-          if (e == 0)
-          {
+          if (e == 0) {
             bd_time.tm_mon -= 1;
             bd_time.tm_year -= 1900;
             simple_time = timegm (&bd_time);
             e = simple_time == -1;
-            if (e == 0)
-            {
+            if (e == 0) {
               wms->ms.card_l[wms->ms.card_i].card_time = simple_time;
             }
           }
@@ -692,28 +676,26 @@ int parse_xml (struct WebMemorySurfer *wms, enum Tag tag, int parent_cat_i)
         case TAG_QUESTION:
           str = wms->xml.p_lineptr;
           str[nread - 1] = '\0';
-          e = xml_unescape (str);
+          e = xml_unescape(str);
           if (e == 0)
             e = sa_set(&wms->ms.card_sa, 0, str);
           break;
         case TAG_ANSWER:
           str = wms->xml.p_lineptr;
           str[nread - 1] = '\0';
-          e = xml_unescape (str);
+          e = xml_unescape(str);
           if (e == 0)
             e = sa_set(&wms->ms.card_sa, 1, str);
           break;
         }
       }
-      nread = getdelim (&wms->xml.p_lineptr, &wms->xml.n, '>', stdin);
+      nread = getdelim(&wms->xml.p_lineptr, &wms->xml.n, '>', stdin);
       e = nread <= 0;
-      if (e == 0)
-      {
+      if (e == 0) {
         str = wms->xml.p_lineptr;
         len = nread - 1;
         slash_f = str[0] == '/';
-        if (slash_f != 0)
-        {
+        if (slash_f != 0) {
           str++;
           len--;
         }
@@ -732,67 +714,49 @@ int parse_xml (struct WebMemorySurfer *wms, enum Tag tag, int parent_cat_i)
           }
           break;
         case 8:
-          if (memcmp (str, "strength", 8) == 0)
-          {
-            if (slash_f == 0)
-            {
+          if (memcmp(str, "strength", 8) == 0) {
+            if (slash_f == 0) {
               e = tag != TAG_PAIR;
-              if (e == 0)
-              {
+              if (e == 0) {
                 e = parse_xml (wms, TAG_STRENGTH, parent_cat_i);
               }
-            }
-            else
-            {
+            } else {
               e = tag != TAG_STRENGTH;
             }
-          }
-          else {
+          } else {
             e = memcmp(str, "question", 8);
             if (e == 0) {
-              if (slash_f == 0)
-              {
+              if (slash_f == 0) {
                 e = tag != TAG_PAIR;
                 if (e == 0)
                   e = parse_xml(wms, TAG_QUESTION, parent_cat_i);
-              }
-              else
+              } else
                 e = tag != TAG_QUESTION;
             }
           }
           break;
         case 6:
-          e = memcmp (str, "answer", 6);
-          if (e == 0)
-          {
-            if (slash_f == 0)
-            {
+          e = memcmp(str, "answer", 6);
+          if (e == 0) {
+            if (slash_f == 0) {
               e = tag != TAG_PAIR;
-              if (e == 0)
-              {
-                e = parse_xml (wms, TAG_ANSWER, parent_cat_i);
+              if (e == 0) {
+                e = parse_xml(wms, TAG_ANSWER, parent_cat_i);
               }
-            }
-            else
-            {
+            } else {
               e = tag != TAG_ANSWER;
             }
           }
           break;
         case 5:
-          e = memcmp (str, "state", 5);
-          if (e == 0)
-          {
-            if (slash_f == 0)
-            {
+          e = memcmp(str, "state", 5);
+          if (e == 0) {
+            if (slash_f == 0) {
               e = tag != TAG_PAIR;
-              if (e == 0)
-              {
-                e = parse_xml (wms, TAG_STATE, parent_cat_i);
+              if (e == 0) {
+                e = parse_xml(wms, TAG_STATE, parent_cat_i);
               }
-            }
-            else
-            {
+            } else {
               e = tag != TAG_STATE;
             }
           }
@@ -803,8 +767,7 @@ int parse_xml (struct WebMemorySurfer *wms, enum Tag tag, int parent_cat_i)
               e = tag != TAG_CATEGORY;
               if (e == 0)
                 e = parse_xml(wms, TAG_PAIR, cat_i);
-            }
-            else {
+            } else {
               e = tag != TAG_PAIR;
               if (e == 0) {
                 e = imf_seek_unused (&wms->ms.imf, &index);
@@ -816,19 +779,13 @@ int parse_xml (struct WebMemorySurfer *wms, enum Tag tag, int parent_cat_i)
                 }
               }
             }
-          }
-          else if (memcmp (str, "time", 4) == 0)
-          {
-            if (slash_f == 0)
-            {
+          } else if (memcmp (str, "time", 4) == 0) {
+            if (slash_f == 0) {
               e = tag != TAG_PAIR;
-              if (e == 0)
-              {
-                e = parse_xml (wms, TAG_TIME, parent_cat_i);
+              if (e == 0) {
+                e = parse_xml(wms, TAG_TIME, parent_cat_i);
               }
-            }
-            else
-            {
+            } else {
               e = tag != TAG_TIME;
             }
           }
@@ -836,9 +793,8 @@ int parse_xml (struct WebMemorySurfer *wms, enum Tag tag, int parent_cat_i)
             if (slash_f == 0) {
               e = tag != TAG_CATEGORY;
               if (e == 0)
-                e = parse_xml (wms, TAG_NAME, cat_i);
-            }
-            else
+                e = parse_xml(wms, TAG_NAME, cat_i);
+            } else
               e = tag != TAG_NAME;
           }
           else {
@@ -848,8 +804,7 @@ int parse_xml (struct WebMemorySurfer *wms, enum Tag tag, int parent_cat_i)
                 e = tag != TAG_MEMORYSURFER && tag != TAG_CATEGORY;
                 if (e == 0)
                   e = parse_xml(wms, TAG_CATEGORY, cat_i);
-              }
-              else {
+              } else {
                 e = tag != TAG_CATEGORY;
                 if (e == 0) {
                   if (wms->xml.parsed_cat_i == cat_i) {
@@ -1703,7 +1658,8 @@ int parse_post(struct WebMemorySurfer *wms) {
           e = strncmp(str, "\r\n", 2) != 0;
           if (e == 0) {
             assert(wms->boundary_str == NULL);
-            wms->boundary_str = malloc(wms->mult.nread - 1);
+            size = wms->mult.nread - 1;
+            wms->boundary_str = malloc(size);
             e = wms->boundary_str == NULL;
             if (e == 0) {
               memcpy(wms->boundary_str, wms->mult.post_lp, wms->mult.nread - 2);
@@ -1739,18 +1695,14 @@ int parse_post(struct WebMemorySurfer *wms) {
               wms->mult.delim_str[0] = "\"\r\n\r\n";
               wms->mult.delim_str[1] = "\"; ";
             }
-          }
-          else if (strncmp(str, "\"\r\n\r\n", 5) == 0) {
+          } else if (strncmp(str, "\"\r\n\r\n", 5) == 0) {
             if (strncmp(wms->mult.post_lp, "file-title", 10) == 0) {
               field = F_FILE_TITLE;
               wms->mult.delim_str[0] = "\r\n";
-            }
-            else if (strncmp(wms->mult.post_lp, "token", 5) == 0) {
+            } else if (strncmp(wms->mult.post_lp, "token", 5) == 0) {
               field = F_TOKEN;
               wms->mult.delim_str[0] = "\r\n";
-            }
-            else
-            {
+            } else {
               e = strncmp(wms->mult.post_lp, "file_action", 11) != 0;
               if (e == 0) {
                 field = F_FILE_ACTION;
@@ -1758,19 +1710,17 @@ int parse_post(struct WebMemorySurfer *wms) {
               }
             }
             wms->mult.delim_str[1] = NULL;
-          }
-          else if (memcmp (str, "\"; ", 3) == 0)
-          {
+          } else if (strncmp(str, "\"; ", 3) == 0) {
             e = strncmp(wms->mult.post_lp, "file_action", 11) != 0;
             if (e == 0) {
               wms->mult.delim_str[0] = "Content-Type: text/xml\r\n\r\n";
               wms->mult.delim_str[1] = NULL;
             }
-          }
-          else if (strncmp(str, "\r\n", 2) == 0) {
+          } else if (strncmp(str, "\r\n", 2) == 0) {
             if (field == F_FILE_TITLE) {
               assert(wms->file_title_str == NULL);
-              wms->file_title_str = malloc(wms->mult.nread - 1);
+              size = wms->mult.nread - 1;
+              wms->file_title_str = malloc(size);
               e = wms->file_title_str == NULL;
               if (e == 0) {
                 memcpy(wms->file_title_str, wms->mult.post_lp, wms->mult.nread - 2);
@@ -1778,29 +1728,21 @@ int parse_post(struct WebMemorySurfer *wms) {
                 stage = T_BOUNDARY_BEGIN;
                 wms->mult.delim_str[0] = "--";
               }
-            }
-            else if (field == F_TOKEN) {
+            } else if (field == F_TOKEN) {
               e = wms->mult.nread != 42;
               if (e == 0) {
                 e = scan_hex(wms->tok_digest, wms->mult.post_lp, SHA1_HASH_SIZE);
                 stage = T_BOUNDARY_BEGIN;
                 wms->mult.delim_str[0] = "--";
               }
-            }
-            else
-            {
+            } else {
               e = field != F_FILE_ACTION;
-              if (e == 0)
-              {
-                if (memcmp (wms->mult.post_lp, "Upload", 6) == 0)
-                {
+              if (e == 0) {
+                if (memcmp (wms->mult.post_lp, "Upload", 6) == 0) {
                   wms->seq = S_UPLOAD_REPORT;
-                }
-                else
-                {
+                } else {
                   e = memcmp (wms->mult.post_lp, "Stop", 4);
-                  if (e == 0)
-                  {
+                  if (e == 0) {
                     wms->seq = S_FILE;
                   }
                 }
@@ -1808,8 +1750,7 @@ int parse_post(struct WebMemorySurfer *wms) {
                 wms->mult.delim_str[0] = "--";
               }
             }
-          }
-          else {
+          } else {
             e = strncmp(str, "Content-Type: text/xml\r\n\r\n", 26) != 0;
             if (e == 0) {
               assert(wms->file_title_str != NULL); // A_SLASH
@@ -2243,55 +2184,53 @@ static int gen_xml_category(int16_t cat_i, struct XmlGenerator *xg, struct Memor
                     rv = fprintf(xg->w_stream, "\n%s<card>", inds->str);
                     e = rv < 0;
                     if (e == 0) {
-                      e = inds_set(inds, 1, 1);
+                      memset(&bd_time, 0, sizeof (bd_time));
+                      assert ((card_ptr->card_time < INT32_MAX) || (sizeof (card_time) == 8));
+                      card_time = card_ptr->card_time;
+                      e = gmtime_r(&card_time, &bd_time) == NULL;
                       if (e == 0) {
-                        memset (&bd_time, 0, sizeof (bd_time));
-                        assert ((card_ptr->card_time < INT32_MAX) || (sizeof (card_time) == 8));
-                        card_time = card_ptr->card_time;
-                        e = gmtime_r(&card_time, &bd_time) == NULL;
+                        bd_time.tm_mon += 1;
+                        bd_time.tm_year += 1900;
+                        rv = snprintf(time_str, sizeof(time_str), "%4d-%02d-%02dT%02d:%02d:%02d",
+                            bd_time.tm_year, bd_time.tm_mon, bd_time.tm_mday,
+                            bd_time.tm_hour, bd_time.tm_min, bd_time.tm_sec);
+                        e = rv != 19;
                         if (e == 0) {
-                          bd_time.tm_mon += 1;
-                          bd_time.tm_year += 1900;
-                          rv = snprintf(time_str, sizeof(time_str), "%4d-%02d-%02dT%02d:%02d:%02d",
-                              bd_time.tm_year, bd_time.tm_mon, bd_time.tm_mday,
-                              bd_time.tm_hour, bd_time.tm_min, bd_time.tm_sec);
-                          e = rv != 19;
+                          rv = fprintf(xg->w_stream, "\n\t%s<time>%s</time>", inds->str, time_str);
+                          e = rv < 0;
                           if (e == 0) {
-                            rv = fprintf(xg->w_stream, "\n%s<time>%s</time>", inds->str, time_str);
-                            e = rv < 0;
+                            rv = snprintf(strength_str, sizeof(strength_str), "%d", card_ptr->card_strength);
+                            e = rv < 0 || rv >= sizeof(strength_str);
                             if (e == 0) {
-                              rv = snprintf(strength_str, sizeof(strength_str), "%d", card_ptr->card_strength);
-                              e = rv < 0 || rv >= sizeof(strength_str);
+                              state_ch = '0' + (card_ptr->card_state & 0x07);
+                              rv = fprintf(xg->w_stream, "\n\t%s<strength>%s</strength>", inds->str, strength_str);
+                              e = rv < 0;
                               if (e == 0) {
-                                state_ch = '0' + (card_ptr->card_state & 0x07);
-                                rv = fprintf(xg->w_stream, "\n%s<strength>%s</strength>", inds->str, strength_str);
+                                rv = fprintf(xg->w_stream, "\n\t%s<state>%c</state>", inds->str, state_ch);
                                 e = rv < 0;
+                              }
+                              if (e == 0 && card_ptr->card_state & 0x08) {
+                                rv = fprintf(xg->w_stream, "\n\t%s<type>1</type>", inds->str);
+                                e = rv < 0;
+                              }
+                              if (e == 0) {
+                                q_str = sa_get(&card_sa, 0);
+                                e = q_str == NULL;
                                 if (e == 0) {
-                                  rv = fprintf(xg->w_stream, "\n%s<state>%c</state>", inds->str, state_ch);
-                                  e = rv < 0;
-                                }
-                                if (e == 0) {
-                                  q_str = sa_get(&card_sa, 0);
-                                  e = q_str == NULL;
+                                  e = xml_escape(&xg->w_lineptr, &xg->w_n, q_str, ESC_AMP | ESC_LT);
                                   if (e == 0) {
-                                    e = xml_escape(&xg->w_lineptr, &xg->w_n, q_str, ESC_AMP | ESC_LT);
+                                    rv = fprintf(xg->w_stream, "\n\t%s<question>%s</question>", inds->str, xg->w_lineptr);
+                                    e = rv < 0;
                                     if (e == 0) {
-                                      rv = fprintf(xg->w_stream, "\n%s<question>%s</question>", inds->str, xg->w_lineptr);
-                                      e = rv < 0;
+                                      a_str = sa_get(&card_sa, 1);
+                                      e = a_str == NULL;
                                       if (e == 0) {
-                                        a_str = sa_get(&card_sa, 1);
-                                        e = a_str == NULL;
+                                        e = xml_escape(&xg->w_lineptr, &xg->w_n, a_str, ESC_AMP | ESC_LT);
                                         if (e == 0) {
-                                          e = xml_escape(&xg->w_lineptr, &xg->w_n, a_str, ESC_AMP | ESC_LT);
+                                          rv = fprintf(xg->w_stream, "\n\t%s<answer>%s</answer></card>", inds->str, xg->w_lineptr);
+                                          e = rv < 0;
                                           if (e == 0) {
-                                            rv = fprintf(xg->w_stream, "\n%s<answer>%s</answer></card>", inds->str, xg->w_lineptr);
-                                            e = rv < 0;
-                                            if (e == 0) {
-                                              e = inds_set(inds, 1, -1);
-                                              if (e == 0) {
-                                                card_i++;
-                                              }
-                                            }
+                                            card_i++;
                                           }
                                         }
                                       }
@@ -2383,7 +2322,6 @@ static int gen_html(struct WebMemorySurfer *wms) {
   const char *submit_str;
   const char *text_str;
   char *ext_str;
-  char *dot;
   char *dup_str;
   char *f_basename; // file
   char title_str[64];
@@ -2751,10 +2689,10 @@ static int gen_html(struct WebMemorySurfer *wms) {
             len = strlen(f_basename);
             e = len <= 5;
             if (e == 0) {
-              dot = strrchr(dup_str, '.');
-              e = strcmp(dot, ".imsf") != 0;
+              ext_str = strrchr(dup_str, '.');
+              e = strcmp(ext_str, ".imsf") != 0;
               if (e == 0) {
-                strcpy(dot, ".xml");
+                strcpy(ext_str, ".xml");
                 rv = printf("Content-Disposition: attachment; filename=\"%s\"\n"
                             "Content-Type: text/xml; charset=utf-8\n\n",
                     f_basename);
@@ -3042,20 +2980,13 @@ static int gen_html(struct WebMemorySurfer *wms) {
           e = rv < 0;
         }
         if (e == 0) {
-          int32_t data_size_5;
-          int32_t data_size_6;
-          int32_t data_size_7;
-          data_size_5 = imf_get_size(&wms->ms.imf, 2);
-          data_size_6 = imf_get_size(&wms->ms.imf, 3);
-          data_size_7 = imf_get_size(&wms->ms.imf, 4);
           rv = printf("\t\t</form>\n"
-                      "\t\t<code class=\"msf\">%s; nel: %d; html_n: %zu: data_size: %d %d %d</code>\n"
+                      "\t\t<code class=\"msf\">%s; nel: %d; html_n: %zu</code>\n"
                       "\t</body>\n"
                       "</html>\n",
               sw_info_str,
               wms->ms.cards_nel,
-              wms->html_n,
-              data_size_5, data_size_6, data_size_7);
+              wms->html_n);
           e = rv < 0;
         }
         break;
@@ -3133,7 +3064,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.65</h1>\n" 
+        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.66</h1>\n" 
                     "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p>Copyright 2016-2021</p>\n"
                     "\t\t\t<p>Send bugs and suggestions to\n"
@@ -5143,16 +5074,13 @@ int main(int argc, char *argv[])
                 size = n * sizeof(struct Card);
                 memmove(dest, src, size);
               }
-              e = wms->ms.card_i < 0 || wms->ms.card_i >= wms->ms.card_a;
-              if (e == 0) {
-                card_i = wms->ms.card_i;
-                if (card_i > wms->ms.mov_card_i)
-                  card_i--;
-                if (wms->ms.arrange == 2)
-                  card_i++;
-                else
-                  e = wms->ms.arrange != 0;
-              }
+              card_i = wms->ms.card_i;
+              if (card_i > wms->ms.mov_card_i)
+                card_i--;
+              if (wms->ms.arrange == 2)
+                card_i++;
+              else
+                e = wms->ms.arrange != 0;
               if (e == 0) {
                 src = wms->ms.card_l + card_i;
                 dest = src + sizeof(struct Card);
