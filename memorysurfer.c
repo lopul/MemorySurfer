@@ -219,11 +219,16 @@ struct Multi
   int post_fp; // found pointer
 };
 
+struct CardList {
+  struct Card *card_l;
+  int card_a;
+};
+
 struct XML {
   char *p_lineptr; // parse
+  struct CardList *cardlist_l;
   size_t n;
   int prev_cat_i;
-  int parsed_cat_i;
 };
 
 struct IndentStr {
@@ -499,7 +504,7 @@ static int multi_delim(struct Multi *mult) {
 
 enum Tag { TAG_ROOT, TAG_MEMORYSURFER, TAG_DECK, TAG_NAME, TAG_CARD, TAG_TIME, TAG_STRENGTH, TAG_STATE, TAG_TYPE, TAG_QUESTION, TAG_ANSWER };
 
-static int sa_length (struct StringArray *sa) {
+static int sa_length(struct StringArray *sa) {
   int pos_l; // length
   int i;
   pos_l = 0;
@@ -509,34 +514,27 @@ static int sa_length (struct StringArray *sa) {
   return pos_l;
 }
 
-int xml_unescape (char *xml_str)
-{
+static int xml_unescape(char *xml_str) {
   int e;
   int rp;
   int wp;
   char ch;
-  assert (xml_str != NULL);
+  assert(xml_str != NULL);
   rp = 0;
   wp = 0;
   e = 0;
-  do
-  {
+  do {
     ch = xml_str[rp++];
-    if (ch == '&')
-    {
-      if (memcmp (xml_str + rp, "amp;", 4) == 0)
-      {
+    if (ch == '&') {
+      if (strncmp(xml_str + rp, "amp;", 4) == 0) {
         rp += 4;
         ch = '&';
-      }
-      else
-      {
-        e = memcmp (xml_str + rp, "lt;", 3);
-        if (e == 0)
-        {
-          rp += 3;
-          ch = '<';
-        }
+      } else if (strncmp(xml_str + rp, "lt;", 3) == 0) {
+        rp += 3;
+        ch = '<';
+      } else {
+        ch = '\0';
+        e = 0x04174be0; // WIADUD (Web)MemorySurfer illegal ampersand during unescape detected
       }
     }
     xml_str[wp++] = ch;
@@ -554,8 +552,8 @@ enum {
 static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag, int parent_cat_i) {
   int e;
   ssize_t nread;
-  int do_flag;
   int cat_i;
+  int card_i;
   char *str;
   int len;
   int i;
@@ -564,13 +562,13 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
   struct tm bd_time; // broken-down
   int a_n; // assignments
   time_t simple_time;
-  int slash_f; // flag
   int32_t index;
   int32_t data_size;
+  char do_flag;
+  char slash_f; // flag
   do_flag = 1;
   cat_i = -1;
-  do
-  {
+  do {
     nread = getdelim(&xml->p_lineptr, &xml->n, '<', stdin);
     e = nread <= 0;
     if (e == 0) {
@@ -585,14 +583,23 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
           cat_i = 0;
           while (cat_i < wms->ms.cat_a && wms->ms.cat_t[cat_i].cat_used != 0)
             cat_i++;
+          assert(cat_i <= INT16_MAX);
           if (cat_i == wms->ms.cat_a) {
-            cat_a = wms->ms.cat_a + 8;
+            cat_a = wms->ms.cat_a + 7;
             size = sizeof(struct Category) * cat_a;
             wms->ms.cat_t = realloc(wms->ms.cat_t, size);
             e = wms->ms.cat_t == NULL;
             if (e == 0) {
-              for (i = wms->ms.cat_a; i < cat_a; i++)
+              size = sizeof(struct CardList) * cat_a;
+              xml->cardlist_l = realloc(xml->cardlist_l, size);
+              e = xml->cardlist_l == NULL;
+            }
+            if (e == 0) {
+              for (i = wms->ms.cat_a; i < cat_a; i++) {
                 wms->ms.cat_t[i].cat_used = 0;
+                xml->cardlist_l[i].card_l = NULL;
+                xml->cardlist_l[i].card_a = 0;
+              }
               wms->ms.cat_a = cat_a;
             }
           }
@@ -603,18 +610,6 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
               wms->ms.cat_t[parent_cat_i].cat_n_child = cat_i;
             }
             xml->prev_cat_i = -1;
-            if (xml->parsed_cat_i != -1) {
-              e = imf_seek_unused(&wms->ms.imf, &index);
-              if (e == 0) {
-                assert(wms->ms.card_a >= 0);
-                data_size = wms->ms.card_a * sizeof(struct Card);
-                assert(wms->ms.card_l != NULL || wms->ms.card_a == 0);
-                e = imf_put (&wms->ms.imf, index, wms->ms.card_l, data_size);
-                if (e == 0) {
-                  wms->ms.cat_t[xml->parsed_cat_i].cat_cli = index;
-                }
-              }
-            }
             if (e == 0) {
               wms->ms.cat_t[cat_i].cat_cli = -1;
               wms->ms.cat_t[cat_i].cat_x = 1;
@@ -624,31 +619,28 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
               wms->ms.cat_t[cat_i].cat_on = 1;
             }
           }
-          wms->ms.card_a = 0;
-          wms->ms.card_i = -1;
-          xml->parsed_cat_i = cat_i;
           break;
         case TAG_NAME:
           str = xml->p_lineptr;
           str[nread - 1] = '\0';
-          assert(cat_i < INT16_MAX);
           e = sa_set(&wms->ms.cat_sa, parent_cat_i, str);
           break;
         case TAG_CARD:
-          wms->ms.card_a++;
-          size = wms->ms.card_a * sizeof (struct Card);
-          wms->ms.card_l = realloc(wms->ms.card_l, size);
-          e = wms->ms.card_l == NULL;
+          assert(parent_cat_i >= 0 && xml->cardlist_l[parent_cat_i].card_a >= 0);
+          xml->cardlist_l[parent_cat_i].card_a++;
+          size = xml->cardlist_l[parent_cat_i].card_a * sizeof(struct Card);
+          xml->cardlist_l[parent_cat_i].card_l = realloc(xml->cardlist_l[parent_cat_i].card_l, size);
+          e = xml->cardlist_l[parent_cat_i].card_l == NULL;
           if (e == 0) {
-            wms->ms.card_i++;
-            wms->ms.card_l[wms->ms.card_i].card_time = 0;
-            wms->ms.card_l[wms->ms.card_i].card_strength = 60;
-            wms->ms.card_l[wms->ms.card_i].card_qai = -1;
-            wms->ms.card_l[wms->ms.card_i].card_state = STATE_NEW;
+            card_i = xml->cardlist_l[parent_cat_i].card_a - 1;
+            xml->cardlist_l[parent_cat_i].card_l[card_i].card_time = 0;
+            xml->cardlist_l[parent_cat_i].card_l[card_i].card_strength = 60;
+            xml->cardlist_l[parent_cat_i].card_l[card_i].card_qai = -1;
+            xml->cardlist_l[parent_cat_i].card_l[card_i].card_state = STATE_NEW;
           }
           break;
         case TAG_TIME:
-          memset(&bd_time, 0, sizeof (bd_time));
+          memset(&bd_time, 0, sizeof(bd_time));
           str = xml->p_lineptr;
           str[nread - 1] = '\0';
           a_n = sscanf (str, "%d-%d-%dT%d:%d:%d", &bd_time.tm_year, &bd_time.tm_mon, &bd_time.tm_mday,
@@ -660,14 +652,16 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
             simple_time = timegm(&bd_time);
             e = simple_time == -1;
             if (e == 0) {
-              wms->ms.card_l[wms->ms.card_i].card_time = simple_time;
+              card_i = xml->cardlist_l[parent_cat_i].card_a - 1;
+              xml->cardlist_l[parent_cat_i].card_l[card_i].card_time = simple_time;
             }
           }
           break;
         case TAG_STRENGTH:
           str = xml->p_lineptr;
           str[nread - 1] = '\0';
-          a_n = sscanf (str, "%d", &wms->ms.card_l[wms->ms.card_i].card_strength);
+          card_i = xml->cardlist_l[parent_cat_i].card_a - 1;
+          a_n = sscanf(str, "%d", &xml->cardlist_l[parent_cat_i].card_l[card_i].card_strength);
           e = a_n != 1;
           break;
         case TAG_STATE:
@@ -675,7 +669,8 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
           i = str[0] - '0';
           e = i > 3;
           if (e == 0) {
-            wms->ms.card_l[wms->ms.card_i].card_state = (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) | i;
+            card_i = xml->cardlist_l[parent_cat_i].card_a - 1;
+            xml->cardlist_l[parent_cat_i].card_l[card_i].card_state = (xml->cardlist_l[parent_cat_i].card_l[card_i].card_state & 0x08) | i;
           }
           break;
         case TAG_TYPE:
@@ -684,7 +679,8 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
           e = i > 1;
           if (e == 0) {
             i <<= 3;
-            wms->ms.card_l[wms->ms.card_i].card_state = (wms->ms.card_l[wms->ms.card_i].card_state & 0x07) | i;
+            card_i = xml->cardlist_l[parent_cat_i].card_a - 1;
+            xml->cardlist_l[parent_cat_i].card_l[card_i].card_state = (xml->cardlist_l[parent_cat_i].card_l[card_i].card_state & 0x07) | i;
           }
           break;
         case TAG_QUESTION:
@@ -788,8 +784,10 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
                 if (e == 0) {
                   data_size = sa_length(&wms->ms.card_sa);
                   e = imf_put(&wms->ms.imf, index, wms->ms.card_sa.sa_d, data_size);
-                  if (e == 0)
-                    wms->ms.card_l[wms->ms.card_i].card_qai = index;
+                  if (e == 0) {
+                    card_i = xml->cardlist_l[parent_cat_i].card_a - 1;
+                    xml->cardlist_l[parent_cat_i].card_l[card_i].card_qai = index;
+                  }
                 }
               }
             }
@@ -828,18 +826,18 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
               } else {
                 e = tag != TAG_DECK;
                 if (e == 0) {
-                  if (xml->parsed_cat_i == cat_i) {
-                    assert(xml->parsed_cat_i != -1);
-                    e = imf_seek_unused(&wms->ms.imf, &index);
+                  assert(cat_i >= 0);
+                  e = imf_seek_unused(&wms->ms.imf, &index);
+                  if (e == 0) {
+                    assert(xml->cardlist_l[cat_i].card_a >= 0);
+                    data_size = xml->cardlist_l[cat_i].card_a * sizeof(struct Card);
+                    assert(xml->cardlist_l[cat_i].card_l != NULL || xml->cardlist_l[cat_i].card_a == 0);
+                    e = imf_put(&wms->ms.imf, index, xml->cardlist_l[cat_i].card_l, data_size);
                     if (e == 0) {
-                      assert(wms->ms.card_a >= 0);
-                      data_size = wms->ms.card_a * sizeof(struct Card);
-                      assert(wms->ms.card_l != NULL || wms->ms.card_a == 0);
-                      e = imf_put(&wms->ms.imf, index, wms->ms.card_l, data_size);
-                      if (e == 0) {
-                        wms->ms.cat_t[xml->parsed_cat_i].cat_cli = index;
-                        xml->parsed_cat_i = -1;
-                      }
+                      wms->ms.cat_t[cat_i].cat_cli = index;
+                      free(xml->cardlist_l[cat_i].card_l);
+                      xml->cardlist_l[cat_i].card_l = NULL;
+                      xml->cardlist_l[cat_i].card_a = 0;
                     }
                   }
                   xml->prev_cat_i = cat_i;
@@ -849,7 +847,7 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
           }
           break;
         default:
-          e = -1;
+          e = 0x125d6b60; // WMSTLU (Web)MemorySurfer tag length undefined
           break;
         }
       }
@@ -971,6 +969,7 @@ int parse_post(struct WebMemorySurfer *wms) {
   int deci; // decision
   enum Field field;
   size_t size;
+  struct XML *xml;
   e = 0;
   wms->mult.delim_str[0] = "=";
   wms->mult.delim_str[1] = "--";
@@ -1789,17 +1788,18 @@ int parse_post(struct WebMemorySurfer *wms) {
                   wms->ms.imf_filename = str;
                   e = ms_open(&wms->ms); // A_OPEN
                   if (e == 0) {
-                    struct XML *xml;
                     size = sizeof(struct XML);
                     xml = malloc(size);
                     e = xml == NULL;
                     if (e == 0) {
                       xml->n = 0;
                       xml->p_lineptr = NULL;
+                      xml->cardlist_l = NULL;
                       xml->prev_cat_i = -1;
-                      xml->parsed_cat_i = -1;
                       e = parse_xml(xml, wms, TAG_ROOT, -1);
                       if (e == 0) {
+                        free(xml->cardlist_l);
+                        xml->cardlist_l = NULL;
                         free(xml->p_lineptr);
                         xml->p_lineptr = NULL;
                         xml->n = 0;
@@ -3085,7 +3085,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.68</h1>\n" 
+        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.69</h1>\n" 
                     "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p>Copyright 2016-2021</p>\n"
                     "\t\t\t<p>Send bugs and suggestions to\n"
@@ -3489,11 +3489,10 @@ static int wms_init(struct WebMemorySurfer *wms) {
   return e;
 }
 
-void ms_free (struct MemorySurfer *ms)
-{
-  free (ms->imf_filename);
-  sa_free (&ms->cat_sa);
-  free (ms->cat_t);
+static void ms_free(struct MemorySurfer *ms) {
+  free(ms->imf_filename);
+  sa_free(&ms->cat_sa);
+  free(ms->cat_t);
   ms->cat_t = NULL;
   ms->cat_a = 0;
   free (ms->cat_name);
@@ -3502,15 +3501,14 @@ void ms_free (struct MemorySurfer *ms)
   ms->card_l = NULL;
   ms->card_a = 0;
   ms->card_i = -1;
-  sa_free (&ms->card_sa);
+  sa_free(&ms->card_sa);
   free(ms->search_txt);
-  free (ms->password);
+  free(ms->password);
   free(ms->new_password);
   char b;
-  b = imf_is_open (&ms->imf);
-  if (b)
-  {
-    imf_close (&ms->imf);
+  b = imf_is_open(&ms->imf);
+  if (b) {
+    imf_close(&ms->imf);
   }
   sw_free(&ms->imf.sw);
 }
