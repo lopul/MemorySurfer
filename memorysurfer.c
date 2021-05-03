@@ -224,7 +224,6 @@ struct XML {
   size_t n;
   int prev_cat_i;
   int parsed_cat_i;
-  uint8_t card_state;
 };
 
 struct IndentStr {
@@ -498,7 +497,7 @@ static int multi_delim(struct Multi *mult) {
   return e;
 }
 
-enum Tag { TAG_ROOT, TAG_MEMORYSURFER, TAG_CATEGORY, TAG_NAME, TAG_PAIR, TAG_TIME, TAG_STRENGTH, TAG_STATE, TAG_TYPE, TAG_QUESTION, TAG_ANSWER };
+enum Tag { TAG_ROOT, TAG_MEMORYSURFER, TAG_DECK, TAG_NAME, TAG_CARD, TAG_TIME, TAG_STRENGTH, TAG_STATE, TAG_TYPE, TAG_QUESTION, TAG_ANSWER };
 
 static int sa_length (struct StringArray *sa) {
   int pos_l; // length
@@ -545,6 +544,13 @@ int xml_unescape (char *xml_str)
   return e;
 }
 
+enum {
+  STATE_ALARM = 0,
+  STATE_SCHEDULED,
+  STATE_NEW,
+  STATE_SUSPENDED
+};
+
 static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag, int parent_cat_i) {
   int e;
   ssize_t nread;
@@ -555,7 +561,6 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
   int i;
   int cat_a;
   size_t size;
-  int ref_cat_i;
   struct tm bd_time; // broken-down
   int a_n; // assignments
   time_t simple_time;
@@ -569,14 +574,14 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
     nread = getdelim(&xml->p_lineptr, &xml->n, '<', stdin);
     e = nread <= 0;
     if (e == 0) {
-      if (do_flag != 0) {
+      if (do_flag) {
         do_flag = 0;
         switch (tag)
         {
         case TAG_ROOT:
         case TAG_MEMORYSURFER:
           break;
-        case TAG_CATEGORY:
+        case TAG_DECK:
           cat_i = 0;
           while (cat_i < wms->ms.cat_a && wms->ms.cat_t[cat_i].cat_used != 0)
             cat_i++;
@@ -592,21 +597,18 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
             }
           }
           if (e == 0) {
-            ref_cat_i = -1;
             if (xml->prev_cat_i != -1) {
-              ref_cat_i = xml->prev_cat_i;
-              wms->ms.cat_t[ref_cat_i].cat_n_sibling = cat_i;
+              wms->ms.cat_t[xml->prev_cat_i].cat_n_sibling = cat_i;
             } else if (parent_cat_i != -1) {
-              ref_cat_i = parent_cat_i;
-              wms->ms.cat_t[ref_cat_i].cat_n_child = cat_i;
+              wms->ms.cat_t[parent_cat_i].cat_n_child = cat_i;
             }
             xml->prev_cat_i = -1;
             if (xml->parsed_cat_i != -1) {
               e = imf_seek_unused(&wms->ms.imf, &index);
               if (e == 0) {
                 assert(wms->ms.card_a >= 0);
-                data_size = wms->ms.card_a * sizeof (struct Card);
-                assert(wms->ms.card_l);
+                data_size = wms->ms.card_a * sizeof(struct Card);
+                assert(wms->ms.card_l != NULL || wms->ms.card_a == 0);
                 e = imf_put (&wms->ms.imf, index, wms->ms.card_l, data_size);
                 if (e == 0) {
                   wms->ms.cat_t[xml->parsed_cat_i].cat_cli = index;
@@ -632,14 +634,17 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
           assert(cat_i < INT16_MAX);
           e = sa_set(&wms->ms.cat_sa, parent_cat_i, str);
           break;
-        case TAG_PAIR:
+        case TAG_CARD:
           wms->ms.card_a++;
           size = wms->ms.card_a * sizeof (struct Card);
-          wms->ms.card_l = realloc (wms->ms.card_l, size);
+          wms->ms.card_l = realloc(wms->ms.card_l, size);
           e = wms->ms.card_l == NULL;
           if (e == 0) {
             wms->ms.card_i++;
-            wms->ms.card_l[wms->ms.card_i].card_state = 0;
+            wms->ms.card_l[wms->ms.card_i].card_time = 0;
+            wms->ms.card_l[wms->ms.card_i].card_strength = 60;
+            wms->ms.card_l[wms->ms.card_i].card_qai = -1;
+            wms->ms.card_l[wms->ms.card_i].card_state = STATE_NEW;
           }
           break;
         case TAG_TIME:
@@ -652,7 +657,7 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
           if (e == 0) {
             bd_time.tm_mon -= 1;
             bd_time.tm_year -= 1900;
-            simple_time = timegm (&bd_time);
+            simple_time = timegm(&bd_time);
             e = simple_time == -1;
             if (e == 0) {
               wms->ms.card_l[wms->ms.card_i].card_time = simple_time;
@@ -667,19 +672,19 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
           break;
         case TAG_STATE:
           str = xml->p_lineptr;
-          xml->card_state = str[0] - '0';
-          e = xml->card_state > 3;
+          i = str[0] - '0';
+          e = i > 3;
           if (e == 0) {
-            wms->ms.card_l[wms->ms.card_i].card_state = (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) | xml->card_state;
+            wms->ms.card_l[wms->ms.card_i].card_state = (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) | i;
           }
           break;
         case TAG_TYPE:
           str = xml->p_lineptr;
-          xml->card_state = str[0] - '0';
-          e = xml->card_state > 1;
+          i = str[0] - '0';
+          e = i > 1;
           if (e == 0) {
-            xml->card_state <<= 3;
-            wms->ms.card_l[wms->ms.card_i].card_state = (wms->ms.card_l[wms->ms.card_i].card_state & 0x07) | xml->card_state;
+            i <<= 3;
+            wms->ms.card_l[wms->ms.card_i].card_state = (wms->ms.card_l[wms->ms.card_i].card_state & 0x07) | i;
           }
           break;
         case TAG_QUESTION:
@@ -725,7 +730,7 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
         case 8:
           if (memcmp(str, "strength", 8) == 0) {
             if (slash_f == 0) {
-              e = tag != TAG_PAIR;
+              e = tag != TAG_CARD;
               if (e == 0) {
                 e = parse_xml(xml, wms, TAG_STRENGTH, parent_cat_i);
               }
@@ -736,7 +741,7 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
             e = memcmp(str, "question", 8);
             if (e == 0) {
               if (slash_f == 0) {
-                e = tag != TAG_PAIR;
+                e = tag != TAG_CARD;
                 if (e == 0)
                   e = parse_xml(xml, wms, TAG_QUESTION, parent_cat_i);
               } else
@@ -748,7 +753,7 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
           e = memcmp(str, "answer", 6);
           if (e == 0) {
             if (slash_f == 0) {
-              e = tag != TAG_PAIR;
+              e = tag != TAG_CARD;
               if (e == 0) {
                 e = parse_xml(xml, wms, TAG_ANSWER, parent_cat_i);
               }
@@ -761,7 +766,7 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
           e = memcmp(str, "state", 5);
           if (e == 0) {
             if (slash_f == 0) {
-              e = tag != TAG_PAIR;
+              e = tag != TAG_CARD;
               if (e == 0) {
                 e = parse_xml(xml, wms, TAG_STATE, parent_cat_i);
               }
@@ -773,11 +778,11 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
         case 4:
           if (memcmp(str, "card", 4) == 0) {
             if (slash_f == 0) {
-              e = tag != TAG_CATEGORY;
+              e = tag != TAG_DECK;
               if (e == 0)
-                e = parse_xml(xml, wms, TAG_PAIR, cat_i);
+                e = parse_xml(xml, wms, TAG_CARD, cat_i);
             } else {
-              e = tag != TAG_PAIR;
+              e = tag != TAG_CARD;
               if (e == 0) {
                 e = imf_seek_unused(&wms->ms.imf, &index);
                 if (e == 0) {
@@ -790,7 +795,7 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
             }
           } else if (memcmp(str, "time", 4) == 0) {
             if (slash_f == 0) {
-              e = tag != TAG_PAIR;
+              e = tag != TAG_CARD;
               if (e == 0) {
                 e = parse_xml(xml, wms, TAG_TIME, parent_cat_i);
               }
@@ -799,7 +804,7 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
             }
           } else if (memcmp(str, "type", 4) == 0) {
             if (slash_f == 0) {
-              e = tag != TAG_PAIR;
+              e = tag != TAG_CARD;
               if (e == 0) {
                 e = parse_xml(xml, wms, TAG_TYPE, parent_cat_i);
               }
@@ -808,7 +813,7 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
             }
           } else if (memcmp(str, "name", 4) == 0) {
             if (slash_f == 0) {
-              e = tag != TAG_CATEGORY;
+              e = tag != TAG_DECK;
               if (e == 0)
                 e = parse_xml(xml, wms, TAG_NAME, cat_i);
             } else
@@ -817,11 +822,11 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
             e = memcmp(str, "deck", 4);
             if (e == 0) {
               if (slash_f == 0) {
-                e = tag != TAG_MEMORYSURFER && tag != TAG_CATEGORY;
+                e = tag != TAG_MEMORYSURFER && tag != TAG_DECK;
                 if (e == 0)
-                  e = parse_xml(xml, wms, TAG_CATEGORY, cat_i);
+                  e = parse_xml(xml, wms, TAG_DECK, cat_i);
               } else {
-                e = tag != TAG_CATEGORY;
+                e = tag != TAG_DECK;
                 if (e == 0) {
                   if (xml->parsed_cat_i == cat_i) {
                     assert(xml->parsed_cat_i != -1);
@@ -829,7 +834,7 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
                     if (e == 0) {
                       assert(wms->ms.card_a >= 0);
                       data_size = wms->ms.card_a * sizeof(struct Card);
-                      assert(wms->ms.card_l);
+                      assert(wms->ms.card_l != NULL || wms->ms.card_a == 0);
                       e = imf_put(&wms->ms.imf, index, wms->ms.card_l, data_size);
                       if (e == 0) {
                         wms->ms.cat_t[xml->parsed_cat_i].cat_cli = index;
@@ -2052,14 +2057,6 @@ static int gen_html_cat(int16_t n_create, enum HIERARCHY hierarchy, struct WebMe
 
 enum
 {
-  STATE_ALARM = 0,
-  STATE_SCHEDULED,
-  STATE_NEW,
-  STATE_SUSPENDED
-};
-
-enum
-{
   SECONDS_MINUTE = 60,
   SECONDS_HOUR = SECONDS_MINUTE * 60,
   SECONDS_DAY = SECONDS_HOUR * 24,
@@ -3088,7 +3085,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.67</h1>\n" 
+        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.68</h1>\n" 
                     "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p>Copyright 2016-2021</p>\n"
                     "\t\t\t<p>Send bugs and suggestions to\n"
