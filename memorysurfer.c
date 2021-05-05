@@ -39,7 +39,7 @@
 enum Field { F_UNKNOWN, F_FILENAME, F_FILE_TITLE, F_START_ACTION, F_FILE_ACTION, F_ARRANGE, F_CAT_NAME, F_MOVED_CAT, F_EDIT_ACTION, F_LEARN_ACTION, F_SEARCH_TXT, F_MATCH_CASE, F_IS_HTML, F_SEARCH_ACTION, F_CAT, F_CARD, F_MOV_CARD, F_LVL, F_Q, F_A, F_REVEAL_POS, F_TODO_MAIN, F_TODO_ALT, F_MTIME, F_PASSWORD, F_NEW_PASSWORD, F_TOKEN, F_EVENT, F_PAGE, F_MODE, F_TIMEOUT };
 enum Action { A_END, A_NONE, A_FILE, A_WARN_UPLOAD, A_CREATE, A_NEW, A_OPEN_DLG, A_FILELIST, A_OPEN, A_CHANGE_PASSWD, A_WRITE_PASSWD, A_READ_PASSWD, A_CHECK_PASSWORD, A_AUTH_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_CHECK_RESUME, A_SLASH, A_VOID, A_FILE_EXTENSION, A_GATHER, A_UPLOAD, A_UPLOAD_REPORT, A_EXPORT, A_ASK_REMOVE, A_REMOVE, A_ASK_ERASE, A_ERASE, A_CLOSE, A_START_DECKS, A_DECKS_CREATE, A_SELECT_DEST_DECK, A_SELECT_SEND_CAT, A_SELECT_ARRANGE, A_CAT_NAME, A_CREATE_CAT, A_RENAME_CAT, A_ASK_DELETE_CAT, A_DELETE_CAT, A_TOGGLE, A_MOVE_CAT, A_SELECT_EDIT_CAT, A_EDIT, A_UPDATE_QA, A_UPDATE_HTML, A_SYNC, A_INSERT, A_APPEND, A_ASK_DELETE_CARD, A_DELETE_CARD, A_PREVIOUS, A_NEXT, A_SCHEDULE, A_SET, A_CARD_ARRANGE, A_MOVE_CARD, A_SEND_CARD, A_SELECT_LEARN_CAT, A_SELECT_SEARCH_CAT, A_PREFERENCES, A_ABOUT, A_APPLY, A_SEARCH, A_PREVIEW, A_DETERMINE_CARD, A_SHOW, A_REVEAL, A_PROCEED, A_SUSPEND, A_RESUME, A_CHECK_FILE, A_LOGIN, A_HISTOGRAM, A_TABLE, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CARD, A_TEST_CAT_SELECTED, A_TEST_CAT_VALID, A_TEST_CAT, A_TEST_ARRANGE, A_TEST_NAME };
 enum Page { P_START, P_FILE, P_PASSWORD, P_NEW, P_OPEN, P_UPLOAD, P_UPLOAD_REPORT, P_EXPORT, P_CAT_NAME, P_SELECT_ARRANGE, P_SELECT_DEST_DECK, P_SELECT_DECK, P_EDIT, P_PREVIEW, P_SEARCH, P_PREFERENCES, P_ABOUT, P_LEARN, P_MSG, P_HISTOGRAM, P_TABLE };
-enum Block { B_END, B_START_HTML, B_FORM_POST, B_OPEN_DIV, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_HIDDEN_MOV_CARD, B_CLOSE_DIV, B_START, B_FILE, B_PASSWORD, B_NEW, B_OPEN, B_UPLOAD, B_UPLOAD_REPORT, B_EXPORT, B_CAT_NAME, B_SELECT_ARRANGE, B_SELECT_DEST_DECK, B_SELECT_DECK, B_EDIT, B_PREVIEW, B_SEARCH, B_PREFERENCES, B_ABOUT, B_LEARN, B_MSG, B_HISTOGRAM, B_TABLE };
+enum Block { B_END, B_START_HTML, B_FORM_URLENCODED, B_FORM_MULTIPART, B_OPEN_DIV, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_HIDDEN_MOV_CARD, B_CLOSE_DIV, B_START, B_FILE, B_PASSWORD, B_NEW, B_OPEN, B_UPLOAD, B_UPLOAD_REPORT, B_EXPORT, B_CAT_NAME, B_SELECT_ARRANGE, B_SELECT_DEST_DECK, B_SELECT_DECK, B_EDIT, B_PREVIEW, B_SEARCH, B_PREFERENCES, B_ABOUT, B_LEARN, B_MSG, B_HISTOGRAM, B_TABLE };
 enum Mode { M_NONE = -1, M_DEFAULT, M_CHANGE_PASSWD, M_ASK, M_RATE, M_EDIT, M_LEARN, M_SEARCH, M_SEND, M_MOVE, M_CARD, M_DECK, M_START, M_END };
 enum Sequence { S_FILE, S_START_DECKS, S_DECKS_CREATE, S_SELECT_MOVE_ARRANGE, S_CAT_NAME, S_SELECT_EDIT_CAT, S_SELECT_LEARN_CAT, S_SELECT_SEARCH_CAT, S_PREFERENCES, S_ABOUT, S_APPLY, S_NEW, S_FILELIST, S_WARN_UPLOAD, S_UPLOAD, S_LOGIN, S_ENTER, S_CHANGE, S_START, S_UPLOAD_REPORT, S_EXPORT, S_ASK_REMOVE, S_REMOVE, S_ASK_ERASE, S_ERASE, S_CLOSE, S_NONE, S_CREATE, S_GO_LOGIN, S_GO_CHANGE, S_RENAME_ENTER, S_RENAME_CAT, S_SELECT_DEST_CAT, S_MOVE_CAT, S_CREATE_CAT, S_ASK_DELETE_CAT, S_DELETE_CAT, S_TOGGLE, S_EDIT, S_INSERT, S_APPEND, S_ASK_DELETE_CARD, S_DELETE_CARD, S_PREVIOUS, S_NEXT, S_SCHEDULE, S_SET, S_CARD_ARRANGE, S_MOVE_CARD, S_SELECT_SEND_CAT, S_SEND_CARD, S_SEARCH_SYNCED, S_PREVIEW_SYNC, S_QUESTION_SYNCED, S_QUESTION, S_SHOW, S_REVEAL, S_PROCEED, S_SUSPEND, S_RESUME, S_SEARCH, S_HISTOGRAM, S_TABLE, S_END };
 enum Stage { T_NULL, T_URLENCODE, T_BOUNDARY_INIT, T_CONTENT, T_NAME, T_BOUNDARY_BEGIN, T_BOUNDARY_CHECK };
@@ -112,27 +112,27 @@ static enum Action action_seq[S_END+1][14] = {
 };
 
 static enum Block block_seq[P_TABLE+1][11] = {
-  { B_START_HTML, B_FORM_POST, B_OPEN_DIV, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_START, B_END }, // P_START
-  { B_START_HTML, B_FORM_POST, B_OPEN_DIV, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_FILE, B_END }, // P_FILE
-  { B_START_HTML, B_FORM_POST, B_OPEN_DIV, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_PASSWORD, B_END }, // P_PASSWORD
-  { B_START_HTML, B_FORM_POST, B_OPEN_DIV, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_NEW, B_END }, // P_NEW
-  { B_START_HTML, B_FORM_POST, B_OPEN_DIV, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_OPEN, B_END }, // P_OPEN
-  { B_UPLOAD, B_END }, // P_UPLOAD
-  { B_START_HTML, B_FORM_POST, B_OPEN_DIV, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_UPLOAD_REPORT, B_END }, // P_UPLOAD_REPORT
+  { B_START_HTML, B_FORM_URLENCODED, B_OPEN_DIV, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_START, B_END }, // P_START
+  { B_START_HTML, B_FORM_URLENCODED, B_OPEN_DIV, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_FILE, B_END }, // P_FILE
+  { B_START_HTML, B_FORM_URLENCODED, B_OPEN_DIV, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_PASSWORD, B_END }, // P_PASSWORD
+  { B_START_HTML, B_FORM_URLENCODED, B_OPEN_DIV, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_NEW, B_END }, // P_NEW
+  { B_START_HTML, B_FORM_URLENCODED, B_OPEN_DIV, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_OPEN, B_END }, // P_OPEN
+  { B_START_HTML, B_FORM_MULTIPART, B_OPEN_DIV, B_CLOSE_DIV, B_UPLOAD, B_END }, // P_UPLOAD
+  { B_START_HTML, B_FORM_URLENCODED, B_OPEN_DIV, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_UPLOAD_REPORT, B_END }, // P_UPLOAD_REPORT
   { B_EXPORT, B_END }, // P_EXPORT
-  { B_START_HTML, B_FORM_POST, B_OPEN_DIV, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_CAT_NAME, B_END }, // P_CAT_NAME
-  { B_START_HTML, B_FORM_POST, B_OPEN_DIV, B_HIDDEN_CAT, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_HIDDEN_MOV_CARD, B_CLOSE_DIV, B_SELECT_ARRANGE, B_END }, // P_SELECT_ARRANGE
-  { B_START_HTML, B_FORM_POST, B_OPEN_DIV, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_HIDDEN_MOV_CARD, B_CLOSE_DIV, B_SELECT_DEST_DECK, B_END }, // P_SELECT_DEST_DECK
-  { B_START_HTML, B_FORM_POST, B_OPEN_DIV, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_SELECT_DECK, B_END }, // P_SELECT_DECK
-  { B_START_HTML, B_FORM_POST, B_OPEN_DIV, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_HIDDEN_MOV_CARD, B_CLOSE_DIV, B_EDIT, B_END }, // P_EDIT
-  { B_START_HTML, B_FORM_POST, B_OPEN_DIV, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_HIDDEN_MOV_CARD, B_CLOSE_DIV, B_PREVIEW, B_END }, // P_PREVIEW
-  { B_START_HTML, B_FORM_POST, B_OPEN_DIV, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_CLOSE_DIV, B_SEARCH, B_END }, // P_SEARCH
-  { B_START_HTML, B_FORM_POST, B_OPEN_DIV, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_PREFERENCES, B_END }, // P_PREFERENCES
-  { B_START_HTML, B_FORM_POST, B_OPEN_DIV, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_ABOUT, B_END }, // P_ABOUT
-  { B_START_HTML, B_FORM_POST, B_OPEN_DIV, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_LEARN, B_END }, // P_LEARN
-  { B_START_HTML, B_FORM_POST, B_OPEN_DIV, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_MSG, B_END }, // P_MSG
-  { B_START_HTML, B_FORM_POST, B_OPEN_DIV, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_HISTOGRAM, B_END }, // P_HISTOGRAM
-  { B_START_HTML, B_FORM_POST, B_OPEN_DIV, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_TABLE, B_END } // P_TABLE
+  { B_START_HTML, B_FORM_URLENCODED, B_OPEN_DIV, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_CAT_NAME, B_END }, // P_CAT_NAME
+  { B_START_HTML, B_FORM_URLENCODED, B_OPEN_DIV, B_HIDDEN_CAT, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_HIDDEN_MOV_CARD, B_CLOSE_DIV, B_SELECT_ARRANGE, B_END }, // P_SELECT_ARRANGE
+  { B_START_HTML, B_FORM_URLENCODED, B_OPEN_DIV, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_HIDDEN_MOV_CARD, B_CLOSE_DIV, B_SELECT_DEST_DECK, B_END }, // P_SELECT_DEST_DECK
+  { B_START_HTML, B_FORM_URLENCODED, B_OPEN_DIV, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_SELECT_DECK, B_END }, // P_SELECT_DECK
+  { B_START_HTML, B_FORM_URLENCODED, B_OPEN_DIV, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_HIDDEN_MOV_CARD, B_CLOSE_DIV, B_EDIT, B_END }, // P_EDIT
+  { B_START_HTML, B_FORM_URLENCODED, B_OPEN_DIV, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_HIDDEN_MOV_CARD, B_CLOSE_DIV, B_PREVIEW, B_END }, // P_PREVIEW
+  { B_START_HTML, B_FORM_URLENCODED, B_OPEN_DIV, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_CLOSE_DIV, B_SEARCH, B_END }, // P_SEARCH
+  { B_START_HTML, B_FORM_URLENCODED, B_OPEN_DIV, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_PREFERENCES, B_END }, // P_PREFERENCES
+  { B_START_HTML, B_FORM_URLENCODED, B_OPEN_DIV, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_ABOUT, B_END }, // P_ABOUT
+  { B_START_HTML, B_FORM_URLENCODED, B_OPEN_DIV, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_LEARN, B_END }, // P_LEARN
+  { B_START_HTML, B_FORM_URLENCODED, B_OPEN_DIV, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_MSG, B_END }, // P_MSG
+  { B_START_HTML, B_FORM_URLENCODED, B_OPEN_DIV, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_HISTOGRAM, B_END }, // P_HISTOGRAM
+  { B_START_HTML, B_FORM_URLENCODED, B_OPEN_DIV, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_CLOSE_DIV, B_TABLE, B_END } // P_TABLE
 };
 
 static const char *DATA_PATH = "/var/www/memorysurfer";
@@ -989,21 +989,20 @@ int parse_post(struct WebMemorySurfer *wms) {
         if (wms->mult.nread > 0) {
           if (wms->mult.post_fp > 0 && wms->mult.post_lp[wms->mult.post_fp] == '=') {
             stage = T_URLENCODE;
-          }
-          else {
+          } else {
             e = wms->mult.post_fp != 0 || wms->mult.nread != 2 || memcmp(wms->mult.post_lp, "--", 2) != 0;
             if (e == 0) {
               stage = T_BOUNDARY_INIT;
               wms->mult.delim_str[0] = "\r\n";
               wms->mult.delim_str[1] = NULL;
               break;
-            }
-            else
+            } else {
               break;
+            }
           }
-        }
-        else
+        } else {
           break;
+        }
       case T_URLENCODE:
         if (wms->mult.post_fp >= 0)
           str = wms->mult.post_lp + wms->mult.post_fp;
@@ -1381,7 +1380,9 @@ int parse_post(struct WebMemorySurfer *wms) {
                 assert(wms->mtime[0] == -1 && wms->mtime[1] == -1);
                 a_n = sscanf(wms->mult.post_lp, "%8x%8x", &wms->mtime[1], &wms->mtime[0]);
                 e = a_n != 2;
-                assert(wms->mtime[0] >= 0 && wms->mtime[1] >= 0);
+                if (e == 0) {
+                  assert(wms->mtime[0] >= 0 && wms->mtime[1] >= 0);
+                }
                 break;
               case F_PASSWORD:
                 assert (wms->ms.password == NULL);
@@ -1718,19 +1719,21 @@ int parse_post(struct WebMemorySurfer *wms) {
               wms->mult.delim_str[1] = "\"; ";
             }
           } else if (strncmp(str, "\"\r\n\r\n", 5) == 0) {
-            if (strncmp(wms->mult.post_lp, "file-title", 10) == 0) {
+            if (strncmp(wms->mult.post_lp, "page", 4) == 0) {
+              field = F_PAGE;
+            } else if (strncmp(wms->mult.post_lp, "file-title", 10) == 0) {
               field = F_FILE_TITLE;
-              wms->mult.delim_str[0] = "\r\n";
             } else if (strncmp(wms->mult.post_lp, "token", 5) == 0) {
               field = F_TOKEN;
-              wms->mult.delim_str[0] = "\r\n";
+            } else if (strncmp(wms->mult.post_lp, "mtime", 5) == 0) {
+              field = F_MTIME;
             } else {
               e = strncmp(wms->mult.post_lp, "file_action", 11) != 0;
               if (e == 0) {
                 field = F_FILE_ACTION;
-                wms->mult.delim_str[0] = "\r\n";
               }
             }
+            wms->mult.delim_str[0] = "\r\n";
             wms->mult.delim_str[1] = NULL;
           } else if (strncmp(str, "\"; ", 3) == 0) {
             e = strncmp(wms->mult.post_lp, "file_action", 11) != 0;
@@ -1739,7 +1742,15 @@ int parse_post(struct WebMemorySurfer *wms) {
               wms->mult.delim_str[1] = NULL;
             }
           } else if (strncmp(str, "\r\n", 2) == 0) {
-            if (field == F_FILE_TITLE) {
+            if (field == F_PAGE) {
+              assert(wms->from_page == -1);
+              a_n = sscanf(wms->mult.post_lp, "%d", &wms->from_page);
+              e = a_n != 1 || wms->from_page < P_START || wms->from_page > P_TABLE;
+              if (e == 0) {
+                stage = T_BOUNDARY_BEGIN;
+                wms->mult.delim_str[0] = "--";
+              }
+            } else if (field == F_FILE_TITLE) {
               assert(wms->file_title_str == NULL);
               size = wms->mult.nread - 1;
               wms->file_title_str = malloc(size);
@@ -1754,6 +1765,15 @@ int parse_post(struct WebMemorySurfer *wms) {
               e = wms->mult.nread != 42;
               if (e == 0) {
                 e = scan_hex(wms->tok_digest, wms->mult.post_lp, SHA1_HASH_SIZE);
+                stage = T_BOUNDARY_BEGIN;
+                wms->mult.delim_str[0] = "--";
+              }
+            } else if (field == F_MTIME) {
+              assert(wms->mtime[0] == -1 && wms->mtime[1] == -1);
+              a_n = sscanf(wms->mult.post_lp, "%8x%8x", &wms->mtime[1], &wms->mtime[0]);
+              e = a_n != 2;
+              if (e == 0) {
+                assert(wms->mtime[0] >= 0 && wms->mtime[1] >= 0);
                 stage = T_BOUNDARY_BEGIN;
                 wms->mult.delim_str[0] = "--";
               }
@@ -2415,8 +2435,12 @@ static int gen_html(struct WebMemorySurfer *wms) {
             title_str);
         e = rv < 0;
         break;
-      case B_FORM_POST:
-        rv = printf("\t\t<form method=\"post\" action=\"memorysurfer.cgi\">\n");
+      case B_FORM_URLENCODED:
+        rv = printf("\t\t<form enctype=\"application/x-www-form-urlencoded\" method=\"post\" action=\"memorysurfer.cgi\">\n");
+        e = rv < 0;
+        break;
+      case B_FORM_MULTIPART:
+        rv = printf("\t\t<form enctype=\"multipart/form-data\" method=\"post\" action=\"memorysurfer.cgi\">\n");
         e = rv < 0;
         break;
       case B_OPEN_DIV:
@@ -2667,34 +2691,14 @@ static int gen_html(struct WebMemorySurfer *wms) {
         break;
       case B_UPLOAD:
         assert(wms->file_title_str != NULL && strlen(wms->tok_str) == 40);
-        printf("Content-Type: text/html; charset=utf-8\n\n"
-               "<!DOCTYPE html>\n"
-               "<html lang=\"en\">\n"
-               "\t<head>\n"
-               "\t\t<meta charset=\"utf-8\">\n"
-               "\t\t<title>%s</title>\n"
-               "\t\t<meta name=\"viewport\" content=\"width=device-width\">\n"
-               "\t\t<link rel=\"shortcut icon\" href=\"/favicon.ico\">\n"
-               "\t\t<link rel=\"stylesheet\" type=\"text/css\" href=\"/ms.css\">\n"
-               "\t\t<link rel=\"license\" href=\"https://www.gnu.org/licenses/old-licenses/gpl-2.0.html\">\n"
-               "\t</head>\n"
-               "\t<body>\n"
-               "\t\t<form enctype=\"multipart/form-data\" method=\"post\" action=\"memorysurfer.cgi\">\n"
-               "\t\t\t<div>\n"
-               "\t\t\t\t<input type=\"hidden\" name=\"file-title\" value=\"%s\">\n"
-               "\t\t\t\t<input type=\"hidden\" name=\"token\" value=\"%s\">\n"
-               "\t\t\t</div>\n"
-               "\t\t\t<h1 class=\"msf\">Upload</h1>\n"
+        printf("\t\t\t<h1 class=\"msf\">Upload</h1>\n"
                "\t\t\t<p>Choose a (previously exported .XML) File to upload (which will be used for the Import)</p>\n"
                "\t\t\t<p><input type=\"file\" name=\"file_action\"></p>\n"
                "\t\t\t<p><input type=\"submit\" name=\"file_action\" value=\"Upload\">\n"
                "\t\t\t\t<input type=\"submit\" name=\"file_action\" value=\"Stop\"></p>\n"
                "\t\t</form>\n"
                "\t</body>\n"
-               "</html>\n",
-            title_str,
-            wms->file_title_str,
-            wms->tok_str);
+               "</html>\n");
         break;
       case B_UPLOAD_REPORT:
         printf("\t\t\t<h1 class=\"msf\">XML File imported</h1>\n"
@@ -3093,7 +3097,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.70</h1>\n" 
+        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.71</h1>\n" 
                     "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p>Copyright 2016-2021</p>\n"
                     "\t\t\t<p>Send bugs and suggestions to\n"
