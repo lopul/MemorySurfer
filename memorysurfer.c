@@ -244,7 +244,6 @@ struct WebMemorySurfer {
   enum Mode mode;
   enum Mode saved_mode;
   int timeout;
-  char *boundary_str;
   char *dbg_lp;
   size_t dbg_n;
   int dbg_wp;
@@ -452,7 +451,7 @@ static int multi_delim(struct Multi *mult) {
   assert((mult->post_lp == NULL && mult->post_n == 0) || (mult->post_lp != NULL && mult->post_n > 0));
   for (i = 0; i < 2; i++) {
     if (mult->delim_str[i] != NULL)
-      mult->delim_len[i] = strlen (mult->delim_str[i]);
+      mult->delim_len[i] = strlen(mult->delim_str[i]);
     else
       mult->delim_len[i] = INT_MAX;
   }
@@ -461,13 +460,12 @@ static int multi_delim(struct Multi *mult) {
   cmp_i = -1;
   mult->post_wp = 0;
   mult->post_fp = -1;
-  do
-  {
+  do {
     if (mult->post_wp + 1 >= mult->post_n) {
       post_n = mult->post_wp + 120;
       e = post_n >= INT_MAX;
       if (e == 0) {
-        post_lp = (char *) realloc(mult->post_lp, post_n);
+        post_lp = (char *)realloc(mult->post_lp, post_n);
         e = post_lp == NULL;
         if (e == 0) {
           mult->post_lp = post_lp;
@@ -482,16 +480,17 @@ static int multi_delim(struct Multi *mult) {
         mult->post_wp++;
         for (i = 0; i < 2; i++) {
           post_tp = mult->post_wp - mult->delim_len[i];
-          if (post_tp >= 0)
+          if (post_tp >= 0) {
             cmp_i = memcmp(mult->post_lp + post_tp, mult->delim_str[i], mult->delim_len[i]);
+          }
           if (cmp_i == 0) {
             mult->post_fp = post_tp;
             break;
           }
         }
-      }
-      else
+      } else {
         break;
+      }
     }
   } while (mult->post_fp < 0 && e == 0);
   mult->post_lp[mult->post_wp] = '\0';
@@ -856,33 +855,27 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
   return e;
 }
 
-int sa_load (struct StringArray *sa, struct IndexedMemoryFile *imf, int32_t index)
-{
+static int sa_load(struct StringArray *sa, struct IndexedMemoryFile *imf, int32_t index) {
   int e;
   int32_t data_size;
   int pos_c; // count
   char *sa_d;
   data_size = imf_get_size (imf, index);
   e = 0;
-  if (sa->sa_n < data_size)
-  {
+  if (sa->sa_n < data_size) {
     sa_d = realloc (sa->sa_d, data_size);
     e = sa_d == NULL;
-    if (e == 0)
-    {
+    if (e == 0) {
       sa->sa_d = sa_d;
       sa->sa_n = data_size;
     }
   }
-  if (e == 0)
-  {
+  if (e == 0) {
     e = imf_get (imf, index, sa->sa_d);
-    if (e == 0)
-    {
+    if (e == 0) {
       sa->sa_c = 0;
       pos_c = 0;
-      while (pos_c < data_size)
-      {
+      while (pos_c < data_size) {
         sa->sa_c += !sa->sa_d[pos_c++];
       }
     }
@@ -890,8 +883,7 @@ int sa_load (struct StringArray *sa, struct IndexedMemoryFile *imf, int32_t inde
   return e;
 }
 
-int ms_open(struct MemorySurfer *ms)
-{
+static int ms_open(struct MemorySurfer *ms) {
   int e;
   int i;
   int32_t data_size;
@@ -971,6 +963,8 @@ int parse_post(struct WebMemorySurfer *wms) {
   size_t size;
   struct XML *xml;
   struct Multi *mult;
+  char *boundary_str;
+  boundary_str = NULL;
   size = sizeof(struct Multi);
   mult = malloc(size);
   e = mult == NULL;
@@ -1683,16 +1677,19 @@ int parse_post(struct WebMemorySurfer *wms) {
             str = mult->post_lp + mult->post_fp;
             e = strncmp(str, "\r\n", 2) != 0;
             if (e == 0) {
-              assert(wms->boundary_str == NULL);
+              assert(boundary_str == NULL);
               size = mult->nread - 1;
-              wms->boundary_str = malloc(size);
-              e = wms->boundary_str == NULL;
+              e = size <= 71 ? 0 : 0x00c46685; // WBYEX - boundary exceeded
               if (e == 0) {
-                memcpy(wms->boundary_str, mult->post_lp, mult->nread - 2);
-                wms->boundary_str[mult->nread - 2] = '\0';
+                boundary_str = malloc(size);
+                e = boundary_str == NULL;
+                if (e == 0) {
+                  memcpy(boundary_str, mult->post_lp, mult->nread - 2);
+                  boundary_str[mult->nread - 2] = '\0';
                 stage = T_CONTENT;
                 mult->delim_str[0] = "; ";
                 mult->delim_str[1] = NULL;
+                }
               }
             }
           }
@@ -1867,11 +1864,11 @@ int parse_post(struct WebMemorySurfer *wms) {
                 deci = 1;
               e = deci == 0;
               if (e == 0) {
-                assert(wms->boundary_str != NULL);
-                len = strlen(wms->boundary_str);
+                assert(boundary_str != NULL);
+                len = strlen(boundary_str);
                 e = len != mult->post_fp;
                 if (e == 0) {
-                  e = strncmp(mult->post_lp, wms->boundary_str, len) != 0;
+                  e = strncmp(mult->post_lp, boundary_str, len) != 0;
                   if (e == 0) {
                     if (deci < 0) {
                       stage = T_CONTENT;
@@ -1890,6 +1887,8 @@ int parse_post(struct WebMemorySurfer *wms) {
         }
       }
     } while (mult->nread != -1 && e == 0);
+    free(boundary_str);
+    boundary_str = NULL;
     free(mult->post_lp);
     mult->post_lp = NULL;
     mult->post_n = 0;
@@ -3107,7 +3106,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.72</h1>\n" 
+        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.73</h1>\n" 
                     "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p>Copyright 2016-2021</p>\n"
                     "\t\t\t<p>Send bugs and suggestions to\n"
@@ -3470,7 +3469,6 @@ static int wms_init(struct WebMemorySurfer *wms) {
     wms->mode = M_NONE;
     wms->saved_mode = M_NONE;
     wms->timeout = -1;
-    wms->boundary_str = NULL;
     wms->dbg_n = 720;
     wms->dbg_lp = malloc(wms->dbg_n);
     e = wms->dbg_lp == NULL;
@@ -3552,7 +3550,6 @@ static void wms_free(struct WebMemorySurfer *wms) {
   }
   free(wms->fl_v);
   sa_free(&wms->qa_sa);
-  free(wms->boundary_str);
   free(wms->dbg_lp);
   free(wms->file_title_str);
   ms_free(&wms->ms);
