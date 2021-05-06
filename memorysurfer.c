@@ -208,8 +208,7 @@ static const int32_t SA_INDEX = 2; // StringArray
 static const int32_t C_INDEX = 3; // Categories
 static const int32_t PW_INDEX = 4; // Password
 
-struct Multi
-{
+struct Multi {
   char *delim_str[2];
   size_t delim_len[2];
   ssize_t nread;
@@ -245,7 +244,6 @@ struct WebMemorySurfer {
   enum Mode mode;
   enum Mode saved_mode;
   int timeout;
-  struct Multi mult;
   char *boundary_str;
   char *dbg_lp;
   size_t dbg_n;
@@ -275,14 +273,14 @@ struct WebMemorySurfer {
   struct IndentStr *inds;
 };
 
-static int append_part(struct WebMemorySurfer *wms)
+static int append_part(struct WebMemorySurfer *wms, struct Multi *mult)
 {
   int e;
   int i;
   char ch;
   e = 0;
-  if (wms->dbg_wp + wms->mult.nread + 1 > wms->dbg_n) {
-    wms->dbg_n = (wms->dbg_wp + wms->mult.nread + 1 + 120) & 0xfffffff8;
+  if (wms->dbg_wp + mult->nread + 1 > wms->dbg_n) {
+    wms->dbg_n = (wms->dbg_wp + mult->nread + 1 + 120) & 0xfffffff8;
     e = wms->dbg_n > INT32_MAX;
     if (e == 0) {
       wms->dbg_lp = realloc(wms->dbg_lp, wms->dbg_n);
@@ -290,8 +288,8 @@ static int append_part(struct WebMemorySurfer *wms)
     }
   }
   if (e == 0) {
-    for (i = 0; i < wms->mult.nread; i++) {
-      ch = wms->mult.post_lp[i];
+    for (i = 0; i < mult->nread; i++) {
+      ch = mult->post_lp[i];
       wms->dbg_lp[wms->dbg_wp++] = ch;
     }
     wms->dbg_lp[wms->dbg_wp] = '\0';
@@ -972,663 +970,547 @@ int parse_post(struct WebMemorySurfer *wms) {
   enum Field field;
   size_t size;
   struct XML *xml;
-  e = 0;
-  wms->mult.delim_str[0] = "=";
-  wms->mult.delim_str[1] = "--";
-  stage = T_NULL;
-  field = F_UNKNOWN;
-  do
-  {
-    e = multi_delim(&wms->mult);
-    if (wms->mult.nread > 0 && e == 0)
-      e = append_part(wms);
-    if (e == 0) {
-      switch (stage)
-      {
-      case T_NULL:
-        if (wms->mult.nread > 0) {
-          if (wms->mult.post_fp > 0 && wms->mult.post_lp[wms->mult.post_fp] == '=') {
-            stage = T_URLENCODE;
-          } else {
-            e = wms->mult.post_fp != 0 || wms->mult.nread != 2 || memcmp(wms->mult.post_lp, "--", 2) != 0;
-            if (e == 0) {
-              stage = T_BOUNDARY_INIT;
-              wms->mult.delim_str[0] = "\r\n";
-              wms->mult.delim_str[1] = NULL;
-              break;
+  struct Multi *mult;
+  size = sizeof(struct Multi);
+  mult = malloc(size);
+  e = mult == NULL;
+  if (e == 0) {
+    mult->post_lp = NULL;
+    mult->post_n = 0;
+    mult->delim_str[0] = "=";
+    mult->delim_str[1] = "--";
+    stage = T_NULL;
+    field = F_UNKNOWN;
+    do {
+      e = multi_delim(mult);
+      if (mult->nread > 0 && e == 0) {
+        e = append_part(wms, mult);
+      }
+      if (e == 0) {
+        switch (stage)
+        {
+        case T_NULL:
+          if (mult->nread > 0) {
+            if (mult->post_fp > 0 && mult->post_lp[mult->post_fp] == '=') {
+              stage = T_URLENCODE;
             } else {
-              break;
-            }
-          }
-        } else {
-          break;
-        }
-      case T_URLENCODE:
-        if (wms->mult.post_fp >= 0)
-          str = wms->mult.post_lp + wms->mult.post_fp;
-        else if (field != F_UNKNOWN)
-          str = "&";
-        else
-          str = NULL;
-        if (str != NULL) {
-          if (memcmp (str, "=", 1) == 0) {
-            assert(field == F_UNKNOWN);
-            e = wms->mult.post_fp < 0;
-            if (e == 0) {
-              switch (wms->mult.post_fp)
-              {
-              case 1:
-                if (memcmp(wms->mult.post_lp, "q", 1) == 0)
-                  field = F_Q;
-                else {
-                  e = memcmp(wms->mult.post_lp, "a", 1) != 0;
-                  if (e == 0)
-                    field = F_A;
-                }
+              e = mult->post_fp != 0 || mult->nread != 2 || memcmp(mult->post_lp, "--", 2) != 0;
+              if (e == 0) {
+                stage = T_BOUNDARY_INIT;
+                mult->delim_str[0] = "\r\n";
+                mult->delim_str[1] = NULL;
                 break;
-              case 3:
-                if (memcmp(wms->mult.post_lp, "cat", 3) == 0)
-                  field = F_CAT;
-                else {
-                  e = memcmp(wms->mult.post_lp, "lvl", 3) != 0;
-                  if (e == 0)
-                    field = F_LVL;
-                }
-                break;
-              case 4:
-                if (memcmp(wms->mult.post_lp, "page", 4) == 0)
-                  field = F_PAGE;
-                else if (memcmp(wms->mult.post_lp, "mode", 4) == 0)
-                  field = F_MODE;
-                else {
-                  e = memcmp(wms->mult.post_lp, "card", 4) != 0;
-                  if (e == 0)
-                    field = F_CARD;
-                }
-                break;
-              case 5:
-                if (memcmp(wms->mult.post_lp, "event", 5) == 0)
-                  field = F_EVENT;
-                else if (memcmp(wms->mult.post_lp, "token", 5) == 0)
-                  field = F_TOKEN;
-                else {
-                  e = memcmp(wms->mult.post_lp, "mtime", 5) != 0;
-                  if (e == 0)
-                   field = F_MTIME;
-                }
-                break;
-              case 7:
-                if (memcmp(wms->mult.post_lp, "is-html", 7) == 0)
-                  field = F_IS_HTML;
-                else if (memcmp(wms->mult.post_lp, "arrange", 7) == 0)
-                  field = F_ARRANGE;
-                else if (memcmp(wms->mult.post_lp, "mov-cat", 7) == 0)
-                  field = F_MOVED_CAT;
-                else {
-                  e = memcmp(wms->mult.post_lp, "timeout", 7) != 0;
-                  if (e == 0)
-                    field = F_TIMEOUT;
-                }
-                break;
-              case 8:
-                if (memcmp(wms->mult.post_lp, "filename", 8) == 0)
-                  field = F_FILENAME;
-                else if (memcmp(wms->mult.post_lp, "mov-card", 8) == 0)
-                  field = F_MOV_CARD;
-                else if (memcmp(wms->mult.post_lp, "todo_alt", 8) == 0)
-                  field = F_TODO_ALT;
-                else {
-                  e = memcmp(wms->mult.post_lp, "password", 8) != 0;
-                  if (e == 0)
-                    field = F_PASSWORD;
-                }
-                break;
-              case 9:
-                if (memcmp(wms->mult.post_lp, "deck-name", 9) == 0)
-                  field = F_CAT_NAME;
-                else {
-                  e = memcmp(wms->mult.post_lp, "todo_main", 9) != 0;
-                  if (e == 0)
-                    field = F_TODO_MAIN;
-                }
-                break;
-              case 10:
-                if (memcmp(wms->mult.post_lp, "reveal-pos", 10) == 0)
-                  field = F_REVEAL_POS;
-                else if (memcmp(wms->mult.post_lp, "search-txt", 10) == 0)
-                  field = F_SEARCH_TXT;
-                else if (memcmp(wms->mult.post_lp, "match-case", 10) == 0)
-                  field = F_MATCH_CASE;
-                else {
-                  e = memcmp(wms->mult.post_lp, "file-title", 10) != 0;
-                  if (e == 0)
-                    field = F_FILE_TITLE;
-                }
-                break;
-              case 11:
-                if (memcmp(wms->mult.post_lp, "file_action", 11) == 0)
-                  field = F_FILE_ACTION;
-                else {
-                  e = memcmp(wms->mult.post_lp, "edit_action", 11) != 0;
-                  if (e == 0)
-                    field = F_EDIT_ACTION;
-                }
-                break;
-              case 12:
-                if (memcmp(wms->mult.post_lp, "start_action", 12) == 0)
-                  field = F_START_ACTION;
-                else if (memcmp(wms->mult.post_lp, "learn_action", 12) == 0)
-                  field = F_LEARN_ACTION;
-                else {
-                  e = memcmp(wms->mult.post_lp, "new-password", 12) != 0;
-                  if (e == 0)
-                    field = F_NEW_PASSWORD;
-                }
-                break;
-              case 13:
-                e = memcmp(wms->mult.post_lp, "search_action", 13) != 0;
-                if (e == 0)
-                  field = F_SEARCH_ACTION;
-                break;
-              default:
-                e = 0x00014618; // WMFD Web(MemorySurfer) malformed form data
+              } else {
                 break;
               }
             }
-            wms->mult.delim_str[0] = "&";
-            wms->mult.delim_str[1] = NULL;
+          } else {
+            break;
           }
-          else {
-            e = strncmp(str, "&", 1) != 0;
-            if (e == 0) {
-              switch (field)
-              {
-              case F_FILENAME:
-                assert (wms->ms.imf_filename == NULL);
-                wms->ms.imf_filename = malloc (wms->mult.nread);
-                e = wms->ms.imf_filename == NULL;
-                if (e == 0)
+        case T_URLENCODE:
+          if (mult->post_fp >= 0)
+            str = mult->post_lp + mult->post_fp;
+          else if (field != F_UNKNOWN)
+            str = "&";
+          else
+            str = NULL;
+          if (str != NULL) {
+            if (memcmp (str, "=", 1) == 0) {
+              assert(field == F_UNKNOWN);
+              e = mult->post_fp < 0;
+              if (e == 0) {
+                switch (mult->post_fp)
                 {
-                  assert (wms->mult.post_lp[wms->mult.nread - 1] == '&');
-                  memcpy (wms->ms.imf_filename, wms->mult.post_lp, wms->mult.nread);
-                  e = percent2c (wms->ms.imf_filename, wms->mult.nread - 1);
-                }
-                break;
-              case F_FILE_TITLE:
-                assert(wms->file_title_str == NULL);
-                wms->file_title_str = malloc(wms->mult.nread);
-                e = wms->file_title_str == NULL;
-                if (e == 0) {
-                  assert(wms->mult.post_lp[wms->mult.nread - 1] == '&');
-                  memcpy(wms->file_title_str, wms->mult.post_lp, wms->mult.nread);
-                  e = percent2c(wms->file_title_str, wms->mult.nread - 1);
-                }
-                break;
-              case F_START_ACTION:
-                if (strncmp(wms->mult.post_lp, "Edit", 4) == 0)
-                  wms->seq = S_SELECT_EDIT_CAT;
-                else if (strncmp(wms->mult.post_lp, "Learn", 5) == 0)
-                  wms->seq = S_SELECT_LEARN_CAT;
-                else if (strncmp(wms->mult.post_lp, "Search", 6) == 0)
-                  wms->seq = S_SELECT_SEARCH_CAT;
-                break;
-              case F_FILE_ACTION:
-                if (strncmp(wms->mult.post_lp, "New", 3) == 0)
-                  wms->seq = S_NEW;
-                else if (strncmp(wms->mult.post_lp, "Export", 6) == 0)
-                  wms->seq = S_EXPORT;
-                else if (strncmp(wms->mult.post_lp, "Close", 5) == 0)
-                  wms->seq = S_CLOSE;
-                else if (strncmp(wms->mult.post_lp, "Cancel", 6) == 0)
-                  if (wms->file_title_str != NULL)
-                    wms->seq = S_START;
-                  else
-                    wms->seq = S_NONE;
-                else if (strncmp(wms->mult.post_lp, "Enter", 5) == 0)
-                  wms->seq = S_ENTER;
-                else if (strncmp(wms->mult.post_lp, "Login", 5) == 0)
-                  wms->seq = S_LOGIN;
-                else if (strncmp(wms->mult.post_lp, "Create", 6) == 0)
-                  wms->seq = S_CREATE;
-                else if (strncmp(wms->mult.post_lp, "Stop", 4) == 0) {
-                  wms->seq = S_FILE;
-                  if ((wms->from_page == P_PASSWORD && wms->saved_mode == M_DEFAULT) || wms->from_page == P_NEW)
-                    wms->seq = S_CLOSE;
-                }
-                else if (strncmp(wms->mult.post_lp, "Password", 8) == 0)
-                  wms->seq = S_GO_CHANGE;
-                else {
-                  e = strncmp(wms->mult.post_lp, "Change", 6) != 0;
-                  if (e == 0)
-                    wms->seq = S_CHANGE;
-                }
-                break;
-              case F_ARRANGE:
-                assert (wms->ms.arrange == -1);
-                a_n = sscanf (wms->mult.post_lp, "%d", &wms->ms.arrange);
-                assert ((wms->ms.arrange >= 0) && (wms->ms.arrange <= 2));
-                e = a_n != 1;
-                break;
-              case F_CAT_NAME:
-                e = wms->ms.cat_name != NULL;
-                if (e == 0) {
-                  wms->ms.cat_name = malloc(wms->mult.nread);
-                  e = wms->ms.cat_name == NULL;
-                  if (e == 0) {
-                    assert(wms->mult.post_lp[wms->mult.nread - 1] == '&');
-                    memcpy(wms->ms.cat_name, wms->mult.post_lp, wms->mult.nread);
-                    e = percent2c(wms->ms.cat_name, wms->mult.nread - 1);
+                case 1:
+                  if (memcmp(mult->post_lp, "q", 1) == 0)
+                    field = F_Q;
+                  else {
+                    e = memcmp(mult->post_lp, "a", 1) != 0;
+                    if (e == 0)
+                      field = F_A;
                   }
-                }
-                if (e != 0)
-                  e = 0x00729d2e; // WPPCN Web(MemorySurfer) parse_post (of) cat-name (failed)
-                break;
-              case F_MOVED_CAT:
-                assert(wms->ms.mov_cat_i == -1);
-                a_n = sscanf(wms->mult.post_lp, "%d", &wms->ms.mov_cat_i);
-                e = a_n != 1;
-                break;
-              case F_EDIT_ACTION:
-                if (strncmp(wms->mult.post_lp, "Append", 6) == 0)
-                  wms->seq = S_APPEND;
-                else if (strncmp(wms->mult.post_lp, "Delete", 6) == 0)
-                  wms->seq = S_ASK_DELETE_CARD;
-                else if (strncmp(wms->mult.post_lp, "Previous", 8) == 0)
-                  wms->seq = S_PREVIOUS;
-                else if (strncmp(wms->mult.post_lp, "Next", 4) == 0)
-                  wms->seq = S_NEXT;
-                else if (strncmp(wms->mult.post_lp, "Schedule", 8) == 0)
-                  wms->seq = S_SCHEDULE;
-                else if (strncmp(wms->mult.post_lp, "Stop", 4) == 0)
-                  wms->seq = S_SELECT_EDIT_CAT;
-                else {
-                  e = strncmp(wms->mult.post_lp, "Search", 6) != 0;
-                  if (e == 0)
-                    wms->seq = S_SEARCH_SYNCED;
-                }
-                break;
-              case F_LEARN_ACTION:
-                if (strncmp(wms->mult.post_lp, "Suspend", 7) == 0)
-                  wms->seq = S_SUSPEND;
-                else if (strncmp(wms->mult.post_lp, "Stop", 4) == 0)
-                  wms->seq = S_SELECT_LEARN_CAT;
-                else {
-                  e = strncmp(wms->mult.post_lp, "Proceed", 7) != 0;
-                  if (e == 0)
-                    wms->seq = S_PROCEED;
-                }
-                break;
-              case F_SEARCH_TXT:
-                e = wms->ms.search_txt != NULL;
-                if (e == 0) {
-                  wms->ms.search_txt = malloc(wms->mult.nread);
-                  e = wms->ms.search_txt == NULL;
-                  if (e == 0) {
-                    assert(wms->mult.post_lp[wms->mult.nread - 1] == '&');
-                    memcpy(wms->ms.search_txt, wms->mult.post_lp, wms->mult.nread);
-                    e = percent2c (wms->ms.search_txt, wms->mult.nread - 1);
+                  break;
+                case 3:
+                  if (memcmp(mult->post_lp, "cat", 3) == 0)
+                    field = F_CAT;
+                  else {
+                    e = memcmp(mult->post_lp, "lvl", 3) != 0;
+                    if (e == 0)
+                      field = F_LVL;
                   }
-                }
-                break;
-              case F_MATCH_CASE:
-                if (wms->mult.post_fp >= 0)
-                  len = wms->mult.post_fp;
-                else
-                  len = wms->mult.post_wp;
-                e = wms->ms.match_case != -1;
-                if (e == 0) {
-                  e = strncmp(wms->mult.post_lp, "on", len) != 0;
-                  if (e == 0)
-                    wms->ms.match_case = 1;
-                }
-                break;
-              case F_IS_HTML:
-                if (wms->mult.post_fp >= 0)
-                  len = wms->mult.post_fp;
-                else
-                  len = wms->mult.post_wp;
-                e = wms->ms.is_html != -1;
-                if (e == 0) {
-                  e = strncmp(wms->mult.post_lp, "on", len) != 0;
-                  if (e == 0)
-                    wms->ms.is_html = 1;
-                }
-                break;
-              case F_SEARCH_ACTION:
-                if (strncmp(wms->mult.post_lp, "Reverse", 7) == 0) {
-                  wms->seq = S_SEARCH;
-                  wms->ms.srch_dir = -1;
-                } else if (strncmp(wms->mult.post_lp, "Forward", 7) == 0) {
-                  wms->seq = S_SEARCH;
-                  wms->ms.srch_dir = 1;
-                } else {
-                  e = strncmp(wms->mult.post_lp, "Stop", 4) != 0;
-                  if (e == 0)
-                    wms->seq = S_SELECT_SEARCH_CAT;
-                }
-                break;
-              case F_CAT:
-                if (wms->mult.post_fp >= 0)
-                  len = wms->mult.post_fp;
-                else
-                  len = wms->mult.post_wp;
-                e = wms->ms.cat_i != -1;
-                if (e == 0) {
-                  a_n = sscanf(wms->mult.post_lp, "%d%n", &wms->ms.cat_i, &consumed_n);
-                  e = a_n != 1 || consumed_n != len;
-                }
-                break;
-              case F_CARD:
-                assert(wms->ms.card_i == -1);
-                a_n = sscanf(wms->mult.post_lp, "%d", &wms->ms.card_i);
-                e = a_n != 1;
-                break;
-              case F_MOV_CARD:
-                assert(wms->ms.mov_card_i == -1);
-                a_n = sscanf(wms->mult.post_lp, "%d", &wms->ms.mov_card_i);
-                e = a_n != 1;
-                break;
-              case F_LVL:
-                a_n = sscanf(wms->mult.post_lp, "%d", &wms->ms.lvl);
-                e = a_n != 1;
-                if (e == 0) {
-                  e = wms->ms.lvl < 0 || wms->ms.lvl >= 21;
-                  if (e != 0)
-                    e =  0x21e1b31e; // WMSPPLA (Web)MemorySurfer parse_post lvl assert (failed)
-                }
-                break;
-              case F_Q:
-                assert (wms->mult.post_lp[wms->mult.nread - 1] == '&');
-                e = percent2c(wms->mult.post_lp, wms->mult.nread - 1);
-                if (e == 0)
-                  e = sa_set(&wms->qa_sa, 0, wms->mult.post_lp);
-                break;
-              case F_A:
-                if (wms->mult.nread > 0) {
-                  len = wms->mult.nread;
-                  if (wms->mult.post_lp[wms->mult.nread - 1] == '&')
-                    len--;
-                  e = percent2c(wms->mult.post_lp, len);
-                }
-                if (e == 0)
-                  e = sa_set(&wms->qa_sa, 1, wms->mult.post_lp);
-                break;
-              case F_REVEAL_POS:
-                e = wms->saved_reveal_pos != -1;
-                if (e == 0) {
-                  a_n = sscanf(wms->mult.post_lp, "%d", &wms->saved_reveal_pos);
-                  e = a_n != 1 || wms->saved_reveal_pos < 0;
-                }
-                if (e == 1) {
-                  e = 0x255dac21; // WMPPRPA WebMemorySurfer parse_post reveal-pos assert (failed)
-                  wms->saved_reveal_pos = -1;
-                }
-                break;
-              case F_TODO_MAIN:
-                assert (wms->todo_main == -1);
-                a_n = sscanf (wms->mult.post_lp, "%d", &wms->todo_main);
-                e = a_n != 1;
-                assert (wms->todo_main >= S_FILE && wms->todo_main <= S_END);
-                break;
-              case F_TODO_ALT:
-                assert (wms->todo_alt == -1);
-                a_n = sscanf (wms->mult.post_lp, "%d", &wms->todo_alt);
-                e = a_n != 1;
-                assert (wms->todo_alt >= S_FILE && wms->todo_alt <= S_END);
-                break;
-              case F_MTIME:
-                assert(wms->mtime[0] == -1 && wms->mtime[1] == -1);
-                a_n = sscanf(wms->mult.post_lp, "%8x%8x", &wms->mtime[1], &wms->mtime[0]);
-                e = a_n != 2;
-                if (e == 0) {
-                  assert(wms->mtime[0] >= 0 && wms->mtime[1] >= 0);
-                }
-                break;
-              case F_PASSWORD:
-                assert (wms->ms.password == NULL);
-                wms->ms.password = malloc (wms->mult.nread);
-                e = wms->ms.password == NULL;
-                if (e == 0)
-                {
-                  assert (wms->mult.post_lp[wms->mult.nread - 1] == '&');
-                  memcpy (wms->ms.password, wms->mult.post_lp, wms->mult.nread);
-                  e = percent2c (wms->ms.password, wms->mult.nread - 1);
-                }
-                break;
-              case F_NEW_PASSWORD:
-                assert(wms->ms.new_password == NULL);
-                wms->ms.new_password = malloc(wms->mult.nread);
-                e = wms->ms.new_password == NULL;
-                if (e == 0) {
-                  assert(wms->mult.post_lp[wms->mult.nread - 1] == '&');
-                  memcpy(wms->ms.new_password, wms->mult.post_lp, wms->mult.nread);
-                  e = percent2c(wms->ms.new_password, wms->mult.nread - 1);
-                }
-                break;
-              case F_TOKEN:
-                e = wms->mult.nread != 41;
-                if (e == 0)
-                  e = scan_hex(wms->tok_digest, wms->mult.post_lp, SHA1_HASH_SIZE);
-                break;
-              case F_EVENT:
-                if (wms->mult.post_fp >= 0)
-                  len = wms->mult.post_fp;
-                else
-                  len = wms->mult.post_wp;
-                switch (len) {
+                  break;
                 case 4:
-                  if (strncmp(wms->mult.post_lp, "Show", 4) == 0)
-                    wms->seq = S_SHOW;
-                  else if (strncmp(wms->mult.post_lp, "Stop", 4) == 0) {
-                    if (wms->from_page == P_SELECT_ARRANGE) {
-                      if (wms->saved_mode == M_CARD)
-                        wms->seq = S_EDIT;
-                      else {
-                        wms->ms.cat_i = wms->ms.mov_cat_i;
-                        wms->ms.mov_cat_i = -1;
-                        wms->seq = S_START_DECKS;
-                      }
-                    } else if (wms->from_page == P_SELECT_DEST_DECK) {
-                      if (wms->saved_mode == M_SEND) {
-                        wms->ms.cat_i = wms->ms.mov_cat_i;
-                        wms->ms.card_i = wms->ms.mov_card_i;
-                        wms->seq = S_EDIT;
-                      } else {
-                        e = wms->saved_mode != M_MOVE;
-                        if (e == 0) {
+                  if (memcmp(mult->post_lp, "page", 4) == 0)
+                    field = F_PAGE;
+                  else if (memcmp(mult->post_lp, "mode", 4) == 0)
+                    field = F_MODE;
+                  else {
+                    e = memcmp(mult->post_lp, "card", 4) != 0;
+                    if (e == 0)
+                      field = F_CARD;
+                  }
+                  break;
+                case 5:
+                  if (memcmp(mult->post_lp, "event", 5) == 0)
+                    field = F_EVENT;
+                  else if (memcmp(mult->post_lp, "token", 5) == 0)
+                    field = F_TOKEN;
+                  else {
+                    e = memcmp(mult->post_lp, "mtime", 5) != 0;
+                    if (e == 0)
+                     field = F_MTIME;
+                  }
+                  break;
+                case 7:
+                  if (memcmp(mult->post_lp, "is-html", 7) == 0)
+                    field = F_IS_HTML;
+                  else if (memcmp(mult->post_lp, "arrange", 7) == 0)
+                    field = F_ARRANGE;
+                  else if (memcmp(mult->post_lp, "mov-cat", 7) == 0)
+                    field = F_MOVED_CAT;
+                  else {
+                    e = memcmp(mult->post_lp, "timeout", 7) != 0;
+                    if (e == 0)
+                      field = F_TIMEOUT;
+                  }
+                  break;
+                case 8:
+                  if (memcmp(mult->post_lp, "filename", 8) == 0)
+                    field = F_FILENAME;
+                  else if (memcmp(mult->post_lp, "mov-card", 8) == 0)
+                    field = F_MOV_CARD;
+                  else if (memcmp(mult->post_lp, "todo_alt", 8) == 0)
+                    field = F_TODO_ALT;
+                  else {
+                    e = memcmp(mult->post_lp, "password", 8) != 0;
+                    if (e == 0)
+                      field = F_PASSWORD;
+                  }
+                  break;
+                case 9:
+                  if (memcmp(mult->post_lp, "deck-name", 9) == 0)
+                    field = F_CAT_NAME;
+                  else {
+                    e = memcmp(mult->post_lp, "todo_main", 9) != 0;
+                    if (e == 0)
+                      field = F_TODO_MAIN;
+                  }
+                  break;
+                case 10:
+                  if (memcmp(mult->post_lp, "reveal-pos", 10) == 0)
+                    field = F_REVEAL_POS;
+                  else if (memcmp(mult->post_lp, "search-txt", 10) == 0)
+                    field = F_SEARCH_TXT;
+                  else if (memcmp(mult->post_lp, "match-case", 10) == 0)
+                    field = F_MATCH_CASE;
+                  else {
+                    e = memcmp(mult->post_lp, "file-title", 10) != 0;
+                    if (e == 0)
+                      field = F_FILE_TITLE;
+                  }
+                  break;
+                case 11:
+                  if (memcmp(mult->post_lp, "file_action", 11) == 0)
+                    field = F_FILE_ACTION;
+                  else {
+                    e = memcmp(mult->post_lp, "edit_action", 11) != 0;
+                    if (e == 0)
+                      field = F_EDIT_ACTION;
+                  }
+                  break;
+                case 12:
+                  if (memcmp(mult->post_lp, "start_action", 12) == 0)
+                    field = F_START_ACTION;
+                  else if (memcmp(mult->post_lp, "learn_action", 12) == 0)
+                    field = F_LEARN_ACTION;
+                  else {
+                    e = memcmp(mult->post_lp, "new-password", 12) != 0;
+                    if (e == 0)
+                      field = F_NEW_PASSWORD;
+                  }
+                  break;
+                case 13:
+                  e = memcmp(mult->post_lp, "search_action", 13) != 0;
+                  if (e == 0)
+                    field = F_SEARCH_ACTION;
+                  break;
+                default:
+                  e = 0x00014618; // WMFD Web(MemorySurfer) malformed form data
+                  break;
+                }
+              }
+              mult->delim_str[0] = "&";
+              mult->delim_str[1] = NULL;
+            }
+            else {
+              e = strncmp(str, "&", 1) != 0;
+              if (e == 0) {
+                switch (field)
+                {
+                case F_FILENAME:
+                  assert (wms->ms.imf_filename == NULL);
+                  wms->ms.imf_filename = malloc(mult->nread);
+                  e = wms->ms.imf_filename == NULL;
+                  if (e == 0) {
+                    assert(mult->post_lp[mult->nread - 1] == '&');
+                    memcpy(wms->ms.imf_filename, mult->post_lp, mult->nread);
+                    e = percent2c(wms->ms.imf_filename, mult->nread - 1);
+                  }
+                  break;
+                case F_FILE_TITLE:
+                  assert(wms->file_title_str == NULL);
+                  wms->file_title_str = malloc(mult->nread);
+                  e = wms->file_title_str == NULL;
+                  if (e == 0) {
+                    assert(mult->post_lp[mult->nread - 1] == '&');
+                    memcpy(wms->file_title_str, mult->post_lp, mult->nread);
+                    e = percent2c(wms->file_title_str, mult->nread - 1);
+                  }
+                  break;
+                case F_START_ACTION:
+                  if (strncmp(mult->post_lp, "Edit", 4) == 0)
+                    wms->seq = S_SELECT_EDIT_CAT;
+                  else if (strncmp(mult->post_lp, "Learn", 5) == 0)
+                    wms->seq = S_SELECT_LEARN_CAT;
+                  else if (strncmp(mult->post_lp, "Search", 6) == 0)
+                    wms->seq = S_SELECT_SEARCH_CAT;
+                  break;
+                case F_FILE_ACTION:
+                  if (strncmp(mult->post_lp, "New", 3) == 0)
+                    wms->seq = S_NEW;
+                  else if (strncmp(mult->post_lp, "Export", 6) == 0)
+                    wms->seq = S_EXPORT;
+                  else if (strncmp(mult->post_lp, "Close", 5) == 0)
+                    wms->seq = S_CLOSE;
+                  else if (strncmp(mult->post_lp, "Cancel", 6) == 0)
+                    if (wms->file_title_str != NULL)
+                      wms->seq = S_START;
+                    else
+                      wms->seq = S_NONE;
+                  else if (strncmp(mult->post_lp, "Enter", 5) == 0)
+                    wms->seq = S_ENTER;
+                  else if (strncmp(mult->post_lp, "Login", 5) == 0)
+                    wms->seq = S_LOGIN;
+                  else if (strncmp(mult->post_lp, "Create", 6) == 0)
+                    wms->seq = S_CREATE;
+                  else if (strncmp(mult->post_lp, "Stop", 4) == 0) {
+                    wms->seq = S_FILE;
+                    if ((wms->from_page == P_PASSWORD && wms->saved_mode == M_DEFAULT) || wms->from_page == P_NEW)
+                      wms->seq = S_CLOSE;
+                  }
+                  else if (strncmp(mult->post_lp, "Password", 8) == 0)
+                    wms->seq = S_GO_CHANGE;
+                  else {
+                    e = strncmp(mult->post_lp, "Change", 6) != 0;
+                    if (e == 0)
+                      wms->seq = S_CHANGE;
+                  }
+                  break;
+                case F_ARRANGE:
+                  assert (wms->ms.arrange == -1);
+                  a_n = sscanf(mult->post_lp, "%d", &wms->ms.arrange);
+                  assert(wms->ms.arrange >= 0 && wms->ms.arrange <= 2);
+                  e = a_n != 1;
+                  break;
+                case F_CAT_NAME:
+                  e = wms->ms.cat_name != NULL;
+                  if (e == 0) {
+                    wms->ms.cat_name = malloc(mult->nread);
+                    e = wms->ms.cat_name == NULL;
+                    if (e == 0) {
+                      assert(mult->post_lp[mult->nread - 1] == '&');
+                      memcpy(wms->ms.cat_name, mult->post_lp, mult->nread);
+                      e = percent2c(wms->ms.cat_name, mult->nread - 1);
+                    }
+                  }
+                  if (e != 0)
+                    e = 0x00729d2e; // WPPCN Web(MemorySurfer) parse_post (of) cat-name (failed)
+                  break;
+                case F_MOVED_CAT:
+                  assert(wms->ms.mov_cat_i == -1);
+                  a_n = sscanf(mult->post_lp, "%d", &wms->ms.mov_cat_i);
+                  e = a_n != 1;
+                  break;
+                case F_EDIT_ACTION:
+                  if (strncmp(mult->post_lp, "Append", 6) == 0)
+                    wms->seq = S_APPEND;
+                  else if (strncmp(mult->post_lp, "Delete", 6) == 0)
+                    wms->seq = S_ASK_DELETE_CARD;
+                  else if (strncmp(mult->post_lp, "Previous", 8) == 0)
+                    wms->seq = S_PREVIOUS;
+                  else if (strncmp(mult->post_lp, "Next", 4) == 0)
+                    wms->seq = S_NEXT;
+                  else if (strncmp(mult->post_lp, "Schedule", 8) == 0)
+                    wms->seq = S_SCHEDULE;
+                  else if (strncmp(mult->post_lp, "Stop", 4) == 0)
+                    wms->seq = S_SELECT_EDIT_CAT;
+                  else {
+                    e = strncmp(mult->post_lp, "Search", 6) != 0;
+                    if (e == 0)
+                      wms->seq = S_SEARCH_SYNCED;
+                  }
+                  break;
+                case F_LEARN_ACTION:
+                  if (strncmp(mult->post_lp, "Suspend", 7) == 0)
+                    wms->seq = S_SUSPEND;
+                  else if (strncmp(mult->post_lp, "Stop", 4) == 0)
+                    wms->seq = S_SELECT_LEARN_CAT;
+                  else {
+                    e = strncmp(mult->post_lp, "Proceed", 7) != 0;
+                    if (e == 0)
+                      wms->seq = S_PROCEED;
+                  }
+                  break;
+                case F_SEARCH_TXT:
+                  e = wms->ms.search_txt != NULL;
+                  if (e == 0) {
+                    wms->ms.search_txt = malloc(mult->nread);
+                    e = wms->ms.search_txt == NULL;
+                    if (e == 0) {
+                      assert(mult->post_lp[mult->nread - 1] == '&');
+                      memcpy(wms->ms.search_txt, mult->post_lp, mult->nread);
+                      e = percent2c(wms->ms.search_txt, mult->nread - 1);
+                    }
+                  }
+                  break;
+                case F_MATCH_CASE:
+                  if (mult->post_fp >= 0)
+                    len = mult->post_fp;
+                  else
+                    len = mult->post_wp;
+                  e = wms->ms.match_case != -1;
+                  if (e == 0) {
+                    e = strncmp(mult->post_lp, "on", len) != 0;
+                    if (e == 0)
+                      wms->ms.match_case = 1;
+                  }
+                  break;
+                case F_IS_HTML:
+                  if (mult->post_fp >= 0)
+                    len = mult->post_fp;
+                  else
+                    len = mult->post_wp;
+                  e = wms->ms.is_html != -1;
+                  if (e == 0) {
+                    e = strncmp(mult->post_lp, "on", len) != 0;
+                    if (e == 0)
+                      wms->ms.is_html = 1;
+                  }
+                  break;
+                case F_SEARCH_ACTION:
+                  if (strncmp(mult->post_lp, "Reverse", 7) == 0) {
+                    wms->seq = S_SEARCH;
+                    wms->ms.srch_dir = -1;
+                  } else if (strncmp(mult->post_lp, "Forward", 7) == 0) {
+                    wms->seq = S_SEARCH;
+                    wms->ms.srch_dir = 1;
+                  } else {
+                    e = strncmp(mult->post_lp, "Stop", 4) != 0;
+                    if (e == 0)
+                      wms->seq = S_SELECT_SEARCH_CAT;
+                  }
+                  break;
+                case F_CAT:
+                  if (mult->post_fp >= 0)
+                    len = mult->post_fp;
+                  else
+                    len = mult->post_wp;
+                  e = wms->ms.cat_i != -1;
+                  if (e == 0) {
+                    a_n = sscanf(mult->post_lp, "%d%n", &wms->ms.cat_i, &consumed_n);
+                    e = a_n != 1 || consumed_n != len;
+                  }
+                  break;
+                case F_CARD:
+                  assert(wms->ms.card_i == -1);
+                  a_n = sscanf(mult->post_lp, "%d", &wms->ms.card_i);
+                  e = a_n != 1;
+                  break;
+                case F_MOV_CARD:
+                  assert(wms->ms.mov_card_i == -1);
+                  a_n = sscanf(mult->post_lp, "%d", &wms->ms.mov_card_i);
+                  e = a_n != 1;
+                  break;
+                case F_LVL:
+                  a_n = sscanf(mult->post_lp, "%d", &wms->ms.lvl);
+                  e = a_n != 1;
+                  if (e == 0) {
+                    e = wms->ms.lvl < 0 || wms->ms.lvl >= 21;
+                    if (e != 0)
+                      e =  0x21e1b31e; // WMSPPLA (Web)MemorySurfer parse_post lvl assert (failed)
+                  }
+                  break;
+                case F_Q:
+                  assert(mult->post_lp[mult->nread - 1] == '&');
+                  e = percent2c(mult->post_lp, mult->nread - 1);
+                  if (e == 0)
+                    e = sa_set(&wms->qa_sa, 0, mult->post_lp);
+                  break;
+                case F_A:
+                  if (mult->nread > 0) {
+                    len = mult->nread;
+                    if (mult->post_lp[mult->nread - 1] == '&')
+                      len--;
+                    e = percent2c(mult->post_lp, len);
+                  }
+                  if (e == 0)
+                    e = sa_set(&wms->qa_sa, 1, mult->post_lp);
+                  break;
+                case F_REVEAL_POS:
+                  e = wms->saved_reveal_pos != -1;
+                  if (e == 0) {
+                    a_n = sscanf(mult->post_lp, "%d", &wms->saved_reveal_pos);
+                    e = a_n != 1 || wms->saved_reveal_pos < 0;
+                  }
+                  if (e == 1) {
+                    e = 0x255dac21; // WMPPRPA WebMemorySurfer parse_post reveal-pos assert (failed)
+                    wms->saved_reveal_pos = -1;
+                  }
+                  break;
+                case F_TODO_MAIN:
+                  assert (wms->todo_main == -1);
+                  a_n = sscanf(mult->post_lp, "%d", &wms->todo_main);
+                  e = a_n != 1;
+                  assert (wms->todo_main >= S_FILE && wms->todo_main <= S_END);
+                  break;
+                case F_TODO_ALT:
+                  assert (wms->todo_alt == -1);
+                  a_n = sscanf(mult->post_lp, "%d", &wms->todo_alt);
+                  e = a_n != 1;
+                  assert (wms->todo_alt >= S_FILE && wms->todo_alt <= S_END);
+                  break;
+                case F_MTIME:
+                  assert(wms->mtime[0] == -1 && wms->mtime[1] == -1);
+                  a_n = sscanf(mult->post_lp, "%8x%8x", &wms->mtime[1], &wms->mtime[0]);
+                  e = a_n != 2;
+                  if (e == 0) {
+                    assert(wms->mtime[0] >= 0 && wms->mtime[1] >= 0);
+                  }
+                  break;
+                case F_PASSWORD:
+                  assert (wms->ms.password == NULL);
+                  wms->ms.password = malloc(mult->nread);
+                  e = wms->ms.password == NULL;
+                  if (e == 0)
+                  {
+                    assert(mult->post_lp[mult->nread - 1] == '&');
+                    memcpy(wms->ms.password, mult->post_lp, mult->nread);
+                    e = percent2c(wms->ms.password, mult->nread - 1);
+                  }
+                  break;
+                case F_NEW_PASSWORD:
+                  assert(wms->ms.new_password == NULL);
+                  wms->ms.new_password = malloc(mult->nread);
+                  e = wms->ms.new_password == NULL;
+                  if (e == 0) {
+                    assert(mult->post_lp[mult->nread - 1] == '&');
+                    memcpy(wms->ms.new_password, mult->post_lp, mult->nread);
+                    e = percent2c(wms->ms.new_password, mult->nread - 1);
+                  }
+                  break;
+                case F_TOKEN:
+                  e = mult->nread != 41;
+                  if (e == 0)
+                    e = scan_hex(wms->tok_digest, mult->post_lp, SHA1_HASH_SIZE);
+                  break;
+                case F_EVENT:
+                  if (mult->post_fp >= 0)
+                    len = mult->post_fp;
+                  else
+                    len = mult->post_wp;
+                  switch (len) {
+                  case 4:
+                    if (strncmp(mult->post_lp, "Show", 4) == 0)
+                      wms->seq = S_SHOW;
+                    else if (strncmp(mult->post_lp, "Stop", 4) == 0) {
+                      if (wms->from_page == P_SELECT_ARRANGE) {
+                        if (wms->saved_mode == M_CARD)
+                          wms->seq = S_EDIT;
+                        else {
                           wms->ms.cat_i = wms->ms.mov_cat_i;
                           wms->ms.mov_cat_i = -1;
                           wms->seq = S_START_DECKS;
                         }
-                      }
-                    } else if (wms->from_page == P_CAT_NAME)
-                      wms->seq = S_START_DECKS;
-                    else {
-                      e = wms->from_page != P_PREVIEW;
-                      if (e == 0)
-                        wms->seq = S_SELECT_EDIT_CAT;
-                    }
-                  }
-                  else if (strncmp(wms->mult.post_lp, "Edit", 4) == 0)
-                    wms->seq = S_EDIT;
-                  else if (strncmp(wms->mult.post_lp, "Open", 4) == 0) {
-                    if (wms->from_page == P_OPEN)
-                      wms->seq = S_GO_LOGIN;
-                    else {
-                      e = wms->from_page != P_FILE;
-                      if (e == 0)
-                        wms->seq = S_FILELIST;
-                    }
-                  }
-                  else if (strncmp(wms->mult.post_lp, "Move", 4) == 0) {
-                    if (wms->from_page == P_SELECT_DECK)
-                      wms->seq = S_SELECT_DEST_CAT;
-                    else if (wms->from_page == P_SELECT_ARRANGE && wms->saved_mode == M_DECK)
-                      wms->seq = S_MOVE_CAT;
-                    else if (wms->from_page == P_EDIT)
-                      wms->seq = S_CARD_ARRANGE;
-                    else {
-                      e = wms->from_page != P_SELECT_ARRANGE || wms->saved_mode != M_CARD;
-                      if (e == 0)
-                        wms->seq = S_MOVE_CARD;
-                    }
-                  }
-                  else if (strncmp(wms->mult.post_lp, "Send", 4) == 0) {
-                    if (wms->from_page == P_EDIT)
-                      wms->seq = S_SELECT_SEND_CAT;
-                    else {
-                      e = wms->from_page != P_SELECT_DEST_DECK;
-                      if (e == 0)
-                        wms->seq = S_SEND_CARD;
-                    }
-                  }
-                  else if (strncmp(wms->mult.post_lp, "Done", 4) == 0)
-                    wms->seq = S_START;
-                  else {
-                    e = strncmp(wms->mult.post_lp, "File", 4) != 0;
-                    if (e == 0)
-                      wms->seq = S_FILE;
-                  }
-                  break;
-                case 5:
-                  if (strncmp(wms->mult.post_lp, "Learn", 5) == 0)
-                    if (wms->from_page == P_EDIT)
-                      wms->seq = S_QUESTION_SYNCED;
-                    else {
-                      e = wms->from_page != P_SELECT_DECK && wms->from_page != P_SEARCH && wms->from_page != P_HISTOGRAM && wms->from_page != P_TABLE && wms->from_page != P_PREVIEW;
-                      if (e == 0)
-                        wms->seq = S_QUESTION;
-                    }
-                  else if (strncmp(wms->mult.post_lp, "Decks", 5) == 0)
-                    wms->seq = S_START_DECKS;
-                  else if (strncmp(wms->mult.post_lp, "Table", 5) == 0)
-                    wms->seq = S_TABLE;
-                  else if (strncmp(wms->mult.post_lp, "Apply", 5) == 0)
-                    wms->seq = S_APPLY;
-                  else if (strncmp(wms->mult.post_lp, "Erase", 5) == 0)
-                    if (wms->from_page == P_FILE)
-                      wms->seq = S_ASK_ERASE;
-                    else {
-                      e = wms->from_page != P_MSG;
-                      if (e == 0) {
-                        e = wms->todo_main == -1;
+                      } else if (wms->from_page == P_SELECT_DEST_DECK) {
+                        if (wms->saved_mode == M_SEND) {
+                          wms->ms.cat_i = wms->ms.mov_cat_i;
+                          wms->ms.card_i = wms->ms.mov_card_i;
+                          wms->seq = S_EDIT;
+                        } else {
+                          e = wms->saved_mode != M_MOVE;
+                          if (e == 0) {
+                            wms->ms.cat_i = wms->ms.mov_cat_i;
+                            wms->ms.mov_cat_i = -1;
+                            wms->seq = S_START_DECKS;
+                          }
+                        }
+                      } else if (wms->from_page == P_CAT_NAME)
+                        wms->seq = S_START_DECKS;
+                      else {
+                        e = wms->from_page != P_PREVIEW;
                         if (e == 0)
-                          wms->seq = wms->todo_main;
+                          wms->seq = S_SELECT_EDIT_CAT;
                       }
                     }
-                  else if (strncmp(wms->mult.post_lp, "About", 5) == 0)
-                    wms->seq = S_ABOUT;
-                  else {
-                    e = strncmp(wms->mult.post_lp, "Start", 5) != 0;
-                    if (e == 0)
-                      wms->seq = S_NONE;
-                  }
-                  break;
-                case 6:
-                  if (strncmp(wms->mult.post_lp, "Reveal", 6) == 0)
-                    wms->seq = S_REVEAL;
-                  else if (strncmp(wms->mult.post_lp, "Create", 6) == 0) {
-                    if (wms->from_page == P_SELECT_DECK)
-                      wms->seq = S_DECKS_CREATE;
-                    else {
-                      e = wms->from_page != P_CAT_NAME;
-                      if (e == 0)
-                        wms->seq = S_CREATE_CAT;
+                    else if (strncmp(mult->post_lp, "Edit", 4) == 0)
+                      wms->seq = S_EDIT;
+                    else if (strncmp(mult->post_lp, "Open", 4) == 0) {
+                      if (wms->from_page == P_OPEN)
+                        wms->seq = S_GO_LOGIN;
+                      else {
+                        e = wms->from_page != P_FILE;
+                        if (e == 0)
+                          wms->seq = S_FILELIST;
+                      }
                     }
-                  } else if (strncmp(wms->mult.post_lp, "Cancel", 6) == 0) {
-                    if (wms->from_page == P_SELECT_DECK || wms->from_page == P_PREFERENCES)
+                    else if (strncmp(mult->post_lp, "Move", 4) == 0) {
+                      if (wms->from_page == P_SELECT_DECK)
+                        wms->seq = S_SELECT_DEST_CAT;
+                      else if (wms->from_page == P_SELECT_ARRANGE && wms->saved_mode == M_DECK)
+                        wms->seq = S_MOVE_CAT;
+                      else if (wms->from_page == P_EDIT)
+                        wms->seq = S_CARD_ARRANGE;
+                      else {
+                        e = wms->from_page != P_SELECT_ARRANGE || wms->saved_mode != M_CARD;
+                        if (e == 0)
+                          wms->seq = S_MOVE_CARD;
+                      }
+                    }
+                    else if (strncmp(mult->post_lp, "Send", 4) == 0) {
+                      if (wms->from_page == P_EDIT)
+                        wms->seq = S_SELECT_SEND_CAT;
+                      else {
+                        e = wms->from_page != P_SELECT_DEST_DECK;
+                        if (e == 0)
+                          wms->seq = S_SEND_CARD;
+                      }
+                    }
+                    else if (strncmp(mult->post_lp, "Done", 4) == 0)
                       wms->seq = S_START;
-                    else if (wms->from_page == P_MSG) {
-                      e = wms->todo_alt == -1;
-                      if (e == 0)
-                        wms->seq = wms->todo_alt;
-                    }
                     else {
-                      e = wms->from_page != P_OPEN;
+                      e = strncmp(mult->post_lp, "File", 4) != 0;
                       if (e == 0)
-                        wms->seq = S_CLOSE;
+                        wms->seq = S_FILE;
                     }
-                  } else if (strncmp(wms->mult.post_lp, "Select", 6) == 0) {
-                    if (wms->from_page == P_SELECT_DEST_DECK)
-                      wms->seq = S_SELECT_MOVE_ARRANGE;
-                    else {
-                      e = wms->from_page != P_SELECT_ARRANGE || wms->saved_mode != M_DECK;
-                      if (e == 0)
-                        wms->seq = S_CAT_NAME;
-                    }
-                  } else if (strncmp(wms->mult.post_lp, "Delete", 6) == 0) {
-                    if (wms->from_page == P_MSG) {
-                      e = wms->todo_main == -1;
-                      if (e == 0)
-                        wms->seq = wms->todo_main;
-                    }
-                    else {
-                      e = wms->from_page != P_SELECT_DECK;
-                      if (e == 0)
-                        wms->seq = S_ASK_DELETE_CAT;
-                    }
-                  } else if (strncmp(wms->mult.post_lp, "Rename", 6) == 0) {
-                    if (wms->from_page == P_SELECT_DECK)
-                      wms->seq = S_RENAME_ENTER;
-                    else {
-                      e = wms->from_page != P_CAT_NAME;
-                      if (e == 0)
-                        wms->seq = S_RENAME_CAT;
-                    }
-                  } else if (strncmp(wms->mult.post_lp, "Insert", 6) == 0) {
-                    e = wms->from_page != P_EDIT;
-                    if (e == 0)
-                      wms->seq = S_INSERT;
-                  } else if (strncmp(wms->mult.post_lp, "Toggle", 6) == 0) {
-                      e = wms->from_page != P_SELECT_DECK;
-                      if (e == 0)
-                        wms->seq = S_TOGGLE;
-                  } else if (strncmp(wms->mult.post_lp, "Remove", 6) == 0)
-                    if (wms->from_page == P_FILE)
-                      wms->seq = S_ASK_REMOVE;
-                    else {
-                      e = wms->from_page != P_MSG;
-                      if (e == 0) {
-                        e = wms->todo_main == -1;
+                    break;
+                  case 5:
+                    if (strncmp(mult->post_lp, "Learn", 5) == 0)
+                      if (wms->from_page == P_EDIT)
+                        wms->seq = S_QUESTION_SYNCED;
+                      else {
+                        e = wms->from_page != P_SELECT_DECK && wms->from_page != P_SEARCH && wms->from_page != P_HISTOGRAM && wms->from_page != P_TABLE && wms->from_page != P_PREVIEW;
                         if (e == 0)
-                          wms->seq = wms->todo_main;
+                          wms->seq = S_QUESTION;
                       }
-                    }
-                  else if (strncmp(wms->mult.post_lp, "Resume", 6) == 0)
-                    wms->seq = S_RESUME;
-                  else if (memcmp(wms->mult.post_lp, "Search", 6) == 0)
-                    wms->seq = S_SEARCH;
-                  else {
-                    e = strncmp(wms->mult.post_lp, "Import", 6) != 0;
-                    if (e == 0)
-                      wms->seq = S_WARN_UPLOAD;
-                  }
-                  break;
-                default:
-                  if (strncmp(wms->mult.post_lp, "Set", 3) == 0) {
-                    e = wms->from_page != P_EDIT;
-                    if (e == 0)
-                      wms->seq = S_SET;
-                  }
-                  else if (strncmp(wms->mult.post_lp, "Preferences", 11) == 0)
-                    wms->seq = S_PREFERENCES;
-                  else if (strncmp(wms->mult.post_lp, "Histogram", 9) == 0)
-                    wms->seq = S_HISTOGRAM;
-                  else if (strncmp(wms->mult.post_lp, "Refresh", 7) == 0)
-                    wms->seq = S_HISTOGRAM;
-                  else if (strncmp(wms->mult.post_lp, "Preview", 7) == 0)
-                    wms->seq = S_PREVIEW_SYNC;
-                  else {
-                    e = strncmp(wms->mult.post_lp, "OK", 2) != 0;
-                    if (e == 0) {
-                      if (wms->from_page == P_FILE || wms->from_page == P_ABOUT) {
-                        if (wms->file_title_str != NULL)
-                          wms->seq = S_START;
-                        else
-                          wms->seq = S_NONE;
-                      }
-                      else if (wms->from_page == P_UPLOAD_REPORT)
-                        wms->seq = S_START;
+                    else if (strncmp(mult->post_lp, "Decks", 5) == 0)
+                      wms->seq = S_START_DECKS;
+                    else if (strncmp(mult->post_lp, "Table", 5) == 0)
+                      wms->seq = S_TABLE;
+                    else if (strncmp(mult->post_lp, "Apply", 5) == 0)
+                      wms->seq = S_APPLY;
+                    else if (strncmp(mult->post_lp, "Erase", 5) == 0)
+                      if (wms->from_page == P_FILE)
+                        wms->seq = S_ASK_ERASE;
                       else {
                         e = wms->from_page != P_MSG;
                         if (e == 0) {
@@ -1637,198 +1519,320 @@ int parse_post(struct WebMemorySurfer *wms) {
                             wms->seq = wms->todo_main;
                         }
                       }
+                    else if (strncmp(mult->post_lp, "About", 5) == 0)
+                      wms->seq = S_ABOUT;
+                    else {
+                      e = strncmp(mult->post_lp, "Start", 5) != 0;
+                      if (e == 0)
+                        wms->seq = S_NONE;
                     }
+                    break;
+                  case 6:
+                    if (strncmp(mult->post_lp, "Reveal", 6) == 0)
+                      wms->seq = S_REVEAL;
+                    else if (strncmp(mult->post_lp, "Create", 6) == 0) {
+                      if (wms->from_page == P_SELECT_DECK)
+                        wms->seq = S_DECKS_CREATE;
+                      else {
+                        e = wms->from_page != P_CAT_NAME;
+                        if (e == 0)
+                          wms->seq = S_CREATE_CAT;
+                      }
+                    } else if (strncmp(mult->post_lp, "Cancel", 6) == 0) {
+                      if (wms->from_page == P_SELECT_DECK || wms->from_page == P_PREFERENCES)
+                        wms->seq = S_START;
+                      else if (wms->from_page == P_MSG) {
+                        e = wms->todo_alt == -1;
+                        if (e == 0)
+                          wms->seq = wms->todo_alt;
+                      }
+                      else {
+                        e = wms->from_page != P_OPEN;
+                        if (e == 0)
+                          wms->seq = S_CLOSE;
+                      }
+                    } else if (strncmp(mult->post_lp, "Select", 6) == 0) {
+                      if (wms->from_page == P_SELECT_DEST_DECK)
+                        wms->seq = S_SELECT_MOVE_ARRANGE;
+                      else {
+                        e = wms->from_page != P_SELECT_ARRANGE || wms->saved_mode != M_DECK;
+                        if (e == 0)
+                          wms->seq = S_CAT_NAME;
+                      }
+                    } else if (strncmp(mult->post_lp, "Delete", 6) == 0) {
+                      if (wms->from_page == P_MSG) {
+                        e = wms->todo_main == -1;
+                        if (e == 0)
+                          wms->seq = wms->todo_main;
+                      }
+                      else {
+                        e = wms->from_page != P_SELECT_DECK;
+                        if (e == 0)
+                          wms->seq = S_ASK_DELETE_CAT;
+                      }
+                    } else if (strncmp(mult->post_lp, "Rename", 6) == 0) {
+                      if (wms->from_page == P_SELECT_DECK)
+                        wms->seq = S_RENAME_ENTER;
+                      else {
+                        e = wms->from_page != P_CAT_NAME;
+                        if (e == 0)
+                          wms->seq = S_RENAME_CAT;
+                      }
+                    } else if (strncmp(mult->post_lp, "Insert", 6) == 0) {
+                      e = wms->from_page != P_EDIT;
+                      if (e == 0)
+                        wms->seq = S_INSERT;
+                    } else if (strncmp(mult->post_lp, "Toggle", 6) == 0) {
+                        e = wms->from_page != P_SELECT_DECK;
+                        if (e == 0)
+                          wms->seq = S_TOGGLE;
+                    } else if (strncmp(mult->post_lp, "Remove", 6) == 0)
+                      if (wms->from_page == P_FILE)
+                        wms->seq = S_ASK_REMOVE;
+                      else {
+                        e = wms->from_page != P_MSG;
+                        if (e == 0) {
+                          e = wms->todo_main == -1;
+                          if (e == 0)
+                            wms->seq = wms->todo_main;
+                        }
+                      }
+                    else if (strncmp(mult->post_lp, "Resume", 6) == 0)
+                      wms->seq = S_RESUME;
+                    else if (memcmp(mult->post_lp, "Search", 6) == 0)
+                      wms->seq = S_SEARCH;
+                    else {
+                      e = strncmp(mult->post_lp, "Import", 6) != 0;
+                      if (e == 0)
+                        wms->seq = S_WARN_UPLOAD;
+                    }
+                    break;
+                  default:
+                    if (strncmp(mult->post_lp, "Set", 3) == 0) {
+                      e = wms->from_page != P_EDIT;
+                      if (e == 0)
+                        wms->seq = S_SET;
+                    }
+                    else if (strncmp(mult->post_lp, "Preferences", 11) == 0)
+                      wms->seq = S_PREFERENCES;
+                    else if (strncmp(mult->post_lp, "Histogram", 9) == 0)
+                      wms->seq = S_HISTOGRAM;
+                    else if (strncmp(mult->post_lp, "Refresh", 7) == 0)
+                      wms->seq = S_HISTOGRAM;
+                    else if (strncmp(mult->post_lp, "Preview", 7) == 0)
+                      wms->seq = S_PREVIEW_SYNC;
+                    else {
+                      e = strncmp(mult->post_lp, "OK", 2) != 0;
+                      if (e == 0) {
+                        if (wms->from_page == P_FILE || wms->from_page == P_ABOUT) {
+                          if (wms->file_title_str != NULL)
+                            wms->seq = S_START;
+                          else
+                            wms->seq = S_NONE;
+                        }
+                        else if (wms->from_page == P_UPLOAD_REPORT)
+                          wms->seq = S_START;
+                        else {
+                          e = wms->from_page != P_MSG;
+                          if (e == 0) {
+                            e = wms->todo_main == -1;
+                            if (e == 0)
+                              wms->seq = wms->todo_main;
+                          }
+                        }
+                      }
+                    }
+                    break;
                   }
                   break;
-                }
-                break;
-              case F_PAGE:
-                assert(wms->from_page == -1);
-                a_n = sscanf(wms->mult.post_lp, "%d", &wms->from_page);
-                e = a_n != 1 || wms->from_page < P_START || wms->from_page > P_TABLE;
-                break;
-              case F_MODE:
-                assert(wms->saved_mode == M_NONE);
-                a_n = sscanf(wms->mult.post_lp, "%d", &wms->saved_mode);
-                e = a_n != 1;
-                assert(wms->saved_mode >= M_DEFAULT && wms->saved_mode < M_END);
-                break;
-              case F_TIMEOUT:
-                e = wms->from_page != P_PREFERENCES;
-                if (e == 0) {
-                  assert(wms->timeout == -1);
-                  a_n = sscanf(wms->mult.post_lp, "%d", &wms->timeout);
+                case F_PAGE:
+                  assert(wms->from_page == -1);
+                  a_n = sscanf(mult->post_lp, "%d", &wms->from_page);
+                  e = a_n != 1 || wms->from_page < P_START || wms->from_page > P_TABLE;
+                  break;
+                case F_MODE:
+                  assert(wms->saved_mode == M_NONE);
+                  a_n = sscanf(mult->post_lp, "%d", &wms->saved_mode);
                   e = a_n != 1;
-                  if (e == 0)
-                    assert(wms->timeout >= 0 && wms->timeout < 5);
-                }
-                break;
-              default:
-                e = -1;
-                break;
-              }
-              field = F_UNKNOWN;
-              wms->mult.delim_str[0] = "=";
-              wms->mult.delim_str[1] = NULL;
-            }
-          }
-        }
-        break;
-      case T_BOUNDARY_INIT:
-        e = wms->mult.post_fp < 0;
-        if (e == 0) {
-          str = wms->mult.post_lp + wms->mult.post_fp;
-          e = strncmp(str, "\r\n", 2) != 0;
-          if (e == 0) {
-            assert(wms->boundary_str == NULL);
-            size = wms->mult.nread - 1;
-            wms->boundary_str = malloc(size);
-            e = wms->boundary_str == NULL;
-            if (e == 0) {
-              memcpy(wms->boundary_str, wms->mult.post_lp, wms->mult.nread - 2);
-              wms->boundary_str[wms->mult.nread - 2] = '\0';
-              stage = T_CONTENT;
-              wms->mult.delim_str[0] = "; ";
-              wms->mult.delim_str[1] = NULL;
-            }
-          }
-        }
-        break;
-      case T_CONTENT:
-        e = wms->mult.post_fp < 0;
-        if (e == 0) {
-          str = wms->mult.post_lp + wms->mult.post_fp;
-          e = strncmp(str, "; ", 2) != 0;
-          if (e == 0) {
-            e = strncmp(wms->mult.post_lp, "Content-Disposition: form-data", 30) != 0;
-            if (e == 0) {
-              stage = T_NAME;
-              wms->mult.delim_str[0] = "=\"";
-            }
-          }
-        }
-        break;
-      case T_NAME:
-        e = wms->mult.post_fp < 0;
-        if (e == 0) {
-          str = wms->mult.post_lp + wms->mult.post_fp;
-          if (strncmp(str, "=\"", 2) == 0) {
-            e = strncmp(wms->mult.post_lp, "name", 4) != 0;
-            if (e == 0) {
-              wms->mult.delim_str[0] = "\"\r\n\r\n";
-              wms->mult.delim_str[1] = "\"; ";
-            }
-          } else if (strncmp(str, "\"\r\n\r\n", 5) == 0) {
-            if (strncmp(wms->mult.post_lp, "page", 4) == 0) {
-              field = F_PAGE;
-            } else if (strncmp(wms->mult.post_lp, "file-title", 10) == 0) {
-              field = F_FILE_TITLE;
-            } else if (strncmp(wms->mult.post_lp, "token", 5) == 0) {
-              field = F_TOKEN;
-            } else if (strncmp(wms->mult.post_lp, "mtime", 5) == 0) {
-              field = F_MTIME;
-            } else {
-              e = strncmp(wms->mult.post_lp, "file_action", 11) != 0;
-              if (e == 0) {
-                field = F_FILE_ACTION;
-              }
-            }
-            wms->mult.delim_str[0] = "\r\n";
-            wms->mult.delim_str[1] = NULL;
-          } else if (strncmp(str, "\"; ", 3) == 0) {
-            e = strncmp(wms->mult.post_lp, "file_action", 11) != 0;
-            if (e == 0) {
-              wms->mult.delim_str[0] = "Content-Type: text/xml\r\n\r\n";
-              wms->mult.delim_str[1] = NULL;
-            }
-          } else if (strncmp(str, "\r\n", 2) == 0) {
-            if (field == F_PAGE) {
-              assert(wms->from_page == -1);
-              a_n = sscanf(wms->mult.post_lp, "%d", &wms->from_page);
-              e = a_n != 1 || wms->from_page < P_START || wms->from_page > P_TABLE;
-              if (e == 0) {
-                stage = T_BOUNDARY_BEGIN;
-                wms->mult.delim_str[0] = "--";
-              }
-            } else if (field == F_FILE_TITLE) {
-              assert(wms->file_title_str == NULL);
-              size = wms->mult.nread - 1;
-              wms->file_title_str = malloc(size);
-              e = wms->file_title_str == NULL;
-              if (e == 0) {
-                memcpy(wms->file_title_str, wms->mult.post_lp, wms->mult.nread - 2);
-                wms->file_title_str[wms->mult.nread - 2] = '\0';
-                stage = T_BOUNDARY_BEGIN;
-                wms->mult.delim_str[0] = "--";
-              }
-            } else if (field == F_TOKEN) {
-              e = wms->mult.nread != 42;
-              if (e == 0) {
-                e = scan_hex(wms->tok_digest, wms->mult.post_lp, SHA1_HASH_SIZE);
-                stage = T_BOUNDARY_BEGIN;
-                wms->mult.delim_str[0] = "--";
-              }
-            } else if (field == F_MTIME) {
-              assert(wms->mtime[0] == -1 && wms->mtime[1] == -1);
-              a_n = sscanf(wms->mult.post_lp, "%8x%8x", &wms->mtime[1], &wms->mtime[0]);
-              e = a_n != 2;
-              if (e == 0) {
-                assert(wms->mtime[0] >= 0 && wms->mtime[1] >= 0);
-                stage = T_BOUNDARY_BEGIN;
-                wms->mult.delim_str[0] = "--";
-              }
-            } else {
-              e = field != F_FILE_ACTION;
-              if (e == 0) {
-                if (memcmp (wms->mult.post_lp, "Upload", 6) == 0) {
-                  wms->seq = S_UPLOAD_REPORT;
-                } else {
-                  e = memcmp (wms->mult.post_lp, "Stop", 4);
+                  assert(wms->saved_mode >= M_DEFAULT && wms->saved_mode < M_END);
+                  break;
+                case F_TIMEOUT:
+                  e = wms->from_page != P_PREFERENCES;
                   if (e == 0) {
-                    wms->seq = S_FILE;
+                    assert(wms->timeout == -1);
+                    a_n = sscanf(mult->post_lp, "%d", &wms->timeout);
+                    e = a_n != 1;
+                    if (e == 0)
+                      assert(wms->timeout >= 0 && wms->timeout < 5);
                   }
+                  break;
+                default:
+                  e = -1;
+                  break;
                 }
-                stage = T_BOUNDARY_BEGIN;
-                wms->mult.delim_str[0] = "--";
+                field = F_UNKNOWN;
+                mult->delim_str[0] = "=";
+                mult->delim_str[1] = NULL;
               }
             }
-          } else {
-            e = strncmp(str, "Content-Type: text/xml\r\n\r\n", 26) != 0;
+          }
+          break;
+        case T_BOUNDARY_INIT:
+          e = mult->post_fp < 0;
+          if (e == 0) {
+            str = mult->post_lp + mult->post_fp;
+            e = strncmp(str, "\r\n", 2) != 0;
             if (e == 0) {
-              assert(wms->file_title_str != NULL); // A_SLASH
-              str = strchr(wms->file_title_str, '/');
-              e = str != NULL;
+              assert(wms->boundary_str == NULL);
+              size = mult->nread - 1;
+              wms->boundary_str = malloc(size);
+              e = wms->boundary_str == NULL;
               if (e == 0) {
-                size = strlen(DATA_PATH) + strlen(wms->file_title_str) + 2; // A_GATHER
-                str = malloc(size);
-                e = str == NULL;
+                memcpy(wms->boundary_str, mult->post_lp, mult->nread - 2);
+                wms->boundary_str[mult->nread - 2] = '\0';
+                stage = T_CONTENT;
+                mult->delim_str[0] = "; ";
+                mult->delim_str[1] = NULL;
+              }
+            }
+          }
+          break;
+        case T_CONTENT:
+          e = mult->post_fp < 0;
+          if (e == 0) {
+            str = mult->post_lp + mult->post_fp;
+            e = strncmp(str, "; ", 2) != 0;
+            if (e == 0) {
+              e = strncmp(mult->post_lp, "Content-Disposition: form-data", 30) != 0;
+              if (e == 0) {
+                stage = T_NAME;
+                mult->delim_str[0] = "=\"";
+              }
+            }
+          }
+          break;
+        case T_NAME:
+          e = mult->post_fp < 0;
+          if (e == 0) {
+            str = mult->post_lp + mult->post_fp;
+            if (strncmp(str, "=\"", 2) == 0) {
+              e = strncmp(mult->post_lp, "name", 4) != 0;
+              if (e == 0) {
+                mult->delim_str[0] = "\"\r\n\r\n";
+                mult->delim_str[1] = "\"; ";
+              }
+            } else if (strncmp(str, "\"\r\n\r\n", 5) == 0) {
+              if (strncmp(mult->post_lp, "page", 4) == 0) {
+                field = F_PAGE;
+              } else if (strncmp(mult->post_lp, "file-title", 10) == 0) {
+                field = F_FILE_TITLE;
+              } else if (strncmp(mult->post_lp, "token", 5) == 0) {
+                field = F_TOKEN;
+              } else if (strncmp(mult->post_lp, "mtime", 5) == 0) {
+                field = F_MTIME;
+              } else {
+                e = strncmp(mult->post_lp, "file_action", 11) != 0;
                 if (e == 0) {
-                  strcpy(str, DATA_PATH);
-                  strcat(str, "/");
-                  strcat(str, wms->file_title_str);
-                  assert(wms->ms.imf_filename == NULL);
-                  wms->ms.imf_filename = str;
-                  e = ms_open(&wms->ms); // A_OPEN
-                  if (e == 0) {
-                    size = sizeof(struct XML);
-                    xml = malloc(size);
-                    e = xml == NULL;
+                  field = F_FILE_ACTION;
+                }
+              }
+              mult->delim_str[0] = "\r\n";
+              mult->delim_str[1] = NULL;
+            } else if (strncmp(str, "\"; ", 3) == 0) {
+              e = strncmp(mult->post_lp, "file_action", 11) != 0;
+              if (e == 0) {
+                mult->delim_str[0] = "Content-Type: text/xml\r\n\r\n";
+                mult->delim_str[1] = NULL;
+              }
+            } else if (strncmp(str, "\r\n", 2) == 0) {
+              if (field == F_PAGE) {
+                assert(wms->from_page == -1);
+                a_n = sscanf(mult->post_lp, "%d", &wms->from_page);
+                e = a_n != 1 || wms->from_page < P_START || wms->from_page > P_TABLE;
+                if (e == 0) {
+                  stage = T_BOUNDARY_BEGIN;
+                  mult->delim_str[0] = "--";
+                }
+              } else if (field == F_FILE_TITLE) {
+                assert(wms->file_title_str == NULL);
+                size = mult->nread - 1;
+                wms->file_title_str = malloc(size);
+                e = wms->file_title_str == NULL;
+                if (e == 0) {
+                  memcpy(wms->file_title_str, mult->post_lp, mult->nread - 2);
+                  wms->file_title_str[mult->nread - 2] = '\0';
+                  stage = T_BOUNDARY_BEGIN;
+                  mult->delim_str[0] = "--";
+                }
+              } else if (field == F_TOKEN) {
+                e = mult->nread != 42;
+                if (e == 0) {
+                  e = scan_hex(wms->tok_digest, mult->post_lp, SHA1_HASH_SIZE);
+                  stage = T_BOUNDARY_BEGIN;
+                  mult->delim_str[0] = "--";
+                }
+              } else if (field == F_MTIME) {
+                assert(wms->mtime[0] == -1 && wms->mtime[1] == -1);
+                a_n = sscanf(mult->post_lp, "%8x%8x", &wms->mtime[1], &wms->mtime[0]);
+                e = a_n != 2;
+                if (e == 0) {
+                  assert(wms->mtime[0] >= 0 && wms->mtime[1] >= 0);
+                  stage = T_BOUNDARY_BEGIN;
+                  mult->delim_str[0] = "--";
+                }
+              } else {
+                e = field != F_FILE_ACTION;
+                if (e == 0) {
+                  if (memcmp(mult->post_lp, "Upload", 6) == 0) {
+                    wms->seq = S_UPLOAD_REPORT;
+                  } else {
+                    e = memcmp(mult->post_lp, "Stop", 4);
                     if (e == 0) {
-                      xml->n = 0;
-                      xml->p_lineptr = NULL;
-                      xml->cardlist_l = NULL;
-                      xml->prev_cat_i = -1;
-                      e = parse_xml(xml, wms, TAG_ROOT, -1);
+                      wms->seq = S_FILE;
+                    }
+                  }
+                  stage = T_BOUNDARY_BEGIN;
+                  mult->delim_str[0] = "--";
+                }
+              }
+            } else {
+              e = strncmp(str, "Content-Type: text/xml\r\n\r\n", 26) != 0;
+              if (e == 0) {
+                assert(wms->file_title_str != NULL); // A_SLASH
+                str = strchr(wms->file_title_str, '/');
+                e = str != NULL;
+                if (e == 0) {
+                  size = strlen(DATA_PATH) + strlen(wms->file_title_str) + 2; // A_GATHER
+                  str = malloc(size);
+                  e = str == NULL;
+                  if (e == 0) {
+                    strcpy(str, DATA_PATH);
+                    strcat(str, "/");
+                    strcat(str, wms->file_title_str);
+                    assert(wms->ms.imf_filename == NULL);
+                    wms->ms.imf_filename = str;
+                    e = ms_open(&wms->ms); // A_OPEN
+                    if (e == 0) {
+                      size = sizeof(struct XML);
+                      xml = malloc(size);
+                      e = xml == NULL;
                       if (e == 0) {
-                        free(xml->cardlist_l);
-                        xml->cardlist_l = NULL;
-                        free(xml->p_lineptr);
-                        xml->p_lineptr = NULL;
                         xml->n = 0;
-                        free(xml);
-                        xml = NULL;
-                        stage = T_BOUNDARY_BEGIN;
-                        wms->mult.delim_str[0] = "\r\n--";
+                        xml->p_lineptr = NULL;
+                        xml->cardlist_l = NULL;
+                        xml->prev_cat_i = -1;
+                        e = parse_xml(xml, wms, TAG_ROOT, -1);
+                        if (e == 0) {
+                          free(xml->cardlist_l);
+                          xml->cardlist_l = NULL;
+                          free(xml->p_lineptr);
+                          xml->p_lineptr = NULL;
+                          xml->n = 0;
+                          free(xml);
+                          xml = NULL;
+                          stage = T_BOUNDARY_BEGIN;
+                          mult->delim_str[0] = "\r\n--";
+                        }
                       }
                     }
                   }
@@ -1836,56 +1840,62 @@ int parse_post(struct WebMemorySurfer *wms) {
               }
             }
           }
-        }
-        break;
-      case T_BOUNDARY_BEGIN:
-        e = wms->mult.post_fp < 0;
-        if (e == 0) {
-          str = wms->mult.post_lp + wms->mult.post_fp;
-          len = wms->mult.post_wp - wms->mult.post_fp;
-          e = strncmp(str, "--", 2) && (len < 4 || strncmp(str, "\r\n--", 4));
+          break;
+        case T_BOUNDARY_BEGIN:
+          e = mult->post_fp < 0;
           if (e == 0) {
-            stage = T_BOUNDARY_CHECK;
-            wms->mult.delim_str[0] = "--\r\n";
-            wms->mult.delim_str[1] = "\r\n";
-          }
-        }
-        break;
-      case T_BOUNDARY_CHECK:
-        if (wms->mult.nread > 0) {
-          e = wms->mult.post_fp < 0;
-          if (e == 0) {
-            str = wms->mult.post_lp + wms->mult.post_fp;
-            len = wms->mult.post_wp - wms->mult.post_fp;
-            deci = 0;
-            if (strncmp(str, "\r\n", 2) == 0)
-              deci = -1;
-            if (len >= 4 && strncmp(str, "--\r\n", 4) == 0)
-              deci = 1;
-            e = deci == 0;
+            str = mult->post_lp + mult->post_fp;
+            len = mult->post_wp - mult->post_fp;
+            e = strncmp(str, "--", 2) && (len < 4 || strncmp(str, "\r\n--", 4));
             if (e == 0) {
-              assert(wms->boundary_str != NULL);
-              len = strlen(wms->boundary_str);
-              e = len != wms->mult.post_fp;
+              stage = T_BOUNDARY_CHECK;
+              mult->delim_str[0] = "--\r\n";
+              mult->delim_str[1] = "\r\n";
+            }
+          }
+          break;
+        case T_BOUNDARY_CHECK:
+          if (mult->nread > 0) {
+            e = mult->post_fp < 0;
+            if (e == 0) {
+              str = mult->post_lp + mult->post_fp;
+              len = mult->post_wp - mult->post_fp;
+              deci = 0;
+              if (strncmp(str, "\r\n", 2) == 0)
+                deci = -1;
+              if (len >= 4 && strncmp(str, "--\r\n", 4) == 0)
+                deci = 1;
+              e = deci == 0;
               if (e == 0) {
-                e = strncmp(wms->mult.post_lp, wms->boundary_str, len) != 0;
+                assert(wms->boundary_str != NULL);
+                len = strlen(wms->boundary_str);
+                e = len != mult->post_fp;
                 if (e == 0) {
-                  if (deci < 0) {
-                    stage = T_CONTENT;
-                    wms->mult.delim_str[0] = "; ";
-                    wms->mult.delim_str[1] = NULL;
+                  e = strncmp(mult->post_lp, wms->boundary_str, len) != 0;
+                  if (e == 0) {
+                    if (deci < 0) {
+                      stage = T_CONTENT;
+                      mult->delim_str[0] = "; ";
+                      mult->delim_str[1] = NULL;
+                    }
+                    else {
+                      mult->delim_str[0] = NULL;
+                    }
                   }
-                  else
-                    wms->mult.delim_str[0] = NULL;
                 }
               }
             }
           }
+          break;
         }
-        break;
       }
-    }
-  } while (wms->mult.nread != -1 && e == 0);
+    } while (mult->nread != -1 && e == 0);
+    free(mult->post_lp);
+    mult->post_lp = NULL;
+    mult->post_n = 0;
+    free(mult);
+    mult = NULL;
+  }
   return e;
 }
 
@@ -3097,7 +3107,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.71</h1>\n" 
+        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.72</h1>\n" 
                     "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p>Copyright 2016-2021</p>\n"
                     "\t\t\t<p>Send bugs and suggestions to\n"
@@ -3460,8 +3470,6 @@ static int wms_init(struct WebMemorySurfer *wms) {
     wms->mode = M_NONE;
     wms->saved_mode = M_NONE;
     wms->timeout = -1;
-    wms->mult.post_lp = NULL;
-    wms->mult.post_n = 0;
     wms->boundary_str = NULL;
     wms->dbg_n = 720;
     wms->dbg_lp = malloc(wms->dbg_n);
@@ -3544,7 +3552,6 @@ static void wms_free(struct WebMemorySurfer *wms) {
   }
   free(wms->fl_v);
   sa_free(&wms->qa_sa);
-  free(wms->mult.post_lp);
   free(wms->boundary_str);
   free(wms->dbg_lp);
   free(wms->file_title_str);
