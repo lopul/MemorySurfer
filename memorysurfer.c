@@ -36,13 +36,13 @@
 #include <fcntl.h> // O_TRUNC / O_EXCL
 #include <errno.h>
 
-enum Field { F_UNKNOWN, F_FILENAME, F_FILE_TITLE, F_START_ACTION, F_FILE_ACTION, F_ARRANGE, F_CAT_NAME, F_MOVED_CAT, F_EDIT_ACTION, F_LEARN_ACTION, F_SEARCH_TXT, F_MATCH_CASE, F_IS_HTML, F_SEARCH_ACTION, F_CAT, F_CARD, F_MOV_CARD, F_LVL, F_Q, F_A, F_REVEAL_POS, F_TODO_MAIN, F_TODO_ALT, F_MTIME, F_PASSWORD, F_NEW_PASSWORD, F_TOKEN, F_EVENT, F_PAGE, F_MODE, F_TIMEOUT };
+enum Field { F_UNKNOWN, F_FILENAME, F_FILE_TITLE, F_START_ACTION, F_FILE_ACTION, F_UPLOAD, F_ARRANGE, F_CAT_NAME, F_MOVED_CAT, F_EDIT_ACTION, F_LEARN_ACTION, F_SEARCH_TXT, F_MATCH_CASE, F_IS_HTML, F_SEARCH_ACTION, F_CAT, F_CARD, F_MOV_CARD, F_LVL, F_Q, F_A, F_REVEAL_POS, F_TODO_MAIN, F_TODO_ALT, F_MTIME, F_PASSWORD, F_NEW_PASSWORD, F_TOKEN, F_EVENT, F_PAGE, F_MODE, F_TIMEOUT };
 enum Action { A_END, A_NONE, A_FILE, A_WARN_UPLOAD, A_CREATE, A_NEW, A_OPEN_DLG, A_FILELIST, A_OPEN, A_CHANGE_PASSWD, A_WRITE_PASSWD, A_READ_PASSWD, A_CHECK_PASSWORD, A_AUTH_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_CHECK_RESUME, A_SLASH, A_VOID, A_FILE_EXTENSION, A_GATHER, A_UPLOAD, A_UPLOAD_REPORT, A_EXPORT, A_ASK_REMOVE, A_REMOVE, A_ASK_ERASE, A_ERASE, A_CLOSE, A_START_DECKS, A_DECKS_CREATE, A_SELECT_DEST_DECK, A_SELECT_SEND_CAT, A_SELECT_ARRANGE, A_CAT_NAME, A_CREATE_CAT, A_RENAME_CAT, A_ASK_DELETE_CAT, A_DELETE_CAT, A_TOGGLE, A_MOVE_CAT, A_SELECT_EDIT_CAT, A_EDIT, A_UPDATE_QA, A_UPDATE_HTML, A_SYNC, A_INSERT, A_APPEND, A_ASK_DELETE_CARD, A_DELETE_CARD, A_PREVIOUS, A_NEXT, A_SCHEDULE, A_SET, A_CARD_ARRANGE, A_MOVE_CARD, A_SEND_CARD, A_SELECT_LEARN_CAT, A_SELECT_SEARCH_CAT, A_PREFERENCES, A_ABOUT, A_APPLY, A_SEARCH, A_PREVIEW, A_DETERMINE_CARD, A_SHOW, A_REVEAL, A_PROCEED, A_SUSPEND, A_RESUME, A_CHECK_FILE, A_LOGIN, A_HISTOGRAM, A_TABLE, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CARD, A_TEST_CAT_SELECTED, A_TEST_CAT_VALID, A_TEST_CAT, A_TEST_ARRANGE, A_TEST_NAME };
 enum Page { P_START, P_FILE, P_PASSWORD, P_NEW, P_OPEN, P_UPLOAD, P_UPLOAD_REPORT, P_EXPORT, P_CAT_NAME, P_SELECT_ARRANGE, P_SELECT_DEST_DECK, P_SELECT_DECK, P_EDIT, P_PREVIEW, P_SEARCH, P_PREFERENCES, P_ABOUT, P_LEARN, P_MSG, P_HISTOGRAM, P_TABLE };
 enum Block { B_END, B_START_HTML, B_FORM_URLENCODED, B_FORM_MULTIPART, B_OPEN_DIV, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_HIDDEN_MOV_CARD, B_CLOSE_DIV, B_START, B_FILE, B_PASSWORD, B_NEW, B_OPEN, B_UPLOAD, B_UPLOAD_REPORT, B_EXPORT, B_CAT_NAME, B_SELECT_ARRANGE, B_SELECT_DEST_DECK, B_SELECT_DECK, B_EDIT, B_PREVIEW, B_SEARCH, B_PREFERENCES, B_ABOUT, B_LEARN, B_MSG, B_HISTOGRAM, B_TABLE };
 enum Mode { M_NONE = -1, M_DEFAULT, M_CHANGE_PASSWD, M_ASK, M_RATE, M_EDIT, M_LEARN, M_SEARCH, M_SEND, M_MOVE, M_CARD, M_DECK, M_START, M_END };
 enum Sequence { S_FILE, S_START_DECKS, S_DECKS_CREATE, S_SELECT_MOVE_ARRANGE, S_CAT_NAME, S_SELECT_EDIT_CAT, S_SELECT_LEARN_CAT, S_SELECT_SEARCH_CAT, S_PREFERENCES, S_ABOUT, S_APPLY, S_NEW, S_FILELIST, S_WARN_UPLOAD, S_UPLOAD, S_LOGIN, S_ENTER, S_CHANGE, S_START, S_UPLOAD_REPORT, S_EXPORT, S_ASK_REMOVE, S_REMOVE, S_ASK_ERASE, S_ERASE, S_CLOSE, S_NONE, S_CREATE, S_GO_LOGIN, S_GO_CHANGE, S_RENAME_ENTER, S_RENAME_CAT, S_SELECT_DEST_CAT, S_MOVE_CAT, S_CREATE_CAT, S_ASK_DELETE_CAT, S_DELETE_CAT, S_TOGGLE, S_EDIT, S_INSERT, S_APPEND, S_ASK_DELETE_CARD, S_DELETE_CARD, S_PREVIOUS, S_NEXT, S_SCHEDULE, S_SET, S_CARD_ARRANGE, S_MOVE_CARD, S_SELECT_SEND_CAT, S_SEND_CARD, S_SEARCH_SYNCED, S_PREVIEW_SYNC, S_QUESTION_SYNCED, S_QUESTION, S_SHOW, S_REVEAL, S_PROCEED, S_SUSPEND, S_RESUME, S_SEARCH, S_HISTOGRAM, S_TABLE, S_END };
-enum Stage { T_NULL, T_URLENCODE, T_BOUNDARY_INIT, T_CONTENT, T_NAME, T_BOUNDARY_BEGIN, T_BOUNDARY_CHECK };
+enum Stage { T_NULL, T_URLENCODE, T_BOUNDARY_INIT, T_CONTENT, T_NAME, T_NAME_QUOT, T_VALUE_START, T_VALUE_CRLFMINUSMINUS, T_VALUE_XML, T_BOUNDARY_BEGIN, T_BOUNDARY_CHECK, T_EPILOGUE };
 
 static enum Action action_seq[S_END+1][14] = {
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_FILELIST, A_FILE, A_END }, // S_FILE
@@ -958,7 +958,6 @@ int parse_post(struct WebMemorySurfer *wms) {
   char *str;
   enum Stage stage;
   int len;
-  int deci; // decision
   enum Field field;
   size_t size;
   struct XML *xml;
@@ -1686,151 +1685,167 @@ int parse_post(struct WebMemorySurfer *wms) {
                 if (e == 0) {
                   memcpy(boundary_str, mult->post_lp, mult->nread - 2);
                   boundary_str[mult->nread - 2] = '\0';
-                stage = T_CONTENT;
-                mult->delim_str[0] = "; ";
-                mult->delim_str[1] = NULL;
+                  stage = T_CONTENT;
+                  mult->delim_str[0] = "; ";
+                  mult->delim_str[1] = NULL;
                 }
               }
             }
           }
           break;
         case T_CONTENT:
-          e = mult->post_fp < 0;
+          e = mult->post_fp != 30; // "; "
           if (e == 0) {
-            str = mult->post_lp + mult->post_fp;
-            e = strncmp(str, "; ", 2) != 0;
+            e = strncmp(mult->post_lp, "Content-Disposition: form-data", 30) != 0;
             if (e == 0) {
-              e = strncmp(mult->post_lp, "Content-Disposition: form-data", 30) != 0;
-              if (e == 0) {
-                stage = T_NAME;
-                mult->delim_str[0] = "=\"";
-              }
+              stage = T_NAME;
+              mult->delim_str[0] = "=\"";
             }
           }
           break;
         case T_NAME:
-          e = mult->post_fp < 0;
+          e = mult->post_fp != 4;
           if (e == 0) {
             str = mult->post_lp + mult->post_fp;
             if (strncmp(str, "=\"", 2) == 0) {
               e = strncmp(mult->post_lp, "name", 4) != 0;
               if (e == 0) {
-                mult->delim_str[0] = "\"\r\n\r\n";
-                mult->delim_str[1] = "\"; ";
-              }
-            } else if (strncmp(str, "\"\r\n\r\n", 5) == 0) {
-              if (strncmp(mult->post_lp, "page", 4) == 0) {
-                field = F_PAGE;
-              } else if (strncmp(mult->post_lp, "file-title", 10) == 0) {
-                field = F_FILE_TITLE;
-              } else if (strncmp(mult->post_lp, "token", 5) == 0) {
-                field = F_TOKEN;
-              } else if (strncmp(mult->post_lp, "mtime", 5) == 0) {
-                field = F_MTIME;
-              } else {
-                e = strncmp(mult->post_lp, "file_action", 11) != 0;
-                if (e == 0) {
-                  field = F_FILE_ACTION;
-                }
-              }
-              mult->delim_str[0] = "\r\n";
-              mult->delim_str[1] = NULL;
-            } else if (strncmp(str, "\"; ", 3) == 0) {
-              e = strncmp(mult->post_lp, "file_action", 11) != 0;
-              if (e == 0) {
-                mult->delim_str[0] = "Content-Type: text/xml\r\n\r\n";
+                stage = T_NAME_QUOT;
+                mult->delim_str[0] = "\"";
                 mult->delim_str[1] = NULL;
               }
-            } else if (strncmp(str, "\r\n", 2) == 0) {
-              if (field == F_PAGE) {
-                assert(wms->from_page == -1);
-                a_n = sscanf(mult->post_lp, "%d", &wms->from_page);
-                e = a_n != 1 || wms->from_page < P_START || wms->from_page > P_TABLE;
-                if (e == 0) {
-                  stage = T_BOUNDARY_BEGIN;
-                  mult->delim_str[0] = "--";
-                }
-              } else if (field == F_FILE_TITLE) {
-                assert(wms->file_title_str == NULL);
-                size = mult->nread - 1;
-                wms->file_title_str = malloc(size);
-                e = wms->file_title_str == NULL;
-                if (e == 0) {
-                  memcpy(wms->file_title_str, mult->post_lp, mult->nread - 2);
-                  wms->file_title_str[mult->nread - 2] = '\0';
-                  stage = T_BOUNDARY_BEGIN;
-                  mult->delim_str[0] = "--";
-                }
-              } else if (field == F_TOKEN) {
-                e = mult->nread != 42;
-                if (e == 0) {
-                  e = scan_hex(wms->tok_digest, mult->post_lp, SHA1_HASH_SIZE);
-                  stage = T_BOUNDARY_BEGIN;
-                  mult->delim_str[0] = "--";
-                }
-              } else if (field == F_MTIME) {
-                assert(wms->mtime[0] == -1 && wms->mtime[1] == -1);
-                a_n = sscanf(mult->post_lp, "%8x%8x", &wms->mtime[1], &wms->mtime[0]);
-                e = a_n != 2;
-                if (e == 0) {
-                  assert(wms->mtime[0] >= 0 && wms->mtime[1] >= 0);
-                  stage = T_BOUNDARY_BEGIN;
-                  mult->delim_str[0] = "--";
-                }
-              } else {
-                e = field != F_FILE_ACTION;
-                if (e == 0) {
-                  if (memcmp(mult->post_lp, "Upload", 6) == 0) {
-                    wms->seq = S_UPLOAD_REPORT;
-                  } else {
-                    e = memcmp(mult->post_lp, "Stop", 4);
-                    if (e == 0) {
-                      wms->seq = S_FILE;
-                    }
-                  }
-                  stage = T_BOUNDARY_BEGIN;
-                  mult->delim_str[0] = "--";
-                }
+            }
+          }
+          break;
+        case T_NAME_QUOT:
+          e = mult->post_fp < 0; // "\""
+          if (e == 0) {
+            stage = T_VALUE_START;
+            mult->delim_str[0] = "\r\n\r\n";
+            mult->delim_str[1] = NULL;
+            if (strncmp(mult->post_lp, "page", 4) == 0) {
+              field = F_PAGE;
+            } else if (strncmp(mult->post_lp, "file-title", 10) == 0) {
+              field = F_FILE_TITLE;
+            } else if (strncmp(mult->post_lp, "token", 5) == 0) {
+              field = F_TOKEN;
+            } else if (strncmp(mult->post_lp, "mtime", 5) == 0) {
+              field = F_MTIME;
+            } else if (strncmp(mult->post_lp, "file_action", 11) == 0) {
+              field = F_FILE_ACTION;
+            } else {
+              e = strncmp(mult->post_lp, "upload", 6) != 0;
+              if (e == 0) {
+                stage = T_VALUE_XML;
+                mult->delim_str[0] = "Content-Type: text/xml\r\n\r\n";
+                mult->delim_str[1] = "Content-Type: application/xml\r\n\r\n";
+                field = F_UPLOAD;
+              }
+            }
+          }
+          break;
+        case T_VALUE_START:
+          e = mult->post_fp != 0;
+          if (e == 0) {
+            stage = T_VALUE_CRLFMINUSMINUS;
+            mult->delim_str[0] = "\r\n--";
+            mult->delim_str[1] = NULL;
+          }
+          break;
+        case T_VALUE_CRLFMINUSMINUS:
+          e = mult->post_fp < 0;
+          if (e == 0) {
+            mult->post_lp[mult->post_fp] = '\0';
+            if (field == F_PAGE) {
+              assert(wms->from_page == -1);
+              a_n = sscanf(mult->post_lp, "%d", &wms->from_page);
+              e = a_n != 1 || wms->from_page < P_START || wms->from_page > P_TABLE;
+              if (e == 0) {
+                stage = T_BOUNDARY_CHECK;
+                mult->delim_str[0] = "\r\n";
+              }
+            } else if (field == F_FILE_TITLE) {
+              assert(wms->file_title_str == NULL);
+              size = mult->nread - 3;
+              wms->file_title_str = malloc(size);
+              e = wms->file_title_str == NULL;
+              if (e == 0) {
+                memcpy(wms->file_title_str, mult->post_lp, mult->nread - 4);
+                wms->file_title_str[mult->nread - 4] = '\0';
+                stage = T_BOUNDARY_CHECK;
+                mult->delim_str[0] = "\r\n";
+              }
+            } else if (field == F_TOKEN) {
+              e = mult->post_fp != 40;
+              if (e == 0) {
+                e = scan_hex(wms->tok_digest, mult->post_lp, SHA1_HASH_SIZE);
+                stage = T_BOUNDARY_CHECK;
+                mult->delim_str[0] = "\r\n";
+              }
+            } else if (field == F_MTIME) {
+              assert(wms->mtime[0] == -1 && wms->mtime[1] == -1);
+              a_n = sscanf(mult->post_lp, "%8x%8x", &wms->mtime[1], &wms->mtime[0]);
+              e = a_n != 2;
+              if (e == 0) {
+                assert(wms->mtime[0] >= 0 && wms->mtime[1] >= 0);
+                stage = T_BOUNDARY_CHECK;
+                mult->delim_str[0] = "\r\n";
               }
             } else {
-              e = strncmp(str, "Content-Type: text/xml\r\n\r\n", 26) != 0;
+              e = field != F_FILE_ACTION;
               if (e == 0) {
-                assert(wms->file_title_str != NULL); // A_SLASH
-                str = strchr(wms->file_title_str, '/');
-                e = str != NULL;
-                if (e == 0) {
-                  size = strlen(DATA_PATH) + strlen(wms->file_title_str) + 2; // A_GATHER
-                  str = malloc(size);
-                  e = str == NULL;
+                if (strncmp(mult->post_lp, "Upload", 6) == 0) {
+                  wms->seq = S_UPLOAD_REPORT;
+                } else {
+                  e = strncmp(mult->post_lp, "Stop", 4);
                   if (e == 0) {
-                    strcpy(str, DATA_PATH);
-                    strcat(str, "/");
-                    strcat(str, wms->file_title_str);
-                    assert(wms->ms.imf_filename == NULL);
-                    wms->ms.imf_filename = str;
-                    e = ms_open(&wms->ms); // A_OPEN
+                    wms->seq = S_FILE;
+                  }
+                }
+                stage = T_BOUNDARY_CHECK;
+                mult->delim_str[0] = "\r\n";
+              }
+            }
+          }
+          break;
+        case T_VALUE_XML:
+          e = mult->post_fp < 0 || field != F_UPLOAD;
+          if (e == 0) {
+            assert(wms->file_title_str != NULL); // A_SLASH
+            str = strchr(wms->file_title_str, '/');
+            e = str != NULL;
+            if (e == 0) {
+              size = strlen(DATA_PATH) + strlen(wms->file_title_str) + 2; // A_GATHER
+              str = malloc(size);
+              e = str == NULL;
+              if (e == 0) {
+                strcpy(str, DATA_PATH);
+                strcat(str, "/");
+                strcat(str, wms->file_title_str);
+                assert(wms->ms.imf_filename == NULL);
+                wms->ms.imf_filename = str;
+                e = ms_open(&wms->ms); // A_OPEN
+                if (e == 0) {
+                  size = sizeof(struct XML);
+                  xml = malloc(size);
+                  e = xml == NULL;
+                  if (e == 0) {
+                    xml->n = 0;
+                    xml->p_lineptr = NULL;
+                    xml->cardlist_l = NULL;
+                    xml->prev_cat_i = -1;
+                    e = parse_xml(xml, wms, TAG_ROOT, -1);
                     if (e == 0) {
-                      size = sizeof(struct XML);
-                      xml = malloc(size);
-                      e = xml == NULL;
-                      if (e == 0) {
-                        xml->n = 0;
-                        xml->p_lineptr = NULL;
-                        xml->cardlist_l = NULL;
-                        xml->prev_cat_i = -1;
-                        e = parse_xml(xml, wms, TAG_ROOT, -1);
-                        if (e == 0) {
-                          free(xml->cardlist_l);
-                          xml->cardlist_l = NULL;
-                          free(xml->p_lineptr);
-                          xml->p_lineptr = NULL;
-                          xml->n = 0;
-                          free(xml);
-                          xml = NULL;
-                          stage = T_BOUNDARY_BEGIN;
-                          mult->delim_str[0] = "\r\n--";
-                        }
-                      }
+                      free(xml->cardlist_l);
+                      xml->cardlist_l = NULL;
+                      free(xml->p_lineptr);
+                      xml->p_lineptr = NULL;
+                      xml->n = 0;
+                      free(xml);
+                      xml = NULL;
+                      stage = T_BOUNDARY_BEGIN;
+                      mult->delim_str[0] = "\r\n--";
+                      mult->delim_str[1] = NULL;  
                     }
                   }
                 }
@@ -1839,50 +1854,34 @@ int parse_post(struct WebMemorySurfer *wms) {
           }
           break;
         case T_BOUNDARY_BEGIN:
-          e = mult->post_fp < 0;
+          e = mult->post_fp != 0;
           if (e == 0) {
-            str = mult->post_lp + mult->post_fp;
-            len = mult->post_wp - mult->post_fp;
-            e = strncmp(str, "--", 2) && (len < 4 || strncmp(str, "\r\n--", 4));
-            if (e == 0) {
               stage = T_BOUNDARY_CHECK;
-              mult->delim_str[0] = "--\r\n";
-              mult->delim_str[1] = "\r\n";
-            }
+              mult->delim_str[0] = "\r\n";
+              mult->delim_str[1] = NULL;
           }
           break;
         case T_BOUNDARY_CHECK:
-          if (mult->nread > 0) {
-            e = mult->post_fp < 0;
-            if (e == 0) {
-              str = mult->post_lp + mult->post_fp;
-              len = mult->post_wp - mult->post_fp;
-              deci = 0;
-              if (strncmp(str, "\r\n", 2) == 0)
-                deci = -1;
-              if (len >= 4 && strncmp(str, "--\r\n", 4) == 0)
-                deci = 1;
-              e = deci == 0;
+          assert(boundary_str != NULL);
+          len = strlen(boundary_str);
+          e = strncmp(mult->post_lp, boundary_str, len) != 0;
+          if (e == 0) {
+            if (mult->post_fp == len) {
+              stage = T_CONTENT;
+              mult->delim_str[0] = "; ";
+              mult->delim_str[1] = NULL;
+            } else if (mult->post_fp == len + 2) {
+              e = strncmp(mult->post_lp + mult->post_fp - 2, "--", 2) != 0;
               if (e == 0) {
-                assert(boundary_str != NULL);
-                len = strlen(boundary_str);
-                e = len != mult->post_fp;
-                if (e == 0) {
-                  e = strncmp(mult->post_lp, boundary_str, len) != 0;
-                  if (e == 0) {
-                    if (deci < 0) {
-                      stage = T_CONTENT;
-                      mult->delim_str[0] = "; ";
-                      mult->delim_str[1] = NULL;
-                    }
-                    else {
-                      mult->delim_str[0] = NULL;
-                    }
-                  }
-                }
+                stage = T_EPILOGUE;
+                mult->delim_str[0] = NULL;
               }
+            } else {
+              e = -1;
             }
           }
+          break;
+        case T_EPILOGUE:
           break;
         }
       }
@@ -2428,7 +2427,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
       switch (bl)
       {
       case B_START_HTML:
-        rv = printf("Content-Type: text/html; charset=utf-8\n\n"
+        rv = printf("Content-Type: text/html; charset=utf-8\r\n\r\n"
                     "<!DOCTYPE html>\n"
                     "<html lang=\"en\">\n"
                     "\t<head>\n"
@@ -2702,7 +2701,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         assert(wms->file_title_str != NULL && strlen(wms->tok_str) == 40);
         printf("\t\t\t<h1 class=\"msf\">Upload</h1>\n"
                "\t\t\t<p>Choose a (previously exported .XML) File to upload (which will be used for the Import)</p>\n"
-               "\t\t\t<p><input type=\"file\" name=\"file_action\"></p>\n"
+               "\t\t\t<p><input type=\"file\" name=\"upload\"></p>\n"
                "\t\t\t<p><input type=\"submit\" name=\"file_action\" value=\"Upload\">\n"
                "\t\t\t\t<input type=\"submit\" name=\"file_action\" value=\"Stop\"></p>\n"
                "\t\t</form>\n"
@@ -2735,8 +2734,8 @@ static int gen_html(struct WebMemorySurfer *wms) {
               e = strcmp(ext_str, ".imsf") != 0;
               if (e == 0) {
                 strcpy(ext_str, ".xml");
-                rv = printf("Content-Disposition: attachment; filename=\"%s\"\n"
-                            "Content-Type: text/xml; charset=utf-8\n\n",
+                rv = printf("Content-Disposition: attachment; filename=\"%s\"\r\n"
+                            "Content-Type: text/xml; charset=utf-8\r\n\r\n",
                     f_basename);
                 e = rv < 0;
                 if (e == 0) {
@@ -3106,7 +3105,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.73</h1>\n" 
+        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.74</h1>\n" 
                     "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p>Copyright 2016-2021</p>\n"
                     "\t\t\t<p>Send bugs and suggestions to\n"
