@@ -953,6 +953,7 @@ static int scan_hex(uint8_t *data, char *str, size_t len)
 
 int parse_post(struct WebMemorySurfer *wms) {
   int e;
+  int rv; // return value
   int a_n; // assignments
   int consumed_n;
   char *str;
@@ -1671,24 +1672,20 @@ int parse_post(struct WebMemorySurfer *wms) {
           }
           break;
         case T_BOUNDARY_INIT:
-          e = mult->post_fp < 0;
+          e = mult->post_fp < 0; // "\r\n"
           if (e == 0) {
-            str = mult->post_lp + mult->post_fp;
-            e = strncmp(str, "\r\n", 2) != 0;
+            assert(boundary_str == NULL);
+            size = mult->nread - 1;
+            e = size <= 71 ? 0 : 0x00c46685; // WBYEX - boundary exceeded
             if (e == 0) {
-              assert(boundary_str == NULL);
-              size = mult->nread - 1;
-              e = size <= 71 ? 0 : 0x00c46685; // WBYEX - boundary exceeded
+              boundary_str = malloc(size);
+              e = boundary_str == NULL;
               if (e == 0) {
-                boundary_str = malloc(size);
-                e = boundary_str == NULL;
-                if (e == 0) {
-                  memcpy(boundary_str, mult->post_lp, mult->nread - 2);
-                  boundary_str[mult->nread - 2] = '\0';
-                  stage = T_CONTENT;
-                  mult->delim_str[0] = "; ";
-                  mult->delim_str[1] = NULL;
-                }
+                memcpy(boundary_str, mult->post_lp, mult->nread - 2);
+                boundary_str[mult->nread - 2] = '\0';
+                stage = T_CONTENT;
+                mult->delim_str[0] = "; ";
+                mult->delim_str[1] = NULL;
               }
             }
           }
@@ -1704,16 +1701,13 @@ int parse_post(struct WebMemorySurfer *wms) {
           }
           break;
         case T_NAME:
-          e = mult->post_fp != 4;
+          e = mult->post_fp != 4; // "=\""
           if (e == 0) {
-            str = mult->post_lp + mult->post_fp;
-            if (strncmp(str, "=\"", 2) == 0) {
-              e = strncmp(mult->post_lp, "name", 4) != 0;
-              if (e == 0) {
-                stage = T_NAME_QUOT;
-                mult->delim_str[0] = "\"";
-                mult->delim_str[1] = NULL;
-              }
+            e = strncmp(mult->post_lp, "name", 4) != 0;
+            if (e == 0) {
+              stage = T_NAME_QUOT;
+              mult->delim_str[0] = "\"";
+              mult->delim_str[1] = NULL;
             }
           }
           break;
@@ -1760,10 +1754,6 @@ int parse_post(struct WebMemorySurfer *wms) {
               assert(wms->from_page == -1);
               a_n = sscanf(mult->post_lp, "%d", &wms->from_page);
               e = a_n != 1 || wms->from_page < P_START || wms->from_page > P_TABLE;
-              if (e == 0) {
-                stage = T_BOUNDARY_CHECK;
-                mult->delim_str[0] = "\r\n";
-              }
             } else if (field == F_FILE_TITLE) {
               assert(wms->file_title_str == NULL);
               size = mult->nread - 3;
@@ -1772,15 +1762,11 @@ int parse_post(struct WebMemorySurfer *wms) {
               if (e == 0) {
                 memcpy(wms->file_title_str, mult->post_lp, mult->nread - 4);
                 wms->file_title_str[mult->nread - 4] = '\0';
-                stage = T_BOUNDARY_CHECK;
-                mult->delim_str[0] = "\r\n";
               }
             } else if (field == F_TOKEN) {
               e = mult->post_fp != 40;
               if (e == 0) {
                 e = scan_hex(wms->tok_digest, mult->post_lp, SHA1_HASH_SIZE);
-                stage = T_BOUNDARY_CHECK;
-                mult->delim_str[0] = "\r\n";
               }
             } else if (field == F_MTIME) {
               assert(wms->mtime[0] == -1 && wms->mtime[1] == -1);
@@ -1788,8 +1774,6 @@ int parse_post(struct WebMemorySurfer *wms) {
               e = a_n != 2;
               if (e == 0) {
                 assert(wms->mtime[0] >= 0 && wms->mtime[1] >= 0);
-                stage = T_BOUNDARY_CHECK;
-                mult->delim_str[0] = "\r\n";
               }
             } else {
               e = field != F_FILE_ACTION;
@@ -1802,54 +1786,78 @@ int parse_post(struct WebMemorySurfer *wms) {
                     wms->seq = S_FILE;
                   }
                 }
-                stage = T_BOUNDARY_CHECK;
-                mult->delim_str[0] = "\r\n";
               }
+            }
+            if (e == 0) {
+              stage = T_BOUNDARY_CHECK;
+              mult->delim_str[0] = "\r\n";
             }
           }
           break;
         case T_VALUE_XML:
           e = mult->post_fp < 0 || field != F_UPLOAD;
           if (e == 0) {
-            assert(wms->file_title_str != NULL); // A_SLASH
-            str = strchr(wms->file_title_str, '/');
-            e = str != NULL;
+            char *temp_filename;
+            FILE *temp_stream;
+            size = strlen(DATA_PATH) + 17; // + '/' + 9999999999 + . + temp + '\0'
+            temp_filename = malloc(size);
+            e = temp_filename == NULL;
             if (e == 0) {
-              size = strlen(DATA_PATH) + strlen(wms->file_title_str) + 2; // A_GATHER
-              str = malloc(size);
-              e = str == NULL;
+              rv = snprintf(temp_filename, size, "%s/%0ld.temp", DATA_PATH, wms->ms.timestamp);
+              e = rv < 0 || rv >= size;
               if (e == 0) {
-                strcpy(str, DATA_PATH);
-                strcat(str, "/");
-                strcat(str, wms->file_title_str);
-                assert(wms->ms.imf_filename == NULL);
-                wms->ms.imf_filename = str;
-                e = ms_open(&wms->ms); // A_OPEN
+                temp_stream = fopen(temp_filename, "w");
+                e = temp_stream == NULL;
                 if (e == 0) {
-                  size = sizeof(struct XML);
-                  xml = malloc(size);
-                  e = xml == NULL;
+                  assert(wms->file_title_str != NULL); // A_SLASH
+                  str = strchr(wms->file_title_str, '/');
+                  e = str != NULL;
                   if (e == 0) {
-                    xml->n = 0;
-                    xml->p_lineptr = NULL;
-                    xml->cardlist_l = NULL;
-                    xml->prev_cat_i = -1;
-                    e = parse_xml(xml, wms, TAG_ROOT, -1);
+                    size = strlen(DATA_PATH) + strlen(wms->file_title_str) + 2; // A_GATHER
+                    str = malloc(size);
+                    e = str == NULL;
                     if (e == 0) {
-                      free(xml->cardlist_l);
-                      xml->cardlist_l = NULL;
-                      free(xml->p_lineptr);
-                      xml->p_lineptr = NULL;
-                      xml->n = 0;
-                      free(xml);
-                      xml = NULL;
-                      stage = T_BOUNDARY_BEGIN;
-                      mult->delim_str[0] = "\r\n--";
-                      mult->delim_str[1] = NULL;  
+                      strcpy(str, DATA_PATH);
+                      strcat(str, "/");
+                      strcat(str, wms->file_title_str);
+                      assert(wms->ms.imf_filename == NULL);
+                      wms->ms.imf_filename = str;
+                      e = ms_open(&wms->ms); // A_OPEN
+                      if (e == 0) {
+                        size = sizeof(struct XML);
+                        xml = malloc(size);
+                        e = xml == NULL;
+                        if (e == 0) {
+                          xml->n = 0;
+                          xml->p_lineptr = NULL;
+                          xml->cardlist_l = NULL;
+                          xml->prev_cat_i = -1;
+                          e = parse_xml(xml, wms, TAG_ROOT, -1);
+                          if (e == 0) {
+                            stage = T_BOUNDARY_BEGIN;
+                            mult->delim_str[0] = "\r\n--";
+                            mult->delim_str[1] = NULL;  
+                          }
+                          free(xml->cardlist_l);
+                          xml->cardlist_l = NULL;
+                          free(xml->p_lineptr);
+                          xml->p_lineptr = NULL;
+                          xml->n = 0;
+                          free(xml);
+                          xml = NULL;
+                        }
+                      }
                     }
                   }
+                  rv = fclose(temp_stream);
+                  if (e == 0) {
+                    e = rv;
+                  }
+                  temp_stream = NULL;
                 }
               }
+              free(temp_filename);
+              temp_filename = NULL;
             }
           }
           break;
@@ -3105,7 +3113,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.74</h1>\n" 
+        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.75</h1>\n" 
                     "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p>Copyright 2016-2021</p>\n"
                     "\t\t\t<p>Send bugs and suggestions to\n"
