@@ -42,7 +42,7 @@ enum Page { P_START, P_FILE, P_PASSWORD, P_NEW, P_OPEN, P_UPLOAD, P_UPLOAD_REPOR
 enum Block { B_END, B_START_HTML, B_FORM_URLENCODED, B_FORM_MULTIPART, B_OPEN_DIV, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_HIDDEN_MOV_CARD, B_CLOSE_DIV, B_START, B_FILE, B_PASSWORD, B_NEW, B_OPEN, B_UPLOAD, B_UPLOAD_REPORT, B_EXPORT, B_CAT_NAME, B_SELECT_ARRANGE, B_SELECT_DEST_DECK, B_SELECT_DECK, B_EDIT, B_PREVIEW, B_SEARCH, B_PREFERENCES, B_ABOUT, B_LEARN, B_MSG, B_HISTOGRAM, B_TABLE };
 enum Mode { M_NONE = -1, M_DEFAULT, M_CHANGE_PASSWD, M_ASK, M_RATE, M_EDIT, M_LEARN, M_SEARCH, M_SEND, M_MOVE, M_CARD, M_DECK, M_START, M_END };
 enum Sequence { S_FILE, S_START_DECKS, S_DECKS_CREATE, S_SELECT_MOVE_ARRANGE, S_CAT_NAME, S_SELECT_EDIT_CAT, S_SELECT_LEARN_CAT, S_SELECT_SEARCH_CAT, S_PREFERENCES, S_ABOUT, S_APPLY, S_NEW, S_FILELIST, S_WARN_UPLOAD, S_UPLOAD, S_LOGIN, S_ENTER, S_CHANGE, S_START, S_UPLOAD_REPORT, S_EXPORT, S_ASK_REMOVE, S_REMOVE, S_ASK_ERASE, S_ERASE, S_CLOSE, S_NONE, S_CREATE, S_GO_LOGIN, S_GO_CHANGE, S_RENAME_ENTER, S_RENAME_CAT, S_SELECT_DEST_CAT, S_MOVE_CAT, S_CREATE_CAT, S_ASK_DELETE_CAT, S_DELETE_CAT, S_TOGGLE, S_EDIT, S_INSERT, S_APPEND, S_ASK_DELETE_CARD, S_DELETE_CARD, S_PREVIOUS, S_NEXT, S_SCHEDULE, S_SET, S_CARD_ARRANGE, S_MOVE_CARD, S_SELECT_SEND_CAT, S_SEND_CARD, S_SEARCH_SYNCED, S_PREVIEW_SYNC, S_QUESTION_SYNCED, S_QUESTION, S_SHOW, S_REVEAL, S_PROCEED, S_SUSPEND, S_RESUME, S_SEARCH, S_HISTOGRAM, S_TABLE, S_END };
-enum Stage { T_NULL, T_URLENCODE, T_BOUNDARY_INIT, T_CONTENT, T_NAME, T_NAME_QUOT, T_VALUE_START, T_VALUE_CRLFMINUSMINUS, T_VALUE_XML, T_BOUNDARY_BEGIN, T_BOUNDARY_CHECK, T_EPILOGUE };
+enum Stage { T_NULL, T_URLENCODE, T_BOUNDARY_INIT, T_CONTENT, T_NAME, T_NAME_QUOT, T_VALUE_START, T_VALUE_CRLFMINUSMINUS, T_VALUE_XML, T_BOUNDARY_CHECK, T_EPILOGUE };
 
 static enum Action action_seq[S_END+1][14] = {
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_FILELIST, A_FILE, A_END }, // S_FILE
@@ -214,8 +214,8 @@ struct Multi {
   ssize_t nread;
   char *post_lp; // lineptr
   size_t post_n;
-  int post_wp; // write pointer
-  int post_fp; // found pointer
+  int post_wp; // write position
+  int post_fp; // found position
 };
 
 struct CardList {
@@ -228,6 +228,7 @@ struct XML {
   struct CardList *cardlist_l;
   size_t n;
   int prev_cat_i;
+  FILE *xml_stream;
 };
 
 struct IndentStr {
@@ -447,7 +448,7 @@ static int multi_delim(struct Multi *mult) {
   char *post_lp;
   size_t post_n;
   int cmp_i;
-  int post_tp; // test pointer
+  int post_tp; // test position
   assert((mult->post_lp == NULL && mult->post_n == 0) || (mult->post_lp != NULL && mult->post_n > 0));
   for (i = 0; i < 2; i++) {
     if (mult->delim_str[i] != NULL)
@@ -462,7 +463,7 @@ static int multi_delim(struct Multi *mult) {
   mult->post_fp = -1;
   do {
     if (mult->post_wp + 1 >= mult->post_n) {
-      post_n = mult->post_wp + 120;
+      post_n = mult->post_wp + 128;
       e = post_n >= INT_MAX;
       if (e == 0) {
         post_lp = (char *)realloc(mult->post_lp, post_n);
@@ -566,7 +567,7 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
   do_flag = 1;
   cat_i = -1;
   do {
-    nread = getdelim(&xml->p_lineptr, &xml->n, '<', stdin);
+    nread = getdelim(&xml->p_lineptr, &xml->n, '<', xml->xml_stream);
     e = nread <= 0;
     if (e == 0) {
       if (do_flag) {
@@ -697,7 +698,7 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
         }
       }
       if (e == 0) {
-        nread = getdelim(&xml->p_lineptr, &xml->n, '>', stdin);
+        nread = getdelim(&xml->p_lineptr, &xml->n, '>', xml->xml_stream);
         e = nread <= 0;
         if (e == 0) {
           str = xml->p_lineptr;
@@ -1806,8 +1807,54 @@ int parse_post(struct WebMemorySurfer *wms) {
               rv = snprintf(temp_filename, size, "%s/%0ld.temp", DATA_PATH, wms->ms.timestamp);
               e = rv < 0 || rv >= size;
               if (e == 0) {
+                int i;
+                int ch;
+                int cmp_i;
+                int post_tp;
                 temp_stream = fopen(temp_filename, "w");
                 e = temp_stream == NULL;
+                if (e == 0) {
+                  len = strlen(boundary_str);
+                  assert(len > 0 && len <= 70);
+                  e = mult->post_n < 128; // \r\n--%s\r\n
+                  if (e == 0) {
+                    mult->post_wp = 0;
+                    cmp_i = 0;
+                    while (e == 0 && cmp_i == 0) {
+                      ch = fgetc(stdin);
+                      e = ch == EOF;
+                      if (e == 0) {
+                        mult->post_lp[mult->post_wp & 0x7f] = ch;
+                        post_tp = mult->post_wp - len - 5;
+                        mult->post_wp++;
+                        e = mult->post_wp < 0;
+                        if (e == 0 &&  post_tp >= 0) {
+                          if (mult->post_lp[post_tp & 0x7f] == '\r'
+                              && mult->post_lp[(post_tp+1) & 0x7f] == '\n'
+                              && mult->post_lp[(post_tp+2) & 0x7f] == '-'
+                              && mult->post_lp[(post_tp+3) & 0x7f] == '-') {
+                            i = 0;
+                            while (boundary_str[i] == mult->post_lp[(post_tp+4+i) & 0x7f] && i < len) {
+                              i++;
+                            }
+                            cmp_i = i == len
+                                && mult->post_lp[(post_tp+4+i) & 0x7f] == '\r'
+                                && mult->post_lp[(post_tp+5+i) & 0x7f] == '\n';
+                          }
+                          if (cmp_i == 0) {
+                            rv = fputc(mult->post_lp[post_tp & 0x7f], temp_stream);
+                            e = rv == EOF;
+                          }
+                        }
+                      }
+                    }
+                  }
+                  rv = fclose(temp_stream);
+                  if (e == 0) {
+                    e = rv;
+                  }
+                  temp_stream = NULL;
+                }
                 if (e == 0) {
                   assert(wms->file_title_str != NULL); // A_SLASH
                   str = strchr(wms->file_title_str, '/');
@@ -1823,50 +1870,46 @@ int parse_post(struct WebMemorySurfer *wms) {
                       assert(wms->ms.imf_filename == NULL);
                       wms->ms.imf_filename = str;
                       e = ms_open(&wms->ms); // A_OPEN
-                      if (e == 0) {
-                        size = sizeof(struct XML);
-                        xml = malloc(size);
-                        e = xml == NULL;
-                        if (e == 0) {
-                          xml->n = 0;
-                          xml->p_lineptr = NULL;
-                          xml->cardlist_l = NULL;
-                          xml->prev_cat_i = -1;
-                          e = parse_xml(xml, wms, TAG_ROOT, -1);
-                          if (e == 0) {
-                            stage = T_BOUNDARY_BEGIN;
-                            mult->delim_str[0] = "\r\n--";
-                            mult->delim_str[1] = NULL;  
-                          }
-                          free(xml->cardlist_l);
-                          xml->cardlist_l = NULL;
-                          free(xml->p_lineptr);
-                          xml->p_lineptr = NULL;
-                          xml->n = 0;
-                          free(xml);
-                          xml = NULL;
-                        }
-                      }
                     }
                   }
-                  rv = fclose(temp_stream);
+                }
+                if (e == 0) {
+                  size = sizeof(struct XML);
+                  xml = malloc(size);
+                  e = xml == NULL;
                   if (e == 0) {
-                    e = rv;
+                    xml->n = 0;
+                    xml->p_lineptr = NULL;
+                    xml->cardlist_l = NULL;
+                    xml->prev_cat_i = -1;
+                    xml->xml_stream = fopen(temp_filename, "r");
+                    e = xml->xml_stream == NULL;
+                    if (e == 0) {
+                      e = parse_xml(xml, wms, TAG_ROOT, -1);
+                      if (e == 0) {
+                        stage = T_CONTENT;
+                        mult->delim_str[0] = "; ";
+                        mult->delim_str[1] = NULL;  
+                      }
+                      rv = fclose(xml->xml_stream);
+                      if (e == 0) {
+                        e = rv;
+                      }
+                      xml->xml_stream = NULL;
+                    }
+                    free(xml->cardlist_l);
+                    xml->cardlist_l = NULL;
+                    free(xml->p_lineptr);
+                    xml->p_lineptr = NULL;
+                    xml->n = 0;
+                    free(xml);
+                    xml = NULL;
                   }
-                  temp_stream = NULL;
                 }
               }
               free(temp_filename);
               temp_filename = NULL;
             }
-          }
-          break;
-        case T_BOUNDARY_BEGIN:
-          e = mult->post_fp != 0;
-          if (e == 0) {
-              stage = T_BOUNDARY_CHECK;
-              mult->delim_str[0] = "\r\n";
-              mult->delim_str[1] = NULL;
           }
           break;
         case T_BOUNDARY_CHECK:
@@ -3113,7 +3156,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.75</h1>\n" 
+        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.76</h1>\n" 
                     "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p>Copyright 2016-2021</p>\n"
                     "\t\t\t<p>Send bugs and suggestions to\n"
