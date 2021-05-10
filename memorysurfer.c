@@ -64,7 +64,7 @@ static enum Action action_seq[S_END+1][14] = {
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_CHECK_PASSWORD, A_CHANGE_PASSWD, A_WRITE_PASSWD, A_GEN_TOK, A_NONE, A_END }, // S_ENTER
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_PASSWD, A_CHANGE_PASSWD, A_WRITE_PASSWD, A_GEN_TOK, A_NONE, A_END }, // S_CHANGE
   { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_NONE, A_END }, // S_START
-  { A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_UPLOAD_REPORT, A_END }, // S_UPLOAD_REPORT
+  { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_UPLOAD_REPORT, A_END }, // S_UPLOAD_REPORT
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_EXPORT, A_END }, // S_EXPORT
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_ASK_REMOVE, A_END }, // S_ASK_REMOVE
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_REMOVE, A_FILELIST, A_CLOSE, A_END }, // S_REMOVE
@@ -271,6 +271,7 @@ struct WebMemorySurfer {
   uint8_t tok_digest[SHA1_HASH_SIZE];
   char tok_str[41];
   struct IndentStr *inds;
+  char *temp_filename;
 };
 
 static int append_part(struct WebMemorySurfer *wms, struct Multi *mult)
@@ -962,9 +963,13 @@ int parse_post(struct WebMemorySurfer *wms) {
   int len;
   enum Field field;
   size_t size;
-  struct XML *xml;
   struct Multi *mult;
   char *boundary_str;
+  FILE *temp_stream;
+  int i;
+  int ch;
+  int cmp_i;
+  int post_tp;
   boundary_str = NULL;
   size = sizeof(struct Multi);
   mult = malloc(size);
@@ -1798,20 +1803,14 @@ int parse_post(struct WebMemorySurfer *wms) {
         case T_VALUE_XML:
           e = mult->post_fp < 0 || field != F_UPLOAD;
           if (e == 0) {
-            char *temp_filename;
-            FILE *temp_stream;
             size = strlen(DATA_PATH) + 17; // + '/' + 9999999999 + . + temp + '\0'
-            temp_filename = malloc(size);
-            e = temp_filename == NULL;
+            wms->temp_filename = malloc(size);
+            e = wms->temp_filename == NULL;
             if (e == 0) {
-              rv = snprintf(temp_filename, size, "%s/%0ld.temp", DATA_PATH, wms->ms.timestamp);
+              rv = snprintf(wms->temp_filename, size, "%s/%0ld.temp", DATA_PATH, wms->ms.timestamp);
               e = rv < 0 || rv >= size;
               if (e == 0) {
-                int i;
-                int ch;
-                int cmp_i;
-                int post_tp;
-                temp_stream = fopen(temp_filename, "w");
+                temp_stream = fopen(wms->temp_filename, "w");
                 e = temp_stream == NULL;
                 if (e == 0) {
                   len = strlen(boundary_str);
@@ -1848,6 +1847,11 @@ int parse_post(struct WebMemorySurfer *wms) {
                         }
                       }
                     }
+                    if (e == 0) {
+                      stage = T_CONTENT;
+                      mult->delim_str[0] = "; ";
+                      mult->delim_str[1] = NULL;  
+                    }
                   }
                   rv = fclose(temp_stream);
                   if (e == 0) {
@@ -1855,60 +1859,7 @@ int parse_post(struct WebMemorySurfer *wms) {
                   }
                   temp_stream = NULL;
                 }
-                if (e == 0) {
-                  assert(wms->file_title_str != NULL); // A_SLASH
-                  str = strchr(wms->file_title_str, '/');
-                  e = str != NULL;
-                  if (e == 0) {
-                    size = strlen(DATA_PATH) + strlen(wms->file_title_str) + 2; // A_GATHER
-                    str = malloc(size);
-                    e = str == NULL;
-                    if (e == 0) {
-                      strcpy(str, DATA_PATH);
-                      strcat(str, "/");
-                      strcat(str, wms->file_title_str);
-                      assert(wms->ms.imf_filename == NULL);
-                      wms->ms.imf_filename = str;
-                      e = ms_open(&wms->ms); // A_OPEN
-                    }
-                  }
-                }
-                if (e == 0) {
-                  size = sizeof(struct XML);
-                  xml = malloc(size);
-                  e = xml == NULL;
-                  if (e == 0) {
-                    xml->n = 0;
-                    xml->p_lineptr = NULL;
-                    xml->cardlist_l = NULL;
-                    xml->prev_cat_i = -1;
-                    xml->xml_stream = fopen(temp_filename, "r");
-                    e = xml->xml_stream == NULL;
-                    if (e == 0) {
-                      e = parse_xml(xml, wms, TAG_ROOT, -1);
-                      if (e == 0) {
-                        stage = T_CONTENT;
-                        mult->delim_str[0] = "; ";
-                        mult->delim_str[1] = NULL;  
-                      }
-                      rv = fclose(xml->xml_stream);
-                      if (e == 0) {
-                        e = rv;
-                      }
-                      xml->xml_stream = NULL;
-                    }
-                    free(xml->cardlist_l);
-                    xml->cardlist_l = NULL;
-                    free(xml->p_lineptr);
-                    xml->p_lineptr = NULL;
-                    xml->n = 0;
-                    free(xml);
-                    xml = NULL;
-                  }
-                }
               }
-              free(temp_filename);
-              temp_filename = NULL;
             }
           }
           break;
@@ -3156,7 +3107,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.76</h1>\n" 
+        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.77</h1>\n" 
                     "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p>Copyright 2016-2021</p>\n"
                     "\t\t\t<p>Send bugs and suggestions to\n"
@@ -3461,8 +3412,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
   return e;
 }
 
-int ms_init(struct MemorySurfer *ms)
-{
+static int ms_init(struct MemorySurfer *ms) {
   int e;
   size_t size;
   imf_init(&ms->imf);
@@ -3550,6 +3500,7 @@ static int wms_init(struct WebMemorySurfer *wms) {
         e = wms->inds == NULL;
         if (e == 0) {
           inds_init(wms->inds);
+          wms->temp_filename = NULL;
         }
       }
     }
@@ -3590,6 +3541,8 @@ static void inds_free(struct IndentStr *inds) {
 
 static void wms_free(struct WebMemorySurfer *wms) {
   int i;
+  free(wms->temp_filename);
+  wms->temp_filename = NULL;
   inds_free(wms->inds);
   free(wms->inds);
   wms->inds = NULL;
@@ -3605,18 +3558,15 @@ static void wms_free(struct WebMemorySurfer *wms) {
   ms_free(&wms->ms);
 }
 
-int ms_create (struct MemorySurfer *ms, int flags_mask)
-{
+static int ms_create (struct MemorySurfer *ms, int flags_mask) {
   int e;
   size_t size;
   assert (ms->imf_filename != NULL);
   e = imf_create (&ms->imf, ms->imf_filename, flags_mask);
-  if (e == 0)
-  {
+  if (e == 0) {
     e = imf_put (&ms->imf, SA_INDEX, "", 0);
-    if (e == 0)
-    {
-      e = imf_put (&ms->imf, C_INDEX, "", 0);
+    if (e == 0) {
+      e = imf_put(&ms->imf, C_INDEX, "", 0);
       if (e == 0) {
         if (ms->passwd.pw_flag < 0) {
           ms->passwd.pw_flag = 0;
@@ -3624,14 +3574,13 @@ int ms_create (struct MemorySurfer *ms, int flags_mask)
           ms->passwd.tok_sec = 60;
           assert(ms->passwd.tok_count == 0);
           ms->passwd.tok_count = 10;
-        }
-        else {
+        } else {
           assert(ms->passwd.pw_flag == 1);
         }
         size = sizeof(struct Password);
         e = imf_put(&ms->imf, PW_INDEX, &ms->passwd, size);
         if (e == 0)
-          e = imf_sync (&ms->imf);
+          e = imf_sync(&ms->imf);
       }
     }
   }
@@ -3947,8 +3896,7 @@ size_t utf8_strcspn(const char *s, const char *reject, size_t *n) {
   return e;
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
   int e; // error
   int saved_e;
   struct WebMemorySurfer *wms;
@@ -3996,6 +3944,7 @@ int main(int argc, char *argv[])
   char e_str[8]; // JTLWQNE + '\0' (0x7fffffff)
   struct tm bd_time; // broken-down
   uint8_t need_sync;
+  struct XML *xml;
   dbg_stream = NULL;
   size = sizeof(struct WebMemorySurfer);
   wms = malloc(size);
@@ -4467,15 +4416,44 @@ int main(int argc, char *argv[])
             }
             break;
           case A_UPLOAD_REPORT:
-            data_size = sa_length(&wms->ms.cat_sa);
-            e = imf_put(&wms->ms.imf, SA_INDEX, wms->ms.cat_sa.sa_d, data_size);
+            size = sizeof(struct XML);
+            xml = malloc(size);
+            e = xml == NULL;
             if (e == 0) {
-              data_size = sizeof(struct Category) * wms->ms.cat_a;
-              e = imf_put(&wms->ms.imf, C_INDEX, wms->ms.cat_t, data_size);
+              xml->n = 0;
+              xml->p_lineptr = NULL;
+              xml->cardlist_l = NULL;
+              xml->prev_cat_i = -1;
+              xml->xml_stream = fopen(wms->temp_filename, "r");
+              e = xml->xml_stream == NULL;
               if (e == 0) {
-                e = imf_sync(&wms->ms.imf);
-                if (e == 0)
-                  wms->page = P_UPLOAD_REPORT;
+                e = parse_xml(xml, wms, TAG_ROOT, -1);
+                rv = fclose(xml->xml_stream);
+                if (e == 0) {
+                  e = rv;
+                }
+                xml->xml_stream = NULL;
+              }
+              free(xml->cardlist_l);
+              xml->cardlist_l = NULL;
+              free(xml->p_lineptr);
+              xml->p_lineptr = NULL;
+              xml->n = 0;
+              free(xml);
+              xml = NULL;
+            }
+            if (e == 0) {
+              data_size = sa_length(&wms->ms.cat_sa);
+              e = imf_put(&wms->ms.imf, SA_INDEX, wms->ms.cat_sa.sa_d, data_size);
+              if (e == 0) {
+                data_size = sizeof(struct Category) * wms->ms.cat_a;
+                e = imf_put(&wms->ms.imf, C_INDEX, wms->ms.cat_t, data_size);
+                if (e == 0) {
+                  e = imf_sync(&wms->ms.imf);
+                  if (e == 0) {
+                    wms->page = P_UPLOAD_REPORT;
+                  }
+                }
               }
             }
             break;
