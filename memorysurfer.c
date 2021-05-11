@@ -448,7 +448,6 @@ static int multi_delim(struct Multi *mult) {
   int ch;
   char *post_lp;
   size_t post_n;
-  int cmp_i;
   int post_tp; // test position
   assert((mult->post_lp == NULL && mult->post_n == 0) || (mult->post_lp != NULL && mult->post_n > 0));
   for (i = 0; i < 2; i++) {
@@ -459,7 +458,6 @@ static int multi_delim(struct Multi *mult) {
   }
   e = 0;
   mult->nread = -1;
-  cmp_i = -1;
   mult->post_wp = 0;
   mult->post_fp = -1;
   do {
@@ -480,21 +478,17 @@ static int multi_delim(struct Multi *mult) {
       if (ch != EOF) {
         mult->post_lp[mult->post_wp] = ch;
         mult->post_wp++;
-        for (i = 0; i < 2; i++) {
+        for (i = 0; mult->post_fp == -1 && i < 2; i++) {
           post_tp = mult->post_wp - mult->delim_len[i];
           if (post_tp >= 0) {
-            cmp_i = memcmp(mult->post_lp + post_tp, mult->delim_str[i], mult->delim_len[i]);
-          }
-          if (cmp_i == 0) {
-            mult->post_fp = post_tp;
-            break;
+            if (memcmp(mult->post_lp + post_tp, mult->delim_str[i], mult->delim_len[i]) == 0) {
+              mult->post_fp = post_tp;
+            }
           }
         }
-      } else {
-        break;
       }
     }
-  } while (mult->post_fp < 0 && e == 0);
+  } while (ch != EOF && mult->post_fp < 0 && e == 0);
   mult->post_lp[mult->post_wp] = '\0';
   if (mult->post_wp > 0)
     mult->nread = mult->post_wp;
@@ -852,6 +846,11 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
           }
         }
       }
+    } else if (tag == TAG_ROOT && parent_cat_i == -1) {
+      wms->static_header = "No or Empty XML data";
+      wms->static_btn_main = "OK";
+      wms->todo_main = S_WARN_UPLOAD;
+      wms->page = P_MSG;
     }
   } while (slash_f == 0 && e == 0 && tag != TAG_ROOT);
   return e;
@@ -1737,8 +1736,8 @@ int parse_post(struct WebMemorySurfer *wms) {
               e = strncmp(mult->post_lp, "upload", 6) != 0;
               if (e == 0) {
                 stage = T_VALUE_XML;
-                mult->delim_str[0] = "Content-Type: text/xml\r\n\r\n";
-                mult->delim_str[1] = "Content-Type: application/xml\r\n\r\n";
+                mult->delim_str[0] = "\r\n\r\n";
+                mult->delim_str[1] = NULL;
                 field = F_UPLOAD;
               }
             }
@@ -1801,7 +1800,16 @@ int parse_post(struct WebMemorySurfer *wms) {
           }
           break;
         case T_VALUE_XML:
-          e = mult->post_fp < 0 || field != F_UPLOAD;
+          e = mult->post_fp < 0 || field != F_UPLOAD; // "\r\n\r\n"
+          if (e == 0) {
+            e = mult->post_fp < 38 || strncmp(mult->post_lp + mult->post_fp - 38, "Content-Type: application/octet-stream", 38) != 0;
+            if (e == 1) {
+              e = mult->post_fp < 22 || strncmp(mult->post_lp + mult->post_fp - 22, "Content-Type: text/xml", 22) != 0;
+              if (e == 1) {
+                e = mult->post_fp < 29 || strncmp(mult->post_lp + mult->post_fp - 29, "Content-Type: application/xml", 29) != 0;
+              }
+            }
+          }
           if (e == 0) {
             size = strlen(DATA_PATH) + 17; // + '/' + 9999999999 + . + temp + '\0'
             wms->temp_filename = malloc(size);
@@ -1837,8 +1845,8 @@ int parse_post(struct WebMemorySurfer *wms) {
                               i++;
                             }
                             cmp_i = i == len
-                                && mult->post_lp[(post_tp+4+i) & 0x7f] == '\r'
-                                && mult->post_lp[(post_tp+5+i) & 0x7f] == '\n';
+                                && mult->post_lp[(post_tp+4+len) & 0x7f] == '\r'
+                                && mult->post_lp[(post_tp+5+len) & 0x7f] == '\n';
                           }
                           if (cmp_i == 0) {
                             rv = fputc(mult->post_lp[post_tp & 0x7f], temp_stream);
@@ -2703,7 +2711,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         assert(wms->file_title_str != NULL && strlen(wms->tok_str) == 40);
         printf("\t\t\t<h1 class=\"msf\">Upload</h1>\n"
                "\t\t\t<p>Choose a (previously exported .XML) File to upload (which will be used for the Import)</p>\n"
-               "\t\t\t<p><input type=\"file\" name=\"upload\"></p>\n"
+               "\t\t\t<p><input type=\"file\" name=\"upload\" accept=\"text/xml\"></p>\n"
                "\t\t\t<p><input type=\"submit\" name=\"file_action\" value=\"Upload\">\n"
                "\t\t\t\t<input type=\"submit\" name=\"file_action\" value=\"Stop\"></p>\n"
                "\t\t</form>\n"
@@ -2737,7 +2745,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
               if (e == 0) {
                 strcpy(ext_str, ".xml");
                 rv = printf("Content-Disposition: attachment; filename=\"%s\"\r\n"
-                            "Content-Type: text/xml; charset=utf-8\r\n\r\n",
+                            "Content-Type: application/xml; charset=utf-8\r\n\r\n",
                     f_basename);
                 e = rv < 0;
                 if (e == 0) {
@@ -3107,7 +3115,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.77</h1>\n" 
+        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.78</h1>\n" 
                     "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p>Copyright 2016-2021</p>\n"
                     "\t\t\t<p>Send bugs and suggestions to\n"
@@ -4006,7 +4014,8 @@ int main(int argc, char *argv[]) {
             break;
           case A_WARN_UPLOAD:
             if (wms->ms.n_first != -1) {
-              wms->static_header = "Warning: Before importing, the content of the current file is erased (and rebuild during the import).";
+              wms->static_header = "Warning: Erase?";
+              wms->static_msg = "Before importing, the content of the current file is erased (and rebuild during the import).";
               wms->static_btn_main = "Erase";
               wms->static_btn_alt = "Cancel";
               wms->todo_main = S_UPLOAD;
@@ -5513,8 +5522,9 @@ int main(int argc, char *argv[]) {
             e_str,
             wms->dbg_lp);
         e = rv < 0;
-        if (e == 0 && dbg_stream != NULL)
+        if (e == 0 && dbg_stream != NULL) {
           e = fclose(dbg_stream);
+        }
       }
       if (saved_e != 0 && wms->page != P_MSG) {
         free(wms->file_title_str);
@@ -5527,18 +5537,20 @@ int main(int argc, char *argv[]) {
         wms->todo_main = S_NONE;
         wms->page = P_MSG;
       }
-      if (e == 0 || wms->page == P_MSG)
+      if (e == 0 || wms->page == P_MSG) {
         e = gen_html(wms);
-      if (e != 0 && saved_e != 0)
+      }
+      if (e != 0 && saved_e != 0) {
         e = saved_e;
+      }
       wms_free(wms);
-    }
-    else
+    } else {
       e = 0x00339332; // WMSIF wms_init failed
+    }
     free(wms);
-  }
-  else
+  } else {
     e = 0x00021047; // WMWF Web(MemorySurfer) malloc (for) wms failed (failed)
+  }
   if (e != 0) {
     e2str(e, e_str);
     fprintf(stderr, "unreported error: %s\n", e_str);
