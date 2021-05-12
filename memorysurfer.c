@@ -3115,7 +3115,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.78</h1>\n" 
+        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.79</h1>\n" 
                     "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p>Copyright 2016-2021</p>\n"
                     "\t\t\t<p>Send bugs and suggestions to\n"
@@ -4365,9 +4365,9 @@ int main(int argc, char *argv[]) {
                 wms->todo_main = S_FILE;
                 wms->page = P_MSG;
               }
-            }
-            else
+            } else {
               e = 0x029d124a; // WMSMAC (Web)MemorySurfer main assert C (failed)
+            }
             break;
           case A_VOID:
             assert(wms->file_title_str != NULL);
@@ -4425,31 +4425,34 @@ int main(int argc, char *argv[]) {
             }
             break;
           case A_UPLOAD_REPORT:
-            size = sizeof(struct XML);
-            xml = malloc(size);
-            e = xml == NULL;
+            e = wms->ms.n_first == -1 ? 0 : 0x04ba4828; // WMSFNE (Web)MemorySurfer File not empty
             if (e == 0) {
-              xml->n = 0;
-              xml->p_lineptr = NULL;
-              xml->cardlist_l = NULL;
-              xml->prev_cat_i = -1;
-              xml->xml_stream = fopen(wms->temp_filename, "r");
-              e = xml->xml_stream == NULL;
+              size = sizeof(struct XML);
+              xml = malloc(size);
+              e = xml == NULL;
               if (e == 0) {
-                e = parse_xml(xml, wms, TAG_ROOT, -1);
-                rv = fclose(xml->xml_stream);
+                xml->n = 0;
+                xml->p_lineptr = NULL;
+                xml->cardlist_l = NULL;
+                xml->prev_cat_i = -1;
+                xml->xml_stream = fopen(wms->temp_filename, "r");
+                e = xml->xml_stream == NULL;
                 if (e == 0) {
-                  e = rv;
+                  e = parse_xml(xml, wms, TAG_ROOT, -1);
+                  rv = fclose(xml->xml_stream);
+                  if (e == 0) {
+                    e = rv;
+                  }
+                  xml->xml_stream = NULL;
                 }
-                xml->xml_stream = NULL;
+                free(xml->cardlist_l);
+                xml->cardlist_l = NULL;
+                free(xml->p_lineptr);
+                xml->p_lineptr = NULL;
+                xml->n = 0;
+                free(xml);
+                xml = NULL;
               }
-              free(xml->cardlist_l);
-              xml->cardlist_l = NULL;
-              free(xml->p_lineptr);
-              xml->p_lineptr = NULL;
-              xml->n = 0;
-              free(xml);
-              xml = NULL;
             }
             if (e == 0) {
               data_size = sa_length(&wms->ms.cat_sa);
