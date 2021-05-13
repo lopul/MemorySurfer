@@ -16,7 +16,7 @@ Some screenshots could be viewed
 You can try MemorySurfer online without installing anything on your computer.
 [Try MemorySurfer without installing](https://vps.lorenz-pullwitt.de/cgi-bin/memorysurfer.cgi).
 
-Here is a <a href="https://github.com/lopul/MemorySurfer/master/demo.xml">demo.xml</a> which you can use to Import.
+Here is a <a href="https://github.com/lopul/MemorySurfer/blob/master/demo.xml">demo.xml</a> which you can use to Import.
 
 ## Installing MemorySurfer
 
