@@ -64,7 +64,7 @@ static enum Action action_seq[S_END+1][14] = {
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_CHECK_PASSWORD, A_CHANGE_PASSWD, A_WRITE_PASSWD, A_GEN_TOK, A_NONE, A_END }, // S_ENTER
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_PASSWD, A_CHANGE_PASSWD, A_WRITE_PASSWD, A_GEN_TOK, A_NONE, A_END }, // S_CHANGE
   { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_NONE, A_END }, // S_START
-  { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_UPLOAD_REPORT, A_END }, // S_UPLOAD_REPORT
+  { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_UPLOAD_REPORT, A_END }, // S_UPLOAD_REPORT
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_EXPORT, A_END }, // S_EXPORT
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_ASK_REMOVE, A_END }, // S_ASK_REMOVE
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_REMOVE, A_FILELIST, A_CLOSE, A_END }, // S_REMOVE
@@ -272,6 +272,8 @@ struct WebMemorySurfer {
   char tok_str[41];
   struct IndentStr *inds;
   char *temp_filename;
+  int card_n;
+  int deck_n;
 };
 
 static int append_part(struct WebMemorySurfer *wms, struct Multi *mult)
@@ -781,6 +783,7 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
                     if (e == 0) {
                       card_i = xml->cardlist_l[parent_cat_i].card_a - 1;
                       xml->cardlist_l[parent_cat_i].card_l[card_i].card_qai = index;
+                      wms->card_n++;
                     }
                   }
                 }
@@ -832,6 +835,7 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
                         free(xml->cardlist_l[cat_i].card_l);
                         xml->cardlist_l[cat_i].card_l = NULL;
                         xml->cardlist_l[cat_i].card_a = 0;
+                        wms->deck_n++;
                       }
                     }
                     xml->prev_cat_i = cat_i;
@@ -2719,16 +2723,20 @@ static int gen_html(struct WebMemorySurfer *wms) {
                "</html>\n");
         break;
       case B_UPLOAD_REPORT:
-        printf("\t\t\t<h1 class=\"msf\">XML File imported</h1>\n"
-               "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"OK\"></p>\n"
-               "\t\t</form>\n"
-               "\t\t<code class=\"msf\">%s; chunks=%d, swaps=%d, avg=%d</code>\n"
-               "\t</body>\n"
-               "</html>\n",
-          sw_info_str,
-          wms->ms.imf.chunk_count,
-          wms->ms.imf.stat_swap,
-          wms->ms.imf.stat_swap / wms->ms.imf.chunk_count);
+        rv = printf("\t\t\t<h1 class=\"msf\">XML File imported</h1>\n"
+                    "\t\t\t<p>%d card(s) in %d deck(s) imported</p>\n"
+                    "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"OK\"></p>\n"
+                    "\t\t</form>\n"
+                    "\t\t<code class=\"msf\">%s; chunks=%d, swaps=%d, avg=%d</code>\n"
+                    "\t</body>\n"
+                    "</html>\n",
+            wms->card_n,
+            wms->deck_n,
+            sw_info_str,
+            wms->ms.imf.chunk_count,
+            wms->ms.imf.stat_swap,
+            wms->ms.imf.stat_swap / wms->ms.imf.chunk_count);
+        e = rv < 0;
         break;
       case B_EXPORT:
         e = wms->ms.imf_filename == NULL;
@@ -3115,7 +3123,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.79</h1>\n" 
+        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.80</h1>\n" 
                     "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p>Copyright 2016-2021</p>\n"
                     "\t\t\t<p>Send bugs and suggestions to\n"
@@ -4438,6 +4446,8 @@ int main(int argc, char *argv[]) {
                 xml->xml_stream = fopen(wms->temp_filename, "r");
                 e = xml->xml_stream == NULL;
                 if (e == 0) {
+                  wms->card_n = 0;
+                  wms->deck_n = 0;
                   e = parse_xml(xml, wms, TAG_ROOT, -1);
                   rv = fclose(xml->xml_stream);
                   if (e == 0) {
