@@ -221,46 +221,31 @@ imf_find_space (struct IndexedMemoryFile *imf, int64_t *position, int32_t chunk_
   return e;
 }
 
-static void
-imf_sort_order (struct IndexedMemoryFile *imf)
-{
-  int e;
+static void imf_sort_order(struct IndexedMemoryFile *imf) {
   int32_t tmp;
   int i;
   int j;
   int64_t i_pos;
   int64_t j_pos;
-  int sw_i;
-  sw_i = sw_start ("sort order", &imf->sw);
-  e = sw_i < 0;
-  if (e == 0)
-  {
-    if (imf->chunk_count > 1)
-    {
-      i = 1;
-      while (i < imf->chunk_count)
-      {
-        tmp = imf->chunk_order[i];
-        j = i - 1;
-        i_pos = imf->chunks[tmp].position;
-        do
-        {
-          j_pos = imf->chunks[imf->chunk_order[j]].position;
-          if (j_pos > i_pos)
-          {
-            imf->chunk_order[j + 1] = imf->chunk_order[j];
-          }
-          else
-            break;
-          j--;
-        } while (j >= 0);
-        imf->chunk_order[j + 1] = tmp;
-        i++;
-      }
+  if (imf->chunk_count > 1) {
+    i = 1;
+    while (i < imf->chunk_count) {
+      tmp = imf->chunk_order[i];
+      j = i - 1;
+      i_pos = imf->chunks[tmp].position;
+      do {
+        j_pos = imf->chunks[imf->chunk_order[j]].position;
+        if (j_pos > i_pos) {
+          imf->chunk_order[j + 1] = imf->chunk_order[j];
+        } else {
+          break;
+        }
+        j--;
+      } while (j >= 0);
+      imf->chunk_order[j + 1] = tmp;
+      i++;
     }
-    e = sw_stop (sw_i, &imf->sw);
   }
-  assert (e == 0);
 }
 
 int
@@ -325,8 +310,7 @@ imf_create (struct IndexedMemoryFile *imf, const char *filename, int flags_mask)
   return e;
 }
 
-int imf_open(struct IndexedMemoryFile *imf, const char *filename)
-{
+int imf_open(struct IndexedMemoryFile *imf, const char *filename) {
   int e;
   int filedesc;
   struct flock fl;
@@ -335,56 +319,57 @@ int imf_open(struct IndexedMemoryFile *imf, const char *filename)
   int32_t chunk_count;
   int32_t *chunk_order;
   int i;
-  e = imf->filedesc != -1 || imf->chunk_count != 0;
+  int sw_i;
+  sw_i = sw_start("imf_open", &imf->sw);
+  e = sw_i < 0;
   if (e == 0) {
-    filedesc = open(filename, O_RDWR, 0);
-    e = filedesc == -1;
+    e = imf->filedesc != -1 || imf->chunk_count != 0 ? 0x052e5e3e : 0; // IMFOAF - imf_open assert (failed)
     if (e == 0) {
-      fl.l_type = F_WRLCK;
-      fl.l_whence = SEEK_SET;
-      fl.l_start = 0;
-      fl.l_len = 0; // Lock entire file
-      e = fcntl(filedesc, F_SETLK, &fl);
+      filedesc = open(filename, O_RDWR, 0);
+      e = filedesc == -1 ? 0x059fe56c : 0; // IMFOOF - imf_open open (failed)
       if (e == 0) {
-        data_size = sizeof(struct Chunk) * 2;
-        chunks = malloc(data_size);
-        e = chunks == NULL;
+        fl.l_type = F_WRLCK;
+        fl.l_whence = SEEK_SET;
+        fl.l_start = 0;
+        fl.l_len = 0; // Lock entire file
+        e = fcntl(filedesc, F_SETLK, &fl) ? 0x0556e9f3 : 0; // IMFOFF - imf_open fcntl (failed)
         if (e == 0) {
-          imf->filedesc = filedesc;
-          e = imf_read(imf, chunks, 0, data_size);
+          data_size = sizeof(struct Chunk) * 2;
+          chunks = malloc(data_size);
+          e = chunks == NULL;
           if (e == 0) {
-            chunk_count = (chunks[1].chunk_size - SHA1_HASH_SIZE) / sizeof(struct Chunk) + 2;
-            data_size = sizeof(struct Chunk) * chunk_count;
-            chunks = realloc(chunks, data_size);
-            e = chunks == NULL;
+            imf->filedesc = filedesc;
+            e = imf_read(imf, chunks, 0, data_size);
             if (e == 0) {
-              data_size = chunks[1].chunk_size - SHA1_HASH_SIZE;
-              e = imf_read(imf, chunks + 2, chunks[1].position, data_size);
+              chunk_count = (chunks[1].chunk_size - SHA1_HASH_SIZE) / sizeof(struct Chunk) + 2;
+              data_size = sizeof(struct Chunk) * chunk_count;
+              chunks = realloc(chunks, data_size);
+              e = chunks == NULL;
               if (e == 0) {
-                data_size = sizeof(int32_t) * chunk_count;
-                chunk_order = malloc(data_size);
-                e = chunk_order == NULL;
+                data_size = chunks[1].chunk_size - SHA1_HASH_SIZE;
+                e = imf_read(imf, chunks + 2, chunks[1].position, data_size);
                 if (e == 0) {
-                  imf->chunks = chunks;
-                  imf->chunk_count = chunk_count;
-                  imf->chunk_order = chunk_order;
-                  for (i = 0; i < imf->chunk_count; i++)
-                    imf->chunk_order[i] = i;
-                  imf_sort_order(imf);
+                  data_size = sizeof(int32_t) * chunk_count;
+                  chunk_order = malloc(data_size);
+                  e = chunk_order == NULL;
+                  if (e == 0) {
+                    imf->chunks = chunks;
+                    imf->chunk_count = chunk_count;
+                    imf->chunk_order = chunk_order;
+                    for (i = 0; i < imf->chunk_count; i++) {
+                      imf->chunk_order[i] = i;
+                    }
+                    imf_sort_order(imf);
+                  }
                 }
               }
             }
           }
         }
       }
-      else
-        e = 0x0556e9f3; // IMFOFF - imf_open fcntl (failed)
     }
-    else
-      e = 0x059fe56c; // IMFOOF - imf_open open (failed)
+    e = sw_stop(sw_i, &imf->sw);
   }
-  else
-    e = 0x052e5e3e; // IMFOAF - imf_open assert (failed)
   return e;
 }
 
