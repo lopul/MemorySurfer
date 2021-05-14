@@ -42,7 +42,7 @@ enum Page { P_START, P_FILE, P_PASSWORD, P_NEW, P_OPEN, P_UPLOAD, P_UPLOAD_REPOR
 enum Block { B_END, B_START_HTML, B_FORM_URLENCODED, B_FORM_MULTIPART, B_OPEN_DIV, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_HIDDEN_MOV_CARD, B_CLOSE_DIV, B_START, B_FILE, B_PASSWORD, B_NEW, B_OPEN, B_UPLOAD, B_UPLOAD_REPORT, B_EXPORT, B_CAT_NAME, B_SELECT_ARRANGE, B_SELECT_DEST_DECK, B_SELECT_DECK, B_EDIT, B_PREVIEW, B_SEARCH, B_PREFERENCES, B_ABOUT, B_LEARN, B_MSG, B_HISTOGRAM, B_TABLE };
 enum Mode { M_NONE = -1, M_DEFAULT, M_CHANGE_PASSWD, M_ASK, M_RATE, M_EDIT, M_LEARN, M_SEARCH, M_SEND, M_MOVE, M_CARD, M_DECK, M_START, M_END };
 enum Sequence { S_FILE, S_START_DECKS, S_DECKS_CREATE, S_SELECT_MOVE_ARRANGE, S_CAT_NAME, S_SELECT_EDIT_CAT, S_SELECT_LEARN_CAT, S_SELECT_SEARCH_CAT, S_PREFERENCES, S_ABOUT, S_APPLY, S_NEW, S_FILELIST, S_WARN_UPLOAD, S_UPLOAD, S_LOGIN, S_ENTER, S_CHANGE, S_START, S_UPLOAD_REPORT, S_EXPORT, S_ASK_REMOVE, S_REMOVE, S_ASK_ERASE, S_ERASE, S_CLOSE, S_NONE, S_CREATE, S_GO_LOGIN, S_GO_CHANGE, S_RENAME_ENTER, S_RENAME_CAT, S_SELECT_DEST_CAT, S_MOVE_CAT, S_CREATE_CAT, S_ASK_DELETE_CAT, S_DELETE_CAT, S_TOGGLE, S_EDIT, S_INSERT, S_APPEND, S_ASK_DELETE_CARD, S_DELETE_CARD, S_PREVIOUS, S_NEXT, S_SCHEDULE, S_SET, S_CARD_ARRANGE, S_MOVE_CARD, S_SELECT_SEND_CAT, S_SEND_CARD, S_SEARCH_SYNCED, S_PREVIEW_SYNC, S_QUESTION_SYNCED, S_QUESTION, S_SHOW, S_REVEAL, S_PROCEED, S_SUSPEND, S_RESUME, S_SEARCH, S_HISTOGRAM, S_TABLE, S_END };
-enum Stage { T_NULL, T_URLENCODE, T_BOUNDARY_INIT, T_CONTENT, T_NAME, T_NAME_QUOT, T_VALUE_START, T_VALUE_CRLFMINUSMINUS, T_VALUE_XML, T_BOUNDARY_CHECK, T_EPILOGUE };
+enum Stage { T_NULL, T_URLENCODE_EQUALS, T_URLENCODE_AMP, T_BOUNDARY_INIT, T_CONTENT, T_NAME, T_NAME_QUOT, T_VALUE_START, T_VALUE_CRLFMINUSMINUS, T_VALUE_XML, T_BOUNDARY_CHECK, T_EPILOGUE };
 
 static enum Action action_seq[S_END+1][14] = {
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_FILELIST, A_FILE, A_END }, // S_FILE
@@ -956,7 +956,138 @@ static int scan_hex(uint8_t *data, char *str, size_t len)
   return e;
 }
 
-int parse_post(struct WebMemorySurfer *wms) {
+struct Parse {
+  enum Field field;
+};
+
+static int determine_field(struct Multi *mult, struct Parse *parse) {
+  int e;
+  e = mult->post_fp <= 0;
+  if (e == 0) {
+    switch (mult->post_fp)
+    {
+    case 1:
+      if (memcmp(mult->post_lp, "q", 1) == 0)
+        parse->field = F_Q;
+      else {
+        e = memcmp(mult->post_lp, "a", 1) != 0;
+        if (e == 0)
+          parse->field = F_A;
+      }
+      break;
+    case 3:
+      if (memcmp(mult->post_lp, "cat", 3) == 0)
+        parse->field = F_CAT;
+      else {
+        e = memcmp(mult->post_lp, "lvl", 3) != 0;
+        if (e == 0)
+          parse->field = F_LVL;
+      }
+      break;
+    case 4:
+      if (memcmp(mult->post_lp, "page", 4) == 0)
+        parse->field = F_PAGE;
+      else if (memcmp(mult->post_lp, "mode", 4) == 0)
+        parse->field = F_MODE;
+      else {
+        e = memcmp(mult->post_lp, "card", 4) != 0;
+        if (e == 0)
+          parse->field = F_CARD;
+      }
+      break;
+    case 5:
+      if (memcmp(mult->post_lp, "event", 5) == 0)
+        parse->field = F_EVENT;
+      else if (memcmp(mult->post_lp, "token", 5) == 0)
+        parse->field = F_TOKEN;
+      else {
+        e = memcmp(mult->post_lp, "mtime", 5) != 0;
+        if (e == 0)
+         parse->field = F_MTIME;
+      }
+      break;
+    case 7:
+      if (memcmp(mult->post_lp, "is-html", 7) == 0)
+        parse->field = F_IS_HTML;
+      else if (memcmp(mult->post_lp, "arrange", 7) == 0)
+        parse->field = F_ARRANGE;
+      else if (memcmp(mult->post_lp, "mov-cat", 7) == 0)
+        parse->field = F_MOVED_CAT;
+      else {
+        e = memcmp(mult->post_lp, "timeout", 7) != 0;
+        if (e == 0)
+          parse->field = F_TIMEOUT;
+      }
+      break;
+    case 8:
+      if (memcmp(mult->post_lp, "filename", 8) == 0)
+        parse->field = F_FILENAME;
+      else if (memcmp(mult->post_lp, "mov-card", 8) == 0)
+        parse->field = F_MOV_CARD;
+      else if (memcmp(mult->post_lp, "todo_alt", 8) == 0)
+        parse->field = F_TODO_ALT;
+      else {
+        e = memcmp(mult->post_lp, "password", 8) != 0;
+        if (e == 0)
+          parse->field = F_PASSWORD;
+      }
+      break;
+    case 9:
+      if (memcmp(mult->post_lp, "deck-name", 9) == 0)
+        parse->field = F_CAT_NAME;
+      else {
+        e = memcmp(mult->post_lp, "todo_main", 9) != 0;
+        if (e == 0)
+          parse->field = F_TODO_MAIN;
+      }
+      break;
+    case 10:
+      if (memcmp(mult->post_lp, "file-title", 10) == 0)
+        parse->field = F_FILE_TITLE;
+      else if (memcmp(mult->post_lp, "search-txt", 10) == 0)
+        parse->field = F_SEARCH_TXT;
+      else if (memcmp(mult->post_lp, "match-case", 10) == 0)
+        parse->field = F_MATCH_CASE;
+      else {
+        e = memcmp(mult->post_lp, "reveal-pos", 10) != 0;
+        if (e == 0)
+          parse->field = F_REVEAL_POS;
+      }
+      break;
+    case 11:
+      if (memcmp(mult->post_lp, "file_action", 11) == 0)
+        parse->field = F_FILE_ACTION;
+      else {
+        e = memcmp(mult->post_lp, "edit_action", 11) != 0;
+        if (e == 0)
+          parse->field = F_EDIT_ACTION;
+      }
+      break;
+    case 12:
+      if (memcmp(mult->post_lp, "start_action", 12) == 0)
+        parse->field = F_START_ACTION;
+      else if (memcmp(mult->post_lp, "learn_action", 12) == 0)
+        parse->field = F_LEARN_ACTION;
+      else {
+        e = memcmp(mult->post_lp, "new-password", 12) != 0;
+        if (e == 0)
+          parse->field = F_NEW_PASSWORD;
+      }
+      break;
+    case 13:
+      e = memcmp(mult->post_lp, "search_action", 13) != 0;
+      if (e == 0)
+        parse->field = F_SEARCH_ACTION;
+      break;
+    default:
+      e = 0x00014618; // WMFD Web(MemorySurfer) malformed form data
+      break;
+    }
+  }
+  return e;
+}
+
+static int parse_post(struct WebMemorySurfer *wms) {
   int e;
   int rv; // return value
   int a_n; // assignments
@@ -964,7 +1095,6 @@ int parse_post(struct WebMemorySurfer *wms) {
   char *str;
   enum Stage stage;
   int len;
-  enum Field field;
   size_t size;
   struct Multi *mult;
   char *boundary_str;
@@ -973,17 +1103,20 @@ int parse_post(struct WebMemorySurfer *wms) {
   int ch;
   int cmp_i;
   int post_tp;
+  struct Parse *parse;
   boundary_str = NULL;
   size = sizeof(struct Multi);
   mult = malloc(size);
-  e = mult == NULL;
+  size = sizeof(struct Parse);
+  parse = malloc(size);
+  e = mult == NULL || parse == NULL;
   if (e == 0) {
     mult->post_lp = NULL;
     mult->post_n = 0;
     mult->delim_str[0] = "=";
     mult->delim_str[1] = "--";
     stage = T_NULL;
-    field = F_UNKNOWN;
+    parse->field = F_UNKNOWN;
     do {
       e = multi_delim(mult);
       if (mult->nread > 0 && e == 0) {
@@ -995,7 +1128,7 @@ int parse_post(struct WebMemorySurfer *wms) {
         case T_NULL:
           if (mult->nread > 0) {
             if (mult->post_fp > 0 && mult->post_lp[mult->post_fp] == '=') {
-              stage = T_URLENCODE;
+              stage = T_URLENCODE_EQUALS;
             } else {
               e = mult->post_fp != 0 || mult->nread != 2 || memcmp(mult->post_lp, "--", 2) != 0;
               if (e == 0) {
@@ -1010,145 +1143,40 @@ int parse_post(struct WebMemorySurfer *wms) {
           } else {
             break;
           }
-        case T_URLENCODE:
+        case T_URLENCODE_EQUALS:
           if (mult->post_fp >= 0)
             str = mult->post_lp + mult->post_fp;
-          else if (field != F_UNKNOWN)
+          else if (parse->field != F_UNKNOWN)
             str = "&";
           else
             str = NULL;
           if (str != NULL) {
             if (memcmp (str, "=", 1) == 0) {
-              assert(field == F_UNKNOWN);
+              assert(parse->field == F_UNKNOWN);
               e = mult->post_fp < 0;
               if (e == 0) {
-                switch (mult->post_fp)
-                {
-                case 1:
-                  if (memcmp(mult->post_lp, "q", 1) == 0)
-                    field = F_Q;
-                  else {
-                    e = memcmp(mult->post_lp, "a", 1) != 0;
-                    if (e == 0)
-                      field = F_A;
-                  }
-                  break;
-                case 3:
-                  if (memcmp(mult->post_lp, "cat", 3) == 0)
-                    field = F_CAT;
-                  else {
-                    e = memcmp(mult->post_lp, "lvl", 3) != 0;
-                    if (e == 0)
-                      field = F_LVL;
-                  }
-                  break;
-                case 4:
-                  if (memcmp(mult->post_lp, "page", 4) == 0)
-                    field = F_PAGE;
-                  else if (memcmp(mult->post_lp, "mode", 4) == 0)
-                    field = F_MODE;
-                  else {
-                    e = memcmp(mult->post_lp, "card", 4) != 0;
-                    if (e == 0)
-                      field = F_CARD;
-                  }
-                  break;
-                case 5:
-                  if (memcmp(mult->post_lp, "event", 5) == 0)
-                    field = F_EVENT;
-                  else if (memcmp(mult->post_lp, "token", 5) == 0)
-                    field = F_TOKEN;
-                  else {
-                    e = memcmp(mult->post_lp, "mtime", 5) != 0;
-                    if (e == 0)
-                     field = F_MTIME;
-                  }
-                  break;
-                case 7:
-                  if (memcmp(mult->post_lp, "is-html", 7) == 0)
-                    field = F_IS_HTML;
-                  else if (memcmp(mult->post_lp, "arrange", 7) == 0)
-                    field = F_ARRANGE;
-                  else if (memcmp(mult->post_lp, "mov-cat", 7) == 0)
-                    field = F_MOVED_CAT;
-                  else {
-                    e = memcmp(mult->post_lp, "timeout", 7) != 0;
-                    if (e == 0)
-                      field = F_TIMEOUT;
-                  }
-                  break;
-                case 8:
-                  if (memcmp(mult->post_lp, "filename", 8) == 0)
-                    field = F_FILENAME;
-                  else if (memcmp(mult->post_lp, "mov-card", 8) == 0)
-                    field = F_MOV_CARD;
-                  else if (memcmp(mult->post_lp, "todo_alt", 8) == 0)
-                    field = F_TODO_ALT;
-                  else {
-                    e = memcmp(mult->post_lp, "password", 8) != 0;
-                    if (e == 0)
-                      field = F_PASSWORD;
-                  }
-                  break;
-                case 9:
-                  if (memcmp(mult->post_lp, "deck-name", 9) == 0)
-                    field = F_CAT_NAME;
-                  else {
-                    e = memcmp(mult->post_lp, "todo_main", 9) != 0;
-                    if (e == 0)
-                      field = F_TODO_MAIN;
-                  }
-                  break;
-                case 10:
-                  if (memcmp(mult->post_lp, "reveal-pos", 10) == 0)
-                    field = F_REVEAL_POS;
-                  else if (memcmp(mult->post_lp, "search-txt", 10) == 0)
-                    field = F_SEARCH_TXT;
-                  else if (memcmp(mult->post_lp, "match-case", 10) == 0)
-                    field = F_MATCH_CASE;
-                  else {
-                    e = memcmp(mult->post_lp, "file-title", 10) != 0;
-                    if (e == 0)
-                      field = F_FILE_TITLE;
-                  }
-                  break;
-                case 11:
-                  if (memcmp(mult->post_lp, "file_action", 11) == 0)
-                    field = F_FILE_ACTION;
-                  else {
-                    e = memcmp(mult->post_lp, "edit_action", 11) != 0;
-                    if (e == 0)
-                      field = F_EDIT_ACTION;
-                  }
-                  break;
-                case 12:
-                  if (memcmp(mult->post_lp, "start_action", 12) == 0)
-                    field = F_START_ACTION;
-                  else if (memcmp(mult->post_lp, "learn_action", 12) == 0)
-                    field = F_LEARN_ACTION;
-                  else {
-                    e = memcmp(mult->post_lp, "new-password", 12) != 0;
-                    if (e == 0)
-                      field = F_NEW_PASSWORD;
-                  }
-                  break;
-                case 13:
-                  e = memcmp(mult->post_lp, "search_action", 13) != 0;
-                  if (e == 0)
-                    field = F_SEARCH_ACTION;
-                  break;
-                default:
-                  e = 0x00014618; // WMFD Web(MemorySurfer) malformed form data
-                  break;
+                e = determine_field(mult, parse);
+                if (e == 0) {
+                  stage = T_URLENCODE_AMP;
+                  mult->delim_str[0] = "&";
+                  mult->delim_str[1] = NULL;
                 }
               }
-              mult->delim_str[0] = "&";
-              mult->delim_str[1] = NULL;
             }
-            else {
+          }
+          break;
+        case T_URLENCODE_AMP:
+          if (mult->post_fp >= 0)
+            str = mult->post_lp + mult->post_fp;
+          else if (parse->field != F_UNKNOWN)
+            str = "&";
+          else
+            str = NULL;
+          if (str != NULL) {
+            if (memcmp (str, "&", 1) == 0) {
               e = strncmp(str, "&", 1) != 0;
               if (e == 0) {
-                switch (field)
+                switch (parse->field)
                 {
                 case F_FILENAME:
                   assert (wms->ms.imf_filename == NULL);
@@ -1673,7 +1701,8 @@ int parse_post(struct WebMemorySurfer *wms) {
                   e = -1;
                   break;
                 }
-                field = F_UNKNOWN;
+                parse->field = F_UNKNOWN;
+                stage = T_URLENCODE_EQUALS;
                 mult->delim_str[0] = "=";
                 mult->delim_str[1] = NULL;
               }
@@ -1727,22 +1756,22 @@ int parse_post(struct WebMemorySurfer *wms) {
             mult->delim_str[0] = "\r\n\r\n";
             mult->delim_str[1] = NULL;
             if (strncmp(mult->post_lp, "page", 4) == 0) {
-              field = F_PAGE;
+              parse->field = F_PAGE;
             } else if (strncmp(mult->post_lp, "file-title", 10) == 0) {
-              field = F_FILE_TITLE;
+              parse->field = F_FILE_TITLE;
             } else if (strncmp(mult->post_lp, "token", 5) == 0) {
-              field = F_TOKEN;
+              parse->field = F_TOKEN;
             } else if (strncmp(mult->post_lp, "mtime", 5) == 0) {
-              field = F_MTIME;
+              parse->field = F_MTIME;
             } else if (strncmp(mult->post_lp, "file_action", 11) == 0) {
-              field = F_FILE_ACTION;
+              parse->field = F_FILE_ACTION;
             } else {
               e = strncmp(mult->post_lp, "upload", 6) != 0;
               if (e == 0) {
                 stage = T_VALUE_XML;
                 mult->delim_str[0] = "\r\n\r\n";
                 mult->delim_str[1] = NULL;
-                field = F_UPLOAD;
+                parse->field = F_UPLOAD;
               }
             }
           }
@@ -1759,11 +1788,11 @@ int parse_post(struct WebMemorySurfer *wms) {
           e = mult->post_fp < 0;
           if (e == 0) {
             mult->post_lp[mult->post_fp] = '\0';
-            if (field == F_PAGE) {
+            if (parse->field == F_PAGE) {
               assert(wms->from_page == -1);
               a_n = sscanf(mult->post_lp, "%d", &wms->from_page);
               e = a_n != 1 || wms->from_page < P_START || wms->from_page > P_TABLE;
-            } else if (field == F_FILE_TITLE) {
+            } else if (parse->field == F_FILE_TITLE) {
               assert(wms->file_title_str == NULL);
               size = mult->nread - 3;
               wms->file_title_str = malloc(size);
@@ -1772,12 +1801,12 @@ int parse_post(struct WebMemorySurfer *wms) {
                 memcpy(wms->file_title_str, mult->post_lp, mult->nread - 4);
                 wms->file_title_str[mult->nread - 4] = '\0';
               }
-            } else if (field == F_TOKEN) {
+            } else if (parse->field == F_TOKEN) {
               e = mult->post_fp != 40;
               if (e == 0) {
                 e = scan_hex(wms->tok_digest, mult->post_lp, SHA1_HASH_SIZE);
               }
-            } else if (field == F_MTIME) {
+            } else if (parse->field == F_MTIME) {
               assert(wms->mtime[0] == -1 && wms->mtime[1] == -1);
               a_n = sscanf(mult->post_lp, "%8x%8x", &wms->mtime[1], &wms->mtime[0]);
               e = a_n != 2;
@@ -1785,7 +1814,7 @@ int parse_post(struct WebMemorySurfer *wms) {
                 assert(wms->mtime[0] >= 0 && wms->mtime[1] >= 0);
               }
             } else {
-              e = field != F_FILE_ACTION;
+              e = parse->field != F_FILE_ACTION;
               if (e == 0) {
                 if (strncmp(mult->post_lp, "Upload", 6) == 0) {
                   wms->seq = S_UPLOAD_REPORT;
@@ -1804,7 +1833,7 @@ int parse_post(struct WebMemorySurfer *wms) {
           }
           break;
         case T_VALUE_XML:
-          e = mult->post_fp < 0 || field != F_UPLOAD; // "\r\n\r\n"
+          e = mult->post_fp < 0 || parse->field != F_UPLOAD; // "\r\n\r\n"
           if (e == 0) {
             e = mult->post_fp < 38 || strncmp(mult->post_lp + mult->post_fp - 38, "Content-Type: application/octet-stream", 38) != 0;
             if (e == 1) {
@@ -2552,13 +2581,13 @@ static int gen_html(struct WebMemorySurfer *wms) {
         dis_str = wms->file_title_str != NULL ? "" : " disabled";
         attr_str = wms->ms.n_first != -1 ? "" : " disabled";
         rv = printf("\t\t\t<h1 class=\"msf\">Start</h1>\n"
-                    "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"File\"></p>\n"
-                    "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Decks\"%s></p>\n"
-                    "\t\t\t<p><input type=\"submit\" name=\"start_action\" value=\"Edit\"%s></p>\n"
-                    "\t\t\t<p><input type=\"submit\" name=\"start_action\" value=\"Learn\"%s></p>\n"
-                    "\t\t\t<p><input type=\"submit\" name=\"start_action\" value=\"Search\"%s></p>\n"
-                    "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Preferences\"%s></p>\n"
-                    "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"About\"></p>\n"
+                    "\t\t\t<p class=\"msf\"><input type=\"submit\" name=\"event\" value=\"File\"></p>\n"
+                    "\t\t\t<p class=\"msf\"><input type=\"submit\" name=\"event\" value=\"Decks\"%s></p>\n"
+                    "\t\t\t<p class=\"msf\"><input type=\"submit\" name=\"start_action\" value=\"Edit\"%s></p>\n"
+                    "\t\t\t<p class=\"msf\"><input type=\"submit\" name=\"start_action\" value=\"Learn\"%s></p>\n"
+                    "\t\t\t<p class=\"msf\"><input type=\"submit\" name=\"start_action\" value=\"Search\"%s></p>\n"
+                    "\t\t\t<p class=\"msf\"><input type=\"submit\" name=\"event\" value=\"Preferences\"%s></p>\n"
+                    "\t\t\t<p class=\"msf\"><input type=\"submit\" name=\"event\" value=\"About\"></p>\n"
                     "\t\t</form>\n"
                     "\t\t<code class=\"msf\">%s</code>\n"
                     "\t</body>\n"
@@ -2581,15 +2610,15 @@ static int gen_html(struct WebMemorySurfer *wms) {
           attr_str = "";
         }
         rv = printf("\t\t\t<h1 class=\"msf\">File</h1>\n"
-                    "\t\t\t<p><input type=\"submit\" name=\"file_action\" value=\"New\"%s></p>\n"
-                    "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Open\"%s></p>\n"
-                    "\t\t\t<p><input type=\"submit\" name=\"file_action\" value=\"Password\"%s></p>\n"
-                    "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Import\"%s></p>\n"
-                    "\t\t\t<p><input type=\"submit\" name=\"file_action\" value=\"Export\"%s></p>\n"
-                    "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Remove\"%s></p>\n"
-                    "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Erase\"%s></p>\n"
-                    "\t\t\t<p><input type=\"submit\" name=\"file_action\" value=\"Close\"%s></p>\n"
-                    "\t\t\t<p><input type=\"submit\" name=\"file_action\" value=\"Cancel\"></p>\n"
+                    "\t\t\t<p class=\"msf\"><input type=\"submit\" name=\"file_action\" value=\"New\"%s></p>\n"
+                    "\t\t\t<p class=\"msf\"><input type=\"submit\" name=\"event\" value=\"Open\"%s></p>\n"
+                    "\t\t\t<p class=\"msf\"><input type=\"submit\" name=\"file_action\" value=\"Password\"%s></p>\n"
+                    "\t\t\t<p class=\"msf\"><input type=\"submit\" name=\"event\" value=\"Import\"%s></p>\n"
+                    "\t\t\t<p class=\"msf\"><input type=\"submit\" name=\"file_action\" value=\"Export\"%s></p>\n"
+                    "\t\t\t<p class=\"msf\"><input type=\"submit\" name=\"event\" value=\"Remove\"%s></p>\n"
+                    "\t\t\t<p class=\"msf\"><input type=\"submit\" name=\"event\" value=\"Erase\"%s></p>\n"
+                    "\t\t\t<p class=\"msf\"><input type=\"submit\" name=\"file_action\" value=\"Close\"%s></p>\n"
+                    "\t\t\t<p class=\"msf\"><input type=\"submit\" name=\"file_action\" value=\"Cancel\"></p>\n"
                     "\t\t</form>\n"
                     "\t\t<code class=\"msf\" >%s</code>\n"
                     "\t</body>\n"
@@ -2635,11 +2664,11 @@ static int gen_html(struct WebMemorySurfer *wms) {
         }
         assert(wms->mode != M_NONE && header_str != NULL);
         printf("\t\t\t<h1 class=\"msf\">%s</h1>\n", header_str);
-        if (notice_str[0] != NULL) printf("\t\t\t<p>%s</p>\n", notice_str[0]);
-        if (x != 0) printf("\t\t\t<p><input type=\"text\" name=\"password\" value=\"\" size=25></p>\n");
-        if (notice_str[1] != NULL) printf("\t\t\t<p>%s</p>\n", notice_str[1]);
-        if (y != 0) printf("\t\t\t<p><input type=\"text\" name=\"new-password\" value=\"\" size=25></p>\n");
-        printf("\t\t\t<p><input type=\"submit\" name=\"file_action\" value=\"%s\">\n"
+        if (notice_str[0] != NULL) printf("\t\t\t<p class=\"msf\">%s</p>\n", notice_str[0]);
+        if (x != 0) printf("\t\t\t<p class=\"msf\"><input type=\"text\" name=\"password\" value=\"\" size=25></p>\n");
+        if (notice_str[1] != NULL) printf("\t\t\t<p class=\"msf\">%s</p>\n", notice_str[1]);
+        if (y != 0) printf("\t\t\t<p class=\"msf\"><input type=\"text\" name=\"new-password\" value=\"\" size=25></p>\n");
+        printf("\t\t\t<p class=\"msf\"><input type=\"submit\" name=\"file_action\" value=\"%s\">\n"
                "\t\t\t\t<input type=\"submit\" name=\"file_action\" value=\"Stop\"></p>\n"
                "\t\t</form>\n"
                "\t</body>\n"
@@ -2672,8 +2701,8 @@ static int gen_html(struct WebMemorySurfer *wms) {
             assert(ext_str != NULL);
             *ext_str = '\0';
             printf("\t\t\t<h1 class=\"msf\">Create a New file</h1>\n"
-                   "\t\t\t<p><input type=\"text\" name=\"file-title\" value=\"%s\" size=25>.imsf</p>\n"
-                   "\t\t\t<p><input type=\"submit\" name=\"file_action\" value=\"Create\">\n"
+                   "\t\t\t<p class=\"msf\"><input type=\"text\" name=\"file-title\" value=\"%s\" size=25>.imsf</p>\n"
+                   "\t\t\t<p class=\"msf\"><input type=\"submit\" name=\"file_action\" value=\"Create\">\n"
                    "\t\t\t<input type=\"submit\" name=\"file_action\" value=\"Stop\"></p>\n"
                    "\t\t</form>\n"
                    "\t\t<code class=\"msf\">%s</code>\n"
@@ -2702,7 +2731,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           }
         }
         printf("\t\t\t</ul>\n"
-               "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Open\"%s>\n"
+               "\t\t\t<p class=\"msf\"><input type=\"submit\" name=\"event\" value=\"Open\"%s>\n"
                "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Cancel\"></p>\n"
                "\t\t</form>\n"
                "\t\t<code class=\"msf\">%s</code>\n"
@@ -2714,9 +2743,9 @@ static int gen_html(struct WebMemorySurfer *wms) {
       case B_UPLOAD:
         assert(wms->file_title_str != NULL && strlen(wms->tok_str) == 40);
         printf("\t\t\t<h1 class=\"msf\">Upload</h1>\n"
-               "\t\t\t<p>Choose a (previously exported .XML) File to upload (which will be used for the Import)</p>\n"
-               "\t\t\t<p><input type=\"file\" name=\"upload\" accept=\"text/xml\"></p>\n"
-               "\t\t\t<p><input type=\"submit\" name=\"file_action\" value=\"Upload\">\n"
+               "\t\t\t<p class=\"msf\">Choose a (previously exported .XML) File to upload (which will be used for the Import)</p>\n"
+               "\t\t\t<p class=\"msf\"><input type=\"file\" name=\"upload\"></p>\n"
+               "\t\t\t<p class=\"msf\"><input type=\"submit\" name=\"file_action\" value=\"Upload\">\n"
                "\t\t\t\t<input type=\"submit\" name=\"file_action\" value=\"Stop\"></p>\n"
                "\t\t</form>\n"
                "\t</body>\n"
@@ -2724,8 +2753,8 @@ static int gen_html(struct WebMemorySurfer *wms) {
         break;
       case B_UPLOAD_REPORT:
         rv = printf("\t\t\t<h1 class=\"msf\">XML File imported</h1>\n"
-                    "\t\t\t<p>%d card(s) in %d deck(s) imported</p>\n"
-                    "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"OK\"></p>\n"
+                    "\t\t\t<p class=\"msf\">%d card(s) in %d deck(s) imported</p>\n"
+                    "\t\t\t<p class=\"msf\"><input type=\"submit\" name=\"event\" value=\"OK\"></p>\n"
                     "\t\t</form>\n"
                     "\t\t<code class=\"msf\">%s; chunks=%d, swaps=%d, avg=%d</code>\n"
                     "\t</body>\n"
@@ -2795,7 +2824,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           text_str = "the card to move";
         }
         rv = printf("\t\t\t<h1 class=\"msf\">Select how to arrange %s</h1>\n"
-                    "\t\t\t<p>\n",
+                    "\t\t\t<p class=\"msf\">\n",
             text_str);
         e = rv < 0;
         if (e == 0) {
@@ -2809,7 +2838,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
             }
           if (e == 0) {
             rv = printf("\t\t\t</p>\n"
-                        "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"%s\">\n"
+                        "\t\t\t<p class=\"msf\"><input type=\"submit\" name=\"event\" value=\"%s\">\n"
                         "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Stop\"></p>\n"
                         "\t\t</form>\n"
                         "\t\t<code class=\"msf\">%s</code>\n"
@@ -2836,8 +2865,8 @@ static int gen_html(struct WebMemorySurfer *wms) {
         }
         if (e == 0) {
           rv = printf("\t\t\t<h1 class=\"msf\">%s</h1>\n"
-                      "\t\t\t<p><input type=\"text\" name=\"deck-name\" value=\"%s\" size=25></p>\n"
-                      "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"%s\">\n"
+                      "\t\t\t<p class=\"msf\"><input type=\"text\" name=\"deck-name\" value=\"%s\" size=25></p>\n"
+                      "\t\t\t<p class=\"msf\"><input type=\"submit\" name=\"event\" value=\"%s\">\n"
                       "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Stop\"></p>\n"
                       "\t\t</form>\n"
                       "\t\t<code class=\"msf\">%s</code>\n"
@@ -2876,7 +2905,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
             if (e == 0) {
               e = gen_html_cat(wms->ms.n_first, H_CHILD, wms);
               if (e == 0) {
-                rv = printf("\t\t\t<p><input type=\"submit\" name=\"event\" value=\"%s\">\n"
+                rv = printf("\t\t\t<p class=\"msf\"><input type=\"submit\" name=\"event\" value=\"%s\">\n"
                             "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Stop\"></p>\n"
                             "\t\t</form>\n"
                             "\t\t<code class=\"msf\">%s</code>\n"
@@ -2916,7 +2945,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
             if (e == 0) {
               dis_str = wms->ms.n_first >= 0 ? "" : " disabled";
               if (wms->mode == M_START) {
-                rv = printf("\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Create\">\n"
+                rv = printf("\t\t\t<p class=\"msf\"><input type=\"submit\" name=\"event\" value=\"Create\">\n"
                             "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Rename\"%s>\n"
                             "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Move\"%s>\n"
                             "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Delete\"%s>\n"
@@ -2933,7 +2962,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
                   e = gen_html_cat(wms->ms.n_first, H_CHILD, wms);
               }
               if (e == 0) {
-                rv = printf("\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Edit\"%s>\n"
+                rv = printf("\t\t\t<p class=\"msf\"><input type=\"submit\" name=\"event\" value=\"Edit\"%s>\n"
                             "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Learn\"%s>\n"
                             "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Search\"%s>\n"
                             "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Cancel\"></p>\n"
@@ -2958,13 +2987,13 @@ static int gen_html(struct WebMemorySurfer *wms) {
         if (e == 0) {
           assert(strlen(mtime_str) == 16 && wms->file_title_str != NULL && strlen(wms->tok_str) == 40);
           rv = printf("\t\t\t<h1 class=\"msf\">Editing</h1>\n"
-                      "\t\t\t<p><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Insert\"%s>Insert</button>\n"
+                      "\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Insert\"%s>Insert</button>\n"
                       "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"edit_action\" value=\"Append\">Append</button>\n"
                       "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"edit_action\" value=\"Delete\"%s>Delete</button>\n"
                       "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"edit_action\" value=\"Previous\"%s>Previous</button>\n"
                       "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"edit_action\" value=\"Next\"%s>Next</button></p>\n"
                       "\t\t\t<div><textarea name=\"q\" rows=\"10\" cols=\"46\"%s>%s</textarea></div>\n"
-                      "\t\t\t<p><button class=\"msf\" type=\"submit\" name=\"edit_action\" value=\"Schedule\"%s>Schedule</button>\n"
+                      "\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"edit_action\" value=\"Schedule\"%s>Schedule</button>\n"
                       "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Set\"%s>Set</button>\n"
                       "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Move\"%s>Move</button>\n"
                       "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Send\"%s>Send</button></p>\n",
@@ -2983,7 +3012,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
             e = xml_escape(&wms->html_lp, &wms->html_n, a_str, ESC_AMP | ESC_LT);
             if (e == 0) {
               rv = printf("\t\t\t<div><textarea name=\"a\" rows=\"10\" cols=\"46\"%s>%s</textarea></div>\n"
-                          "\t\t\t<p><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Learn\">Learn</button>\n"
+                          "\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Learn\">Learn</button>\n"
                           "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"edit_action\" value=\"Search\">Search</button>\n"
                           "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Preview\">Preview</button>\n"
                           "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"edit_action\" value=\"Stop\">Stop</button>\n"
@@ -3032,7 +3061,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           }
         }
         if (e == 0) {
-          rv = printf("\t\t\t<p><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Edit\">Edit</button>\n"
+          rv = printf("\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Edit\">Edit</button>\n"
                       "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Learn\">Learn</button>\n"
                       "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Search\">Search</button>\n"
                       "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Stop\">Stop</button></p>\n");
@@ -3055,7 +3084,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           assert(wms->file_title_str != NULL && strlen(wms->tok_str) == 40);
           assert(wms->ms.match_case == -1 || wms->ms.match_case == 1);
           rv = printf("\t\t\t<h1 class=\"msf\">Searching</h1>\n"
-                      "\t\t\t<p><input type=\"text\" name=\"search-txt\" value=\"%s\" size=25>\n"
+                      "\t\t\t<p class=\"msf\"><input type=\"text\" name=\"search-txt\" value=\"%s\" size=25>\n"
                       "\t\t\t\t<label><input type=\"checkbox\" name=\"match-case\"%s>Match Case</label></p>\n",
               wms->html_lp,
               wms->ms.match_case > 0 ? " checked" : "");
@@ -3066,7 +3095,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
             e = xml_escape(&wms->html_lp, &wms->html_n, q_str, ESC_AMP | ESC_LT);
             if (e == 0) {
               rv = printf("\t\t\t<div><textarea rows=\"10\" cols=\"46\"%s>%s</textarea></div>\n"
-                          "\t\t\t<p><input type=\"submit\" name=\"search_action\" value=\"Reverse\"%s>\n"
+                          "\t\t\t<p class=\"msf\"><input type=\"submit\" name=\"search_action\" value=\"Reverse\"%s>\n"
                           "\t\t\t<input type=\"submit\" name=\"search_action\" value=\"Forward\"%s></p>\n",
                   wms->found_str != NULL ? " readonly" : " disabled",
                   wms->html_lp,
@@ -3077,7 +3106,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
                 e = xml_escape(&wms->html_lp, &wms->html_n, a_str, ESC_AMP | ESC_LT);
                 if (e == 0) {
                   rv = printf("\t\t\t<div><textarea rows=\"10\" cols=\"46\"%s>%s</textarea></div>\n"
-                              "\t\t\t<p><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Edit\">Edit</button>\n"
+                              "\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Edit\">Edit</button>\n"
                               "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Learn\"%s>Learn</button>\n"
                               "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"search_action\" value=\"Stop\">Stop</button></p>\n"
                               "\t\t</form>\n"
@@ -3098,7 +3127,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
       case B_PREFERENCES:
         assert(wms->file_title_str != NULL && strlen(wms->tok_str) == 40);
         printf("\t\t\t<h1 class=\"msf\">Preferences</h1>\n"
-               "\t\t\t<p>Timeout</p>\n"
+               "\t\t\t<p class=\"msf\">Timeout</p>\n"
                "\t\t\t<div>\n");
         j = -1;
         for (i = 0; i < 5 && j == -1; i++)
@@ -3114,7 +3143,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
               TIMEOUTS[i]);
         }
         printf("\t\t\t</div>\n"
-               "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Apply\">\n"
+               "\t\t\t<p class=\"msf\"><input type=\"submit\" name=\"event\" value=\"Apply\">\n"
                "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Cancel\"></p>\n"
                "\t\t</form>\n"
                "\t\t<code class=\"msf\">%s</code>\n"
@@ -3123,10 +3152,10 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.80</h1>\n" 
-                    "\t\t\t<p>Author: Lorenz Pullwitt</p>\n"
-                    "\t\t\t<p>Copyright 2016-2021</p>\n"
-                    "\t\t\t<p>Send bugs and suggestions to\n"
+        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.81</h1>\n" 
+                    "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
+                    "\t\t\t<p class=\"msf\">Copyright 2016-2021</p>\n"
+                    "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
                     "<a href=\"mailto:memorysurfer@lorenz-pullwitt.de\">memorysurfer@lorenz-pullwitt.de</a></p>\n"
                     "\t\t\t<cite>MemorySurfer is free software; you can redistribute it and/or\n"
                     "modify it under the terms of the GNU General Public License\n"
@@ -3136,7 +3165,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
                     "but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
                     "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the\n"
                     "<a href=\"https://www.gnu.org/licenses/\">GNU\302\240General\302\240Public\302\240License</a> for more details.</cite>\n"
-                    "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"OK\"></p>\n"
+                    "\t\t\t<p class=\"msf\"><input type=\"submit\" name=\"event\" value=\"OK\"></p>\n"
                     "\t\t</form>\n"
                     "\t\t<code class=\"msf\">%s, PATH_MAX=%u</code>\n"
                     "\t</body>\n"
@@ -3159,7 +3188,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           }
           if (e == 0) {
             rv = printf("\t\t\t<h1 class=\"msf\">%s</h1>\n"
-                        "\t\t\t<p><button class=\"msf\" type=\"submit\" name=\"learn_action\" value=\"Proceed\"%s>Proceed</button>\n"
+                        "\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"learn_action\" value=\"Proceed\"%s>Proceed</button>\n"
                         "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Show\"%s>Show</button>\n"
                         "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Reveal\"%s>Reveal</button>\n"
                         "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Histogram\">Histogram</button>\n"
@@ -3251,7 +3280,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
             }
           }
           if (e == 0) {
-            rv = printf("\t\t\t<p><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Edit\">Edit</button>\n"
+            rv = printf("\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Edit\">Edit</button>\n"
                         "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Search\">Search</button>\n"
                         "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"learn_action\" value=\"Stop\">Stop</button>\n"
                         "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"learn_action\" value=\"Suspend\"%s>Suspend</button>\n"
@@ -3287,11 +3316,11 @@ static int gen_html(struct WebMemorySurfer *wms) {
               wms->static_header);
           e = rv < 0;
           if (wms->static_msg != NULL && e == 0) {
-            rv = printf("\t\t\t<p>%s</p>\n", wms->static_msg);
+            rv = printf("\t\t\t<p class=\"msf\">%s</p>\n", wms->static_msg);
             e = rv < 0;
           }
           if (e == 0) {
-            rv = printf("\t\t\t<p>\n"
+            rv = printf("\t\t\t<p class=\"msf\">\n"
                         "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"%s\">\n",
                 wms->static_btn_main);
             e = rv < 0;
@@ -3368,11 +3397,11 @@ static int gen_html(struct WebMemorySurfer *wms) {
             e = imf_info_gaps(&wms->ms.imf);
             if (e == 0) {
               rv = printf("\t\t\t<h1 class=\"msf\">Histogram</h1>\n"
-                          "\t\t\t<p>Retention</p>\n"
+                          "\t\t\t<p class=\"msf\">Retention</p>\n"
                           "\t\t\t<svg class=\"msf\" viewbox=\"0 0 101 %d\">\n"
                           "\t\t\t\t<path d=\"%s\" />\n"
                           "\t\t\t</svg>\n"
-                          "\t\t\t<p><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Edit\">Edit</button>\n"
+                          "\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Edit\">Edit</button>\n"
                           "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Learn\">Learn</button>\n"
                           "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Search\">Search</button>\n"
                           "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Refresh\">Refresh</button>\n"
@@ -3395,7 +3424,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         break;
       case B_TABLE:
         rv = printf("\t\t\t<h1 class=\"msf\">Table</h1>\n"
-                    "\t\t\t<p>Strength</p>\n"
+                    "\t\t\t<p class=\"msf\">Strength</p>\n"
                     "\t\t\t<table>\n");
         e = rv < 0;
         for (i = 0; i < 21 && e == 0; i++) {
@@ -3405,7 +3434,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         }
         if (e == 0) {
           rv = printf("\t\t\t</table>\n"
-                      "\t\t\t<p><input type=\"submit\" name=\"event\" value=\"Edit\">\n"
+                      "\t\t\t<p class=\"msf\"><input type=\"submit\" name=\"event\" value=\"Edit\">\n"
                       "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Learn\">\n"
                       "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Search\">\n"
                       "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Refresh\">\n"

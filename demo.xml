@@ -12,7 +12,7 @@ But using a ".imsf" file of untrusted source would give an potential attacker th
 			<question>So MemorySurfer runs on my Raspberry at home or on my VPS - wouldn't this make my computer vulnerable for port scans and such? Sure - but as far as i can tell neither my Raspberry nor my Debian setup have been |___|.</question>
 			<answer>hacked
 &lt;br>
-Which doesn't mean hacking is not possible - there are probably some "corner cases" and especially the XML parsing might be a good way to hack the system (but people who could do this very likely hack another [more valuable] system instead).</answer></card>
+Which doesn't mean hacking is not possible - there are possibly some "failure cases" and especially the XML parsing might be a good way to hack the system (but people who could do this very likely hack another [more valuable] system instead).</answer></card>
 		<card>
 			<type>1</type>
 			<question>Is Exporting the .imsf file to .|___| necessary? In case more than 1000 cards are present one Export / Import cycle could improve performance drastically (if it never has done before, and the Cards are shuffled across the .imsf file).</question>
@@ -21,17 +21,17 @@ Which doesn't mean hacking is not possible - there are probably some "corner cas
 A Export / Import cycle is reordering the internal data structure of the .imsf file according to the order of the Decks / Cards.</answer></card>
 		<card>
 			<type>1</type>
-			<question>Some Cards are not asked (something is weird) - The program has a bug? Maybe - but you can track your Cards and everything in the .XML via a content |___| (like git).</question>
+			<question>Some Cards are not asked / gone (something is weird) - The program has a bug? Maybe - but you can track your Cards and everything in the .XML via a content |___| (like git).</question>
 			<answer>tracker
 &lt;br>
 That way you can be sure all your cards are OK.</answer></card>
 		<card>
 			<type>1</type>
-			<question>How many |___| are possible to create? The current implementation has a theoretical limit of about 130000000 |___| (for now and the foreseeable future). But this would take 2 GB of RAM and certainly would run awful slow. Currently, on a Raspberry Pi (3 Model B) a realistic limit I would assume to be 10000 |___|.</question>
+			<question>How many |___| are possible to create? The current implementation has a theoretical limit of about 130000000 |_"_| (for now and the foreseeable future). But this would use up 2 GB of RAM and certainly would run awful slow. Currently, on a Raspberry Pi (3 Model B) a realistic limit I would assume to be 10000 |_"_|.</question>
 			<answer>Cards
 &lt;br>
 But this would involve regularly Exporting and Importing, and keeping the frequently used Decks "at the bottom" (to keep the "distance" for sorting "shorter").</answer></card>
 		<card>
 			<type>1</type>
-			<question>Why is this demo file already at the end? Aren't there more questions / topics? Probably - please feel free to |___| questions via github or via email to memorysurfer@lorenz-pullwitt.de.</question>
+			<question>Why is this demo file already at the end? Aren't there more questions / topics? Probably - please feel free to |___| questions via GitHub or via email to memorysurfer@lorenz-pullwitt.de.</question>
 			<answer>ask</answer></card></deck></memorysurfer>
