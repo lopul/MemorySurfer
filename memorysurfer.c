@@ -1931,6 +1931,8 @@ static int parse_post(struct WebMemorySurfer *wms) {
     } while (mult->nread != -1 && e == 0);
     free(boundary_str);
     boundary_str = NULL;
+    free(parse);
+    parse = NULL;
     free(mult->post_lp);
     mult->post_lp = NULL;
     mult->post_n = 0;
@@ -3152,7 +3154,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.81</h1>\n" 
+        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.82</h1>\n" 
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2021</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
