@@ -487,73 +487,33 @@ int imf_put (struct IndexedMemoryFile *imf, int32_t index, void *data, int32_t d
   return e;
 }
 
-int imf_sync(struct IndexedMemoryFile *imf)
-{
+int imf_sync(struct IndexedMemoryFile *imf) {
   int e;
   int i;
   int32_t del_index;
   int64_t position;
   int32_t data_size;
-  int64_t space;
-  void *data;
-  int32_t chunk_size;
-  int32_t index;
-  int32_t r_index; // right
-  e = 0;
-  for (i = 1; i < (imf->chunk_count - 1) && e == 0; i++) {
-    index = imf->chunk_order[i];
-    if (index != 1) {
-      r_index = imf->chunk_order[i+1];
-      assert(r_index < imf->chunk_count);
-      chunk_size = imf->chunks[index].chunk_size;
-      space = imf->chunks[r_index].position - imf->chunks[index].position - chunk_size;
-      assert(space >= 0);
-      if (space > 0) {
-        if (space < chunk_size) {
-          data_size = imf_get_size(imf, index);
-          data = malloc(data_size);
-          e = data == NULL;
-          if (e == 0) {
-            e = imf_get(imf, index, data);
-            if (e == 0) {
-              e = imf_put(imf, index, data, data_size);
-              i = INT32_MAX - 1;
-            }
-            free(data);
-          }
-        }
-      }
-    }
-  }
+  data_size = sizeof(struct Chunk) * (imf->chunk_count - 2);
+  e = imf_find_space(imf, &position, data_size + SHA1_HASH_SIZE);
   if (e == 0) {
-    data_size = sizeof (struct Chunk) * (imf->chunk_count - 2);
-    e = imf_find_space (imf, &position, data_size + SHA1_HASH_SIZE);
-    if (e == 0)
-    {
-      imf->chunks[1].position = position;
-      imf->chunks[1].chunk_size = data_size + SHA1_HASH_SIZE;
-      // free the deleted chunks
-      if (imf->delete_end > 0)
-      {
-        for (i = 0; i < imf->delete_end; i++)
-        {
-          del_index = imf->delete_mark[i];
-          imf->chunks[del_index].position = INT64_MAX;
-          imf->chunks[del_index].chunk_size = 0;
-        }
-        imf->delete_end = 0;
+    imf->chunks[1].position = position;
+    imf->chunks[1].chunk_size = data_size + SHA1_HASH_SIZE;
+    if (imf->delete_end > 0) {
+      for (i = 0; i < imf->delete_end; i++) {
+        del_index = imf->delete_mark[i];
+        imf->chunks[del_index].position = INT64_MAX;
+        imf->chunks[del_index].chunk_size = 0;
       }
-      imf_sort_order (imf);
-      e = imf_write (imf, imf->chunks + 2, position, data_size);
-      if (e == 0)
-      {
-        data_size = sizeof (struct Chunk) * 2;
-        assert (imf->chunks[0].position == 0);
-        e = imf_write (imf, imf->chunks, 0, data_size);
-        if (e == 0)
-        {
-          e = fsync (imf->filedesc);
-        }
+      imf->delete_end = 0;
+    }
+    imf_sort_order(imf);
+    e = imf_write(imf, imf->chunks + 2, position, data_size);
+    if (e == 0) {
+      data_size = sizeof(struct Chunk) * 2;
+      assert(imf->chunks[0].position == 0);
+      e = imf_write(imf, imf->chunks, 0, data_size);
+      if (e == 0) {
+        e = fsync(imf->filedesc);
       }
     }
   }
