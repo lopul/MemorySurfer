@@ -967,117 +967,134 @@ static int determine_field(struct Multi *mult, struct Parse *parse) {
     switch (mult->post_fp)
     {
     case 1:
-      if (memcmp(mult->post_lp, "q", 1) == 0)
+      if (memcmp(mult->post_lp, "q", 1) == 0) {
         parse->field = F_Q;
-      else {
+      } else {
         e = memcmp(mult->post_lp, "a", 1) != 0;
-        if (e == 0)
+        if (e == 0) {
           parse->field = F_A;
+        }
       }
       break;
     case 3:
-      if (memcmp(mult->post_lp, "cat", 3) == 0)
+      if (memcmp(mult->post_lp, "cat", 3) == 0) {
         parse->field = F_CAT;
-      else {
+      } else {
         e = memcmp(mult->post_lp, "lvl", 3) != 0;
-        if (e == 0)
+        if (e == 0) {
           parse->field = F_LVL;
+        }
       }
       break;
     case 4:
-      if (memcmp(mult->post_lp, "page", 4) == 0)
+      if (memcmp(mult->post_lp, "page", 4) == 0) {
         parse->field = F_PAGE;
-      else if (memcmp(mult->post_lp, "mode", 4) == 0)
-        parse->field = F_MODE;
-      else {
-        e = memcmp(mult->post_lp, "card", 4) != 0;
-        if (e == 0)
-          parse->field = F_CARD;
+      } else if (memcmp(mult->post_lp, "card", 4) == 0) {
+        parse->field = F_CARD;
+      } else {
+        e = memcmp(mult->post_lp, "mode", 4) != 0;
+        if (e == 0) {
+          parse->field = F_MODE;
+        }
       }
       break;
     case 5:
-      if (memcmp(mult->post_lp, "event", 5) == 0)
+      if (memcmp(mult->post_lp, "event", 5) == 0) {
         parse->field = F_EVENT;
-      else if (memcmp(mult->post_lp, "token", 5) == 0)
+      } else if (memcmp(mult->post_lp, "token", 5) == 0) {
         parse->field = F_TOKEN;
-      else {
+      } else {
         e = memcmp(mult->post_lp, "mtime", 5) != 0;
-        if (e == 0)
-         parse->field = F_MTIME;
+        if (e == 0) {
+          parse->field = F_MTIME;
+        }
+      }
+      break;
+    case 6:
+      e = memcmp(mult->post_lp, "upload", 6) != 0;
+      if (e == 0) {
+        parse->field = F_UPLOAD;
       }
       break;
     case 7:
-      if (memcmp(mult->post_lp, "is-html", 7) == 0)
+      if (memcmp(mult->post_lp, "is-html", 7) == 0) {
         parse->field = F_IS_HTML;
-      else if (memcmp(mult->post_lp, "arrange", 7) == 0)
+      } else if (memcmp(mult->post_lp, "arrange", 7) == 0) {
         parse->field = F_ARRANGE;
-      else if (memcmp(mult->post_lp, "mov-cat", 7) == 0)
+      } else if (memcmp(mult->post_lp, "mov-cat", 7) == 0) {
         parse->field = F_MOVED_CAT;
-      else {
+      } else {
         e = memcmp(mult->post_lp, "timeout", 7) != 0;
-        if (e == 0)
+        if (e == 0) {
           parse->field = F_TIMEOUT;
+        }
       }
       break;
     case 8:
-      if (memcmp(mult->post_lp, "filename", 8) == 0)
+      if (memcmp(mult->post_lp, "filename", 8) == 0) {
         parse->field = F_FILENAME;
-      else if (memcmp(mult->post_lp, "mov-card", 8) == 0)
+      } else if (memcmp(mult->post_lp, "mov-card", 8) == 0) {
         parse->field = F_MOV_CARD;
-      else if (memcmp(mult->post_lp, "todo_alt", 8) == 0)
+      } else if (memcmp(mult->post_lp, "todo_alt", 8) == 0) {
         parse->field = F_TODO_ALT;
-      else {
+      } else {
         e = memcmp(mult->post_lp, "password", 8) != 0;
-        if (e == 0)
+        if (e == 0) {
           parse->field = F_PASSWORD;
+        }
       }
       break;
     case 9:
-      if (memcmp(mult->post_lp, "deck-name", 9) == 0)
+      if (memcmp(mult->post_lp, "deck-name", 9) == 0) {
         parse->field = F_CAT_NAME;
-      else {
+      } else {
         e = memcmp(mult->post_lp, "todo_main", 9) != 0;
-        if (e == 0)
+        if (e == 0) {
           parse->field = F_TODO_MAIN;
+        }
       }
       break;
     case 10:
-      if (memcmp(mult->post_lp, "file-title", 10) == 0)
+      if (memcmp(mult->post_lp, "file-title", 10) == 0) {
         parse->field = F_FILE_TITLE;
-      else if (memcmp(mult->post_lp, "search-txt", 10) == 0)
+      } else if (memcmp(mult->post_lp, "search-txt", 10) == 0) {
         parse->field = F_SEARCH_TXT;
-      else if (memcmp(mult->post_lp, "match-case", 10) == 0)
+      } else if (memcmp(mult->post_lp, "match-case", 10) == 0) {
         parse->field = F_MATCH_CASE;
-      else {
+      } else {
         e = memcmp(mult->post_lp, "reveal-pos", 10) != 0;
-        if (e == 0)
+        if (e == 0) {
           parse->field = F_REVEAL_POS;
+        }
       }
       break;
     case 11:
-      if (memcmp(mult->post_lp, "file_action", 11) == 0)
+      if (memcmp(mult->post_lp, "file_action", 11) == 0) {
         parse->field = F_FILE_ACTION;
-      else {
+      } else {
         e = memcmp(mult->post_lp, "edit_action", 11) != 0;
-        if (e == 0)
+        if (e == 0) {
           parse->field = F_EDIT_ACTION;
+        }
       }
       break;
     case 12:
-      if (memcmp(mult->post_lp, "start_action", 12) == 0)
+      if (memcmp(mult->post_lp, "start_action", 12) == 0) {
         parse->field = F_START_ACTION;
-      else if (memcmp(mult->post_lp, "learn_action", 12) == 0)
+      } else if (memcmp(mult->post_lp, "learn_action", 12) == 0) {
         parse->field = F_LEARN_ACTION;
-      else {
+      } else {
         e = memcmp(mult->post_lp, "new-password", 12) != 0;
-        if (e == 0)
+        if (e == 0) {
           parse->field = F_NEW_PASSWORD;
+        }
       }
       break;
     case 13:
       e = memcmp(mult->post_lp, "search_action", 13) != 0;
-      if (e == 0)
+      if (e == 0) {
         parse->field = F_SEARCH_ACTION;
+      }
       break;
     default:
       e = 0x00014618; // WMFD Web(MemorySurfer) malformed form data
@@ -1752,27 +1769,11 @@ static int parse_post(struct WebMemorySurfer *wms) {
         case T_NAME_QUOT:
           e = mult->post_fp < 0; // "\""
           if (e == 0) {
-            stage = T_VALUE_START;
-            mult->delim_str[0] = "\r\n\r\n";
-            mult->delim_str[1] = NULL;
-            if (strncmp(mult->post_lp, "page", 4) == 0) {
-              parse->field = F_PAGE;
-            } else if (strncmp(mult->post_lp, "file-title", 10) == 0) {
-              parse->field = F_FILE_TITLE;
-            } else if (strncmp(mult->post_lp, "token", 5) == 0) {
-              parse->field = F_TOKEN;
-            } else if (strncmp(mult->post_lp, "mtime", 5) == 0) {
-              parse->field = F_MTIME;
-            } else if (strncmp(mult->post_lp, "file_action", 11) == 0) {
-              parse->field = F_FILE_ACTION;
-            } else {
-              e = strncmp(mult->post_lp, "upload", 6) != 0;
-              if (e == 0) {
-                stage = T_VALUE_XML;
-                mult->delim_str[0] = "\r\n\r\n";
-                mult->delim_str[1] = NULL;
-                parse->field = F_UPLOAD;
-              }
+            e = determine_field(mult, parse);
+            if (e == 0) {
+              stage = parse->field != F_UPLOAD ? T_VALUE_START : T_VALUE_XML;
+              mult->delim_str[0] = "\r\n\r\n";
+              mult->delim_str[1] = NULL;
             }
           }
           break;
