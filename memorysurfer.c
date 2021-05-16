@@ -36,7 +36,7 @@
 #include <fcntl.h> // O_TRUNC / O_EXCL
 #include <errno.h>
 
-enum Field { F_UNKNOWN, F_FILENAME, F_FILE_TITLE, F_START_ACTION, F_FILE_ACTION, F_UPLOAD, F_ARRANGE, F_CAT_NAME, F_MOVED_CAT, F_EDIT_ACTION, F_LEARN_ACTION, F_SEARCH_TXT, F_MATCH_CASE, F_IS_HTML, F_SEARCH_ACTION, F_CAT, F_CARD, F_MOV_CARD, F_LVL, F_Q, F_A, F_REVEAL_POS, F_TODO_MAIN, F_TODO_ALT, F_MTIME, F_PASSWORD, F_NEW_PASSWORD, F_TOKEN, F_EVENT, F_PAGE, F_MODE, F_TIMEOUT };
+enum Field { F_UNKNOWN, F_FILE_TITLE, F_START_ACTION, F_FILE_ACTION, F_UPLOAD, F_ARRANGE, F_CAT_NAME, F_MOVED_CAT, F_EDIT_ACTION, F_LEARN_ACTION, F_SEARCH_TXT, F_MATCH_CASE, F_IS_HTML, F_SEARCH_ACTION, F_CAT, F_CARD, F_MOV_CARD, F_LVL, F_Q, F_A, F_REVEAL_POS, F_TODO_MAIN, F_TODO_ALT, F_MTIME, F_PASSWORD, F_NEW_PASSWORD, F_TOKEN, F_EVENT, F_PAGE, F_MODE, F_TIMEOUT };
 enum Action { A_END, A_NONE, A_FILE, A_WARN_UPLOAD, A_CREATE, A_NEW, A_OPEN_DLG, A_FILELIST, A_OPEN, A_CHANGE_PASSWD, A_WRITE_PASSWD, A_READ_PASSWD, A_CHECK_PASSWORD, A_AUTH_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_CHECK_RESUME, A_SLASH, A_VOID, A_FILE_EXTENSION, A_GATHER, A_UPLOAD, A_UPLOAD_REPORT, A_EXPORT, A_ASK_REMOVE, A_REMOVE, A_ASK_ERASE, A_ERASE, A_CLOSE, A_START_DECKS, A_DECKS_CREATE, A_SELECT_DEST_DECK, A_SELECT_SEND_CAT, A_SELECT_ARRANGE, A_CAT_NAME, A_CREATE_CAT, A_RENAME_CAT, A_ASK_DELETE_CAT, A_DELETE_CAT, A_TOGGLE, A_MOVE_CAT, A_SELECT_EDIT_CAT, A_EDIT, A_UPDATE_QA, A_UPDATE_HTML, A_SYNC, A_INSERT, A_APPEND, A_ASK_DELETE_CARD, A_DELETE_CARD, A_PREVIOUS, A_NEXT, A_SCHEDULE, A_SET, A_CARD_ARRANGE, A_MOVE_CARD, A_SEND_CARD, A_SELECT_LEARN_CAT, A_SELECT_SEARCH_CAT, A_PREFERENCES, A_ABOUT, A_APPLY, A_SEARCH, A_PREVIEW, A_DETERMINE_CARD, A_SHOW, A_REVEAL, A_PROCEED, A_SUSPEND, A_RESUME, A_CHECK_FILE, A_LOGIN, A_HISTOGRAM, A_TABLE, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CARD, A_TEST_CAT_SELECTED, A_TEST_CAT_VALID, A_TEST_CAT, A_TEST_ARRANGE, A_TEST_NAME };
 enum Page { P_START, P_FILE, P_PASSWORD, P_NEW, P_OPEN, P_UPLOAD, P_UPLOAD_REPORT, P_EXPORT, P_CAT_NAME, P_SELECT_ARRANGE, P_SELECT_DEST_DECK, P_SELECT_DECK, P_EDIT, P_PREVIEW, P_SEARCH, P_PREFERENCES, P_ABOUT, P_LEARN, P_MSG, P_HISTOGRAM, P_TABLE };
 enum Block { B_END, B_START_HTML, B_FORM_URLENCODED, B_FORM_MULTIPART, B_OPEN_DIV, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_HIDDEN_MOV_CARD, B_CLOSE_DIV, B_START, B_FILE, B_PASSWORD, B_NEW, B_OPEN, B_UPLOAD, B_UPLOAD_REPORT, B_EXPORT, B_CAT_NAME, B_SELECT_ARRANGE, B_SELECT_DEST_DECK, B_SELECT_DECK, B_EDIT, B_PREVIEW, B_SEARCH, B_PREFERENCES, B_ABOUT, B_LEARN, B_MSG, B_HISTOGRAM, B_TABLE };
@@ -569,8 +569,7 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
     if (e == 0) {
       if (do_flag) {
         do_flag = 0;
-        switch (tag)
-        {
+        switch (tag) {
         case TAG_ROOT:
         case TAG_MEMORYSURFER:
           break;
@@ -705,8 +704,7 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
             str++;
             len--;
           }
-          switch (len)
-          {
+          switch (len) {
           case 12:
             e = memcmp(str, "memorysurfer", 12);
             if (e == 0) {
@@ -933,8 +931,7 @@ static int ms_open(struct MemorySurfer *ms) {
   return e;
 }
 
-static int scan_hex(uint8_t *data, char *str, size_t len)
-{
+static int scan_hex(uint8_t *data, char *str, size_t len) {
   int e;
   int i;
   char ch;
@@ -964,8 +961,7 @@ static int determine_field(struct Multi *mult, struct Parse *parse) {
   int e;
   e = mult->post_fp <= 0;
   if (e == 0) {
-    switch (mult->post_fp)
-    {
+    switch (mult->post_fp) {
     case 1:
       if (memcmp(mult->post_lp, "q", 1) == 0) {
         parse->field = F_Q;
@@ -1031,9 +1027,7 @@ static int determine_field(struct Multi *mult, struct Parse *parse) {
       }
       break;
     case 8:
-      if (memcmp(mult->post_lp, "filename", 8) == 0) {
-        parse->field = F_FILENAME;
-      } else if (memcmp(mult->post_lp, "mov-card", 8) == 0) {
+      if (memcmp(mult->post_lp, "mov-card", 8) == 0) {
         parse->field = F_MOV_CARD;
       } else if (memcmp(mult->post_lp, "todo_alt", 8) == 0) {
         parse->field = F_TODO_ALT;
@@ -1104,11 +1098,529 @@ static int determine_field(struct Multi *mult, struct Parse *parse) {
   return e;
 }
 
+static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct Parse *parse) {
+  int e;
+  int a_n; // assignments
+  int consumed_n;
+  e = 0;
+  switch (parse->field) {
+  case F_FILE_TITLE:
+    assert(wms->file_title_str == NULL);
+    wms->file_title_str = malloc(mult->post_wp);
+    e = wms->file_title_str == NULL;
+    if (e == 0) {
+      assert(mult->post_lp[mult->post_fp] == '\0');
+      memcpy(wms->file_title_str, mult->post_lp, mult->post_wp);
+      e = percent2c(wms->file_title_str, mult->post_fp);
+    }
+    break;
+  case F_START_ACTION:
+    if (strncmp(mult->post_lp, "Edit", 4) == 0) {
+      wms->seq = S_SELECT_EDIT_CAT;
+    } else if (strncmp(mult->post_lp, "Learn", 5) == 0) {
+      wms->seq = S_SELECT_LEARN_CAT;
+    } else if (strncmp(mult->post_lp, "Search", 6) == 0) {
+      wms->seq = S_SELECT_SEARCH_CAT;
+    }
+    break;
+  case F_FILE_ACTION:
+    if (strncmp(mult->post_lp, "New", 3) == 0) {
+      wms->seq = S_NEW;
+    } else if (strncmp(mult->post_lp, "Upload", 6) == 0) {
+      wms->seq = S_UPLOAD_REPORT;
+    } else if (strncmp(mult->post_lp, "Export", 6) == 0) {
+      wms->seq = S_EXPORT;
+    } else if (strncmp(mult->post_lp, "Close", 5) == 0) {
+      wms->seq = S_CLOSE;
+    } else if (strncmp(mult->post_lp, "Cancel", 6) == 0) {
+      if (wms->file_title_str != NULL) {
+        wms->seq = S_START;
+      } else {
+        wms->seq = S_NONE;
+      }
+    } else if (strncmp(mult->post_lp, "Enter", 5) == 0) {
+      wms->seq = S_ENTER;
+    } else if (strncmp(mult->post_lp, "Login", 5) == 0) {
+      wms->seq = S_LOGIN;
+    } else if (strncmp(mult->post_lp, "Create", 6) == 0) {
+      wms->seq = S_CREATE;
+    } else if (strncmp(mult->post_lp, "Stop", 4) == 0) {
+      wms->seq = S_FILE;
+      if ((wms->from_page == P_PASSWORD && wms->saved_mode == M_DEFAULT) || wms->from_page == P_NEW) {
+        wms->seq = S_CLOSE;
+      }
+    } else if (strncmp(mult->post_lp, "Password", 8) == 0) {
+      wms->seq = S_GO_CHANGE;
+    } else {
+      e = strncmp(mult->post_lp, "Change", 6) != 0;
+      if (e == 0) {
+        wms->seq = S_CHANGE;
+      }
+    }
+    break;
+  case F_ARRANGE:
+    assert(wms->ms.arrange == -1);
+    a_n = sscanf(mult->post_lp, "%d", &wms->ms.arrange);
+    assert(wms->ms.arrange >= 0 && wms->ms.arrange <= 2);
+    e = a_n != 1;
+    break;
+  case F_CAT_NAME:
+    e = wms->ms.cat_name != NULL;
+    if (e == 0) {
+      wms->ms.cat_name = malloc(mult->post_wp);
+      e = wms->ms.cat_name == NULL;
+      if (e == 0) {
+        assert(mult->post_lp[mult->post_fp] == '\0');
+        memcpy(wms->ms.cat_name, mult->post_lp, mult->post_wp);
+        e = percent2c(wms->ms.cat_name, mult->post_fp);
+      }
+    }
+    if (e != 0) {
+      e = 0x00729d2e; // WPPCN Web(MemorySurfer) parse_post (of) cat-name (failed)
+    }
+    break;
+  case F_MOVED_CAT:
+    assert(wms->ms.mov_cat_i == -1);
+    a_n = sscanf(mult->post_lp, "%d", &wms->ms.mov_cat_i);
+    e = a_n != 1;
+    break;
+  case F_EDIT_ACTION:
+    if (strncmp(mult->post_lp, "Append", 6) == 0) {
+      wms->seq = S_APPEND;
+    } else if (strncmp(mult->post_lp, "Delete", 6) == 0) {
+      wms->seq = S_ASK_DELETE_CARD;
+    } else if (strncmp(mult->post_lp, "Previous", 8) == 0) {
+      wms->seq = S_PREVIOUS;
+    } else if (strncmp(mult->post_lp, "Next", 4) == 0) {
+      wms->seq = S_NEXT;
+    } else if (strncmp(mult->post_lp, "Schedule", 8) == 0) {
+      wms->seq = S_SCHEDULE;
+    } else if (strncmp(mult->post_lp, "Stop", 4) == 0) {
+      wms->seq = S_SELECT_EDIT_CAT;
+    } else {
+      e = strncmp(mult->post_lp, "Search", 6) != 0;
+      if (e == 0) {
+        wms->seq = S_SEARCH_SYNCED;
+      }
+    }
+    break;
+  case F_LEARN_ACTION:
+    if (strncmp(mult->post_lp, "Suspend", 7) == 0) {
+      wms->seq = S_SUSPEND;
+    } else if (strncmp(mult->post_lp, "Stop", 4) == 0) {
+      wms->seq = S_SELECT_LEARN_CAT;
+    } else {
+      e = strncmp(mult->post_lp, "Proceed", 7) != 0;
+      if (e == 0) {
+        wms->seq = S_PROCEED;
+      }
+    }
+    break;
+  case F_SEARCH_TXT:
+    e = wms->ms.search_txt != NULL;
+    if (e == 0) {
+      wms->ms.search_txt = malloc(mult->post_wp);
+      e = wms->ms.search_txt == NULL;
+      if (e == 0) {
+        assert(mult->post_lp[mult->post_fp] == '\0');
+        memcpy(wms->ms.search_txt, mult->post_lp, mult->post_wp);
+        e = percent2c(wms->ms.search_txt, mult->post_fp);
+      }
+    }
+    break;
+  case F_MATCH_CASE:
+    e = wms->ms.match_case != -1 || mult->post_fp != 2;
+    if (e == 0) {
+      e = memcmp(mult->post_lp, "on", 2) != 0;
+      if (e == 0) {
+        wms->ms.match_case = 1;
+      }
+    }
+    break;
+  case F_IS_HTML:
+    e = wms->ms.is_html != -1 || mult->post_fp != 2;
+    if (e == 0) {
+      e = memcmp(mult->post_lp, "on", 2) != 0;
+      if (e == 0) {
+        wms->ms.is_html = 1;
+      }
+    }
+    break;
+  case F_SEARCH_ACTION:
+    if (strncmp(mult->post_lp, "Reverse", 7) == 0) {
+      wms->seq = S_SEARCH;
+      wms->ms.srch_dir = -1;
+    } else if (strncmp(mult->post_lp, "Forward", 7) == 0) {
+      wms->seq = S_SEARCH;
+      wms->ms.srch_dir = 1;
+    } else {
+      e = strncmp(mult->post_lp, "Stop", 4) != 0;
+      if (e == 0) {
+        wms->seq = S_SELECT_SEARCH_CAT;
+      }
+    }
+    break;
+  case F_CAT:
+    e = wms->ms.cat_i != -1;
+    if (e == 0) {
+      a_n = sscanf(mult->post_lp, "%d%n", &wms->ms.cat_i, &consumed_n);
+      e = a_n != 1 || consumed_n != mult->post_fp;
+    }
+    break;
+  case F_CARD:
+    assert(wms->ms.card_i == -1);
+    a_n = sscanf(mult->post_lp, "%d", &wms->ms.card_i);
+    e = a_n != 1;
+    break;
+  case F_MOV_CARD:
+    assert(wms->ms.mov_card_i == -1);
+    a_n = sscanf(mult->post_lp, "%d", &wms->ms.mov_card_i);
+    e = a_n != 1;
+    break;
+  case F_LVL:
+    a_n = sscanf(mult->post_lp, "%d", &wms->ms.lvl);
+    e = a_n != 1;
+    if (e == 0) {
+      e = wms->ms.lvl < 0 || wms->ms.lvl >= 21;
+      if (e != 0) {
+        e =  0x21e1b31e; // WMSPPLA (Web)MemorySurfer parse_post lvl assert (failed)
+      }
+    }
+    break;
+  case F_Q:
+    assert(mult->post_lp[mult->post_fp] == '\0');
+    e = percent2c(mult->post_lp, mult->post_fp);
+    if (e == 0) {
+      e = sa_set(&wms->qa_sa, 0, mult->post_lp);
+    }
+    break;
+  case F_A:
+    assert(mult->post_lp[mult->post_fp] == '\0');
+    e = percent2c(mult->post_lp, mult->post_fp);
+    if (e == 0) {
+      e = sa_set(&wms->qa_sa, 1, mult->post_lp);
+    }
+    break;
+  case F_REVEAL_POS:
+    e = wms->saved_reveal_pos != -1;
+    if (e == 0) {
+      a_n = sscanf(mult->post_lp, "%d", &wms->saved_reveal_pos);
+      e = a_n != 1 || wms->saved_reveal_pos < 0;
+    }
+    if (e == 1) {
+      e = 0x255dac21; // WMPPRPA WebMemorySurfer parse_post reveal-pos assert (failed)
+      wms->saved_reveal_pos = -1;
+    }
+    break;
+  case F_TODO_MAIN:
+    assert(wms->todo_main == -1);
+    a_n = sscanf(mult->post_lp, "%d", &wms->todo_main);
+    e = a_n != 1;
+    assert(wms->todo_main >= S_FILE && wms->todo_main <= S_END);
+    break;
+  case F_TODO_ALT:
+    assert(wms->todo_alt == -1);
+    a_n = sscanf(mult->post_lp, "%d", &wms->todo_alt);
+    e = a_n != 1;
+    assert(wms->todo_alt >= S_FILE && wms->todo_alt <= S_END);
+    break;
+  case F_MTIME:
+    e = mult->post_fp != 16;
+    if (e == 0) {
+      assert(wms->mtime[0] == -1 && wms->mtime[1] == -1);
+      a_n = sscanf(mult->post_lp, "%8x%8x", &wms->mtime[1], &wms->mtime[0]);
+      e = a_n != 2;
+      if (e == 0) {
+        assert(wms->mtime[0] >= 0 && wms->mtime[1] >= 0);
+      }
+    }
+    break;
+  case F_PASSWORD:
+    assert(wms->ms.password == NULL);
+    wms->ms.password = malloc(mult->post_wp);
+    e = wms->ms.password == NULL;
+    if (e == 0) {
+      assert(mult->post_lp[mult->post_fp] == '\0');
+      memcpy(wms->ms.password, mult->post_lp, mult->post_wp);
+      e = percent2c(wms->ms.password, mult->post_fp);
+    }
+    break;
+  case F_NEW_PASSWORD:
+    assert(wms->ms.new_password == NULL);
+    wms->ms.new_password = malloc(mult->post_wp);
+    e = wms->ms.new_password == NULL;
+    if (e == 0) {
+      assert(mult->post_lp[mult->post_fp] == '\0');
+      memcpy(wms->ms.new_password, mult->post_lp, mult->post_wp);
+      e = percent2c(wms->ms.new_password, mult->post_fp);
+    }
+    break;
+  case F_TOKEN:
+    e = mult->post_fp != 40;
+    if (e == 0) {
+      e = scan_hex(wms->tok_digest, mult->post_lp, SHA1_HASH_SIZE);
+    }
+    break;
+  case F_EVENT:
+    switch (mult->post_fp) {
+    case 4:
+      if (strncmp(mult->post_lp, "Show", 4) == 0)
+        wms->seq = S_SHOW;
+      else if (strncmp(mult->post_lp, "Stop", 4) == 0) {
+        if (wms->from_page == P_SELECT_ARRANGE) {
+          if (wms->saved_mode == M_CARD)
+            wms->seq = S_EDIT;
+          else {
+            wms->ms.cat_i = wms->ms.mov_cat_i;
+            wms->ms.mov_cat_i = -1;
+            wms->seq = S_START_DECKS;
+          }
+        } else if (wms->from_page == P_SELECT_DEST_DECK) {
+          if (wms->saved_mode == M_SEND) {
+            wms->ms.cat_i = wms->ms.mov_cat_i;
+            wms->ms.card_i = wms->ms.mov_card_i;
+            wms->seq = S_EDIT;
+          } else {
+            e = wms->saved_mode != M_MOVE;
+            if (e == 0) {
+              wms->ms.cat_i = wms->ms.mov_cat_i;
+              wms->ms.mov_cat_i = -1;
+              wms->seq = S_START_DECKS;
+            }
+          }
+        } else if (wms->from_page == P_CAT_NAME)
+          wms->seq = S_START_DECKS;
+        else {
+          e = wms->from_page != P_PREVIEW;
+          if (e == 0)
+            wms->seq = S_SELECT_EDIT_CAT;
+        }
+      }
+      else if (strncmp(mult->post_lp, "Edit", 4) == 0)
+        wms->seq = S_EDIT;
+      else if (strncmp(mult->post_lp, "Open", 4) == 0) {
+        if (wms->from_page == P_OPEN)
+          wms->seq = S_GO_LOGIN;
+        else {
+          e = wms->from_page != P_FILE;
+          if (e == 0)
+            wms->seq = S_FILELIST;
+        }
+      }
+      else if (strncmp(mult->post_lp, "Move", 4) == 0) {
+        if (wms->from_page == P_SELECT_DECK)
+          wms->seq = S_SELECT_DEST_CAT;
+        else if (wms->from_page == P_SELECT_ARRANGE && wms->saved_mode == M_DECK)
+          wms->seq = S_MOVE_CAT;
+        else if (wms->from_page == P_EDIT)
+          wms->seq = S_CARD_ARRANGE;
+        else {
+          e = wms->from_page != P_SELECT_ARRANGE || wms->saved_mode != M_CARD;
+          if (e == 0)
+            wms->seq = S_MOVE_CARD;
+        }
+      }
+      else if (strncmp(mult->post_lp, "Send", 4) == 0) {
+        if (wms->from_page == P_EDIT)
+          wms->seq = S_SELECT_SEND_CAT;
+        else {
+          e = wms->from_page != P_SELECT_DEST_DECK;
+          if (e == 0)
+            wms->seq = S_SEND_CARD;
+        }
+      }
+      else if (strncmp(mult->post_lp, "Done", 4) == 0)
+        wms->seq = S_START;
+      else {
+        e = strncmp(mult->post_lp, "File", 4) != 0;
+        if (e == 0)
+          wms->seq = S_FILE;
+      }
+      break;
+    case 5:
+      if (strncmp(mult->post_lp, "Learn", 5) == 0)
+        if (wms->from_page == P_EDIT)
+          wms->seq = S_QUESTION_SYNCED;
+        else {
+          e = wms->from_page != P_SELECT_DECK && wms->from_page != P_SEARCH && wms->from_page != P_HISTOGRAM && wms->from_page != P_TABLE && wms->from_page != P_PREVIEW;
+          if (e == 0)
+            wms->seq = S_QUESTION;
+        }
+      else if (strncmp(mult->post_lp, "Decks", 5) == 0)
+        wms->seq = S_START_DECKS;
+      else if (strncmp(mult->post_lp, "Table", 5) == 0)
+        wms->seq = S_TABLE;
+      else if (strncmp(mult->post_lp, "Apply", 5) == 0)
+        wms->seq = S_APPLY;
+      else if (strncmp(mult->post_lp, "Erase", 5) == 0)
+        if (wms->from_page == P_FILE)
+          wms->seq = S_ASK_ERASE;
+        else {
+          e = wms->from_page != P_MSG;
+          if (e == 0) {
+            e = wms->todo_main == -1;
+            if (e == 0)
+              wms->seq = wms->todo_main;
+          }
+        }
+      else if (strncmp(mult->post_lp, "About", 5) == 0)
+        wms->seq = S_ABOUT;
+      else {
+        e = strncmp(mult->post_lp, "Start", 5) != 0;
+        if (e == 0)
+          wms->seq = S_NONE;
+      }
+      break;
+    case 6:
+      if (strncmp(mult->post_lp, "Reveal", 6) == 0)
+        wms->seq = S_REVEAL;
+      else if (strncmp(mult->post_lp, "Create", 6) == 0) {
+        if (wms->from_page == P_SELECT_DECK)
+          wms->seq = S_DECKS_CREATE;
+        else {
+          e = wms->from_page != P_CAT_NAME;
+          if (e == 0)
+            wms->seq = S_CREATE_CAT;
+        }
+      } else if (strncmp(mult->post_lp, "Cancel", 6) == 0) {
+        if (wms->from_page == P_SELECT_DECK || wms->from_page == P_PREFERENCES)
+          wms->seq = S_START;
+        else if (wms->from_page == P_MSG) {
+          e = wms->todo_alt == -1;
+          if (e == 0)
+            wms->seq = wms->todo_alt;
+        }
+        else {
+          e = wms->from_page != P_OPEN;
+          if (e == 0)
+            wms->seq = S_CLOSE;
+        }
+      } else if (strncmp(mult->post_lp, "Select", 6) == 0) {
+        if (wms->from_page == P_SELECT_DEST_DECK)
+          wms->seq = S_SELECT_MOVE_ARRANGE;
+        else {
+          e = wms->from_page != P_SELECT_ARRANGE || wms->saved_mode != M_DECK;
+          if (e == 0)
+            wms->seq = S_CAT_NAME;
+        }
+      } else if (strncmp(mult->post_lp, "Delete", 6) == 0) {
+        if (wms->from_page == P_MSG) {
+          e = wms->todo_main == -1;
+          if (e == 0)
+            wms->seq = wms->todo_main;
+        }
+        else {
+          e = wms->from_page != P_SELECT_DECK;
+          if (e == 0)
+            wms->seq = S_ASK_DELETE_CAT;
+        }
+      } else if (strncmp(mult->post_lp, "Rename", 6) == 0) {
+        if (wms->from_page == P_SELECT_DECK)
+          wms->seq = S_RENAME_ENTER;
+        else {
+          e = wms->from_page != P_CAT_NAME;
+          if (e == 0)
+            wms->seq = S_RENAME_CAT;
+        }
+      } else if (strncmp(mult->post_lp, "Insert", 6) == 0) {
+        e = wms->from_page != P_EDIT;
+        if (e == 0)
+          wms->seq = S_INSERT;
+      } else if (strncmp(mult->post_lp, "Toggle", 6) == 0) {
+          e = wms->from_page != P_SELECT_DECK;
+          if (e == 0)
+            wms->seq = S_TOGGLE;
+      } else if (strncmp(mult->post_lp, "Remove", 6) == 0)
+        if (wms->from_page == P_FILE)
+          wms->seq = S_ASK_REMOVE;
+        else {
+          e = wms->from_page != P_MSG;
+          if (e == 0) {
+            e = wms->todo_main == -1;
+            if (e == 0)
+              wms->seq = wms->todo_main;
+          }
+        }
+      else if (strncmp(mult->post_lp, "Resume", 6) == 0)
+        wms->seq = S_RESUME;
+      else if (memcmp(mult->post_lp, "Search", 6) == 0)
+        wms->seq = S_SEARCH;
+      else {
+        e = strncmp(mult->post_lp, "Import", 6) != 0;
+        if (e == 0)
+          wms->seq = S_WARN_UPLOAD;
+      }
+      break;
+    default:
+      if (strncmp(mult->post_lp, "Set", 3) == 0) {
+        e = wms->from_page != P_EDIT;
+        if (e == 0)
+          wms->seq = S_SET;
+      }
+      else if (strncmp(mult->post_lp, "Preferences", 11) == 0)
+        wms->seq = S_PREFERENCES;
+      else if (strncmp(mult->post_lp, "Histogram", 9) == 0)
+        wms->seq = S_HISTOGRAM;
+      else if (strncmp(mult->post_lp, "Refresh", 7) == 0)
+        wms->seq = S_HISTOGRAM;
+      else if (strncmp(mult->post_lp, "Preview", 7) == 0)
+        wms->seq = S_PREVIEW_SYNC;
+      else {
+        e = strncmp(mult->post_lp, "OK", 2) != 0;
+        if (e == 0) {
+          if (wms->from_page == P_FILE || wms->from_page == P_ABOUT) {
+            if (wms->file_title_str != NULL)
+              wms->seq = S_START;
+            else
+              wms->seq = S_NONE;
+          }
+          else if (wms->from_page == P_UPLOAD_REPORT)
+            wms->seq = S_START;
+          else {
+            e = wms->from_page != P_MSG;
+            if (e == 0) {
+              e = wms->todo_main == -1;
+              if (e == 0)
+                wms->seq = wms->todo_main;
+            }
+          }
+        }
+      }
+      break;
+    }
+    break;
+  case F_PAGE:
+    assert(wms->from_page == -1);
+    a_n = sscanf(mult->post_lp, "%d", &wms->from_page);
+    e = a_n != 1 || wms->from_page < P_START || wms->from_page > P_TABLE;
+    break;
+  case F_MODE:
+    assert(wms->saved_mode == M_NONE);
+    a_n = sscanf(mult->post_lp, "%d", &wms->saved_mode);
+    e = a_n != 1;
+    assert(wms->saved_mode >= M_DEFAULT && wms->saved_mode < M_END);
+    break;
+  case F_TIMEOUT:
+    e = wms->from_page != P_PREFERENCES;
+    if (e == 0) {
+      assert(wms->timeout == -1);
+      a_n = sscanf(mult->post_lp, "%d", &wms->timeout);
+      e = a_n != 1;
+      if (e == 0)
+        assert(wms->timeout >= 0 && wms->timeout < 5);
+    }
+    break;
+  default:
+    e = 0x13080308; // WMSUFV unknown Field value
+    break;
+  }
+  return e;
+}
+
 static int parse_post(struct WebMemorySurfer *wms) {
   int e;
   int rv; // return value
   int a_n; // assignments
-  int consumed_n;
   char *str;
   enum Stage stage;
   int len;
@@ -1140,8 +1652,7 @@ static int parse_post(struct WebMemorySurfer *wms) {
         e = append_part(wms, mult);
       }
       if (e == 0) {
-        switch (stage)
-        {
+        switch (stage) {
         case T_NULL:
           if (mult->nread > 0) {
             if (mult->post_fp > 0 && mult->post_lp[mult->post_fp] == '=') {
@@ -1193,535 +1704,21 @@ static int parse_post(struct WebMemorySurfer *wms) {
             if (memcmp (str, "&", 1) == 0) {
               e = strncmp(str, "&", 1) != 0;
               if (e == 0) {
-                switch (parse->field)
-                {
-                case F_FILENAME:
-                  assert (wms->ms.imf_filename == NULL);
-                  wms->ms.imf_filename = malloc(mult->nread);
-                  e = wms->ms.imf_filename == NULL;
-                  if (e == 0) {
-                    assert(mult->post_lp[mult->nread - 1] == '&');
-                    memcpy(wms->ms.imf_filename, mult->post_lp, mult->nread);
-                    e = percent2c(wms->ms.imf_filename, mult->nread - 1);
-                  }
-                  break;
-                case F_FILE_TITLE:
-                  assert(wms->file_title_str == NULL);
-                  wms->file_title_str = malloc(mult->nread);
-                  e = wms->file_title_str == NULL;
-                  if (e == 0) {
-                    assert(mult->post_lp[mult->nread - 1] == '&');
-                    memcpy(wms->file_title_str, mult->post_lp, mult->nread);
-                    e = percent2c(wms->file_title_str, mult->nread - 1);
-                  }
-                  break;
-                case F_START_ACTION:
-                  if (strncmp(mult->post_lp, "Edit", 4) == 0)
-                    wms->seq = S_SELECT_EDIT_CAT;
-                  else if (strncmp(mult->post_lp, "Learn", 5) == 0)
-                    wms->seq = S_SELECT_LEARN_CAT;
-                  else if (strncmp(mult->post_lp, "Search", 6) == 0)
-                    wms->seq = S_SELECT_SEARCH_CAT;
-                  break;
-                case F_FILE_ACTION:
-                  if (strncmp(mult->post_lp, "New", 3) == 0)
-                    wms->seq = S_NEW;
-                  else if (strncmp(mult->post_lp, "Export", 6) == 0)
-                    wms->seq = S_EXPORT;
-                  else if (strncmp(mult->post_lp, "Close", 5) == 0)
-                    wms->seq = S_CLOSE;
-                  else if (strncmp(mult->post_lp, "Cancel", 6) == 0)
-                    if (wms->file_title_str != NULL)
-                      wms->seq = S_START;
-                    else
-                      wms->seq = S_NONE;
-                  else if (strncmp(mult->post_lp, "Enter", 5) == 0)
-                    wms->seq = S_ENTER;
-                  else if (strncmp(mult->post_lp, "Login", 5) == 0)
-                    wms->seq = S_LOGIN;
-                  else if (strncmp(mult->post_lp, "Create", 6) == 0)
-                    wms->seq = S_CREATE;
-                  else if (strncmp(mult->post_lp, "Stop", 4) == 0) {
-                    wms->seq = S_FILE;
-                    if ((wms->from_page == P_PASSWORD && wms->saved_mode == M_DEFAULT) || wms->from_page == P_NEW)
-                      wms->seq = S_CLOSE;
-                  }
-                  else if (strncmp(mult->post_lp, "Password", 8) == 0)
-                    wms->seq = S_GO_CHANGE;
-                  else {
-                    e = strncmp(mult->post_lp, "Change", 6) != 0;
-                    if (e == 0)
-                      wms->seq = S_CHANGE;
-                  }
-                  break;
-                case F_ARRANGE:
-                  assert (wms->ms.arrange == -1);
-                  a_n = sscanf(mult->post_lp, "%d", &wms->ms.arrange);
-                  assert(wms->ms.arrange >= 0 && wms->ms.arrange <= 2);
-                  e = a_n != 1;
-                  break;
-                case F_CAT_NAME:
-                  e = wms->ms.cat_name != NULL;
-                  if (e == 0) {
-                    wms->ms.cat_name = malloc(mult->nread);
-                    e = wms->ms.cat_name == NULL;
-                    if (e == 0) {
-                      assert(mult->post_lp[mult->nread - 1] == '&');
-                      memcpy(wms->ms.cat_name, mult->post_lp, mult->nread);
-                      e = percent2c(wms->ms.cat_name, mult->nread - 1);
-                    }
-                  }
-                  if (e != 0)
-                    e = 0x00729d2e; // WPPCN Web(MemorySurfer) parse_post (of) cat-name (failed)
-                  break;
-                case F_MOVED_CAT:
-                  assert(wms->ms.mov_cat_i == -1);
-                  a_n = sscanf(mult->post_lp, "%d", &wms->ms.mov_cat_i);
-                  e = a_n != 1;
-                  break;
-                case F_EDIT_ACTION:
-                  if (strncmp(mult->post_lp, "Append", 6) == 0)
-                    wms->seq = S_APPEND;
-                  else if (strncmp(mult->post_lp, "Delete", 6) == 0)
-                    wms->seq = S_ASK_DELETE_CARD;
-                  else if (strncmp(mult->post_lp, "Previous", 8) == 0)
-                    wms->seq = S_PREVIOUS;
-                  else if (strncmp(mult->post_lp, "Next", 4) == 0)
-                    wms->seq = S_NEXT;
-                  else if (strncmp(mult->post_lp, "Schedule", 8) == 0)
-                    wms->seq = S_SCHEDULE;
-                  else if (strncmp(mult->post_lp, "Stop", 4) == 0)
-                    wms->seq = S_SELECT_EDIT_CAT;
-                  else {
-                    e = strncmp(mult->post_lp, "Search", 6) != 0;
-                    if (e == 0)
-                      wms->seq = S_SEARCH_SYNCED;
-                  }
-                  break;
-                case F_LEARN_ACTION:
-                  if (strncmp(mult->post_lp, "Suspend", 7) == 0)
-                    wms->seq = S_SUSPEND;
-                  else if (strncmp(mult->post_lp, "Stop", 4) == 0)
-                    wms->seq = S_SELECT_LEARN_CAT;
-                  else {
-                    e = strncmp(mult->post_lp, "Proceed", 7) != 0;
-                    if (e == 0)
-                      wms->seq = S_PROCEED;
-                  }
-                  break;
-                case F_SEARCH_TXT:
-                  e = wms->ms.search_txt != NULL;
-                  if (e == 0) {
-                    wms->ms.search_txt = malloc(mult->nread);
-                    e = wms->ms.search_txt == NULL;
-                    if (e == 0) {
-                      assert(mult->post_lp[mult->nread - 1] == '&');
-                      memcpy(wms->ms.search_txt, mult->post_lp, mult->nread);
-                      e = percent2c(wms->ms.search_txt, mult->nread - 1);
-                    }
-                  }
-                  break;
-                case F_MATCH_CASE:
-                  if (mult->post_fp >= 0)
-                    len = mult->post_fp;
-                  else
-                    len = mult->post_wp;
-                  e = wms->ms.match_case != -1;
-                  if (e == 0) {
-                    e = strncmp(mult->post_lp, "on", len) != 0;
-                    if (e == 0)
-                      wms->ms.match_case = 1;
-                  }
-                  break;
-                case F_IS_HTML:
-                  if (mult->post_fp >= 0)
-                    len = mult->post_fp;
-                  else
-                    len = mult->post_wp;
-                  e = wms->ms.is_html != -1;
-                  if (e == 0) {
-                    e = strncmp(mult->post_lp, "on", len) != 0;
-                    if (e == 0)
-                      wms->ms.is_html = 1;
-                  }
-                  break;
-                case F_SEARCH_ACTION:
-                  if (strncmp(mult->post_lp, "Reverse", 7) == 0) {
-                    wms->seq = S_SEARCH;
-                    wms->ms.srch_dir = -1;
-                  } else if (strncmp(mult->post_lp, "Forward", 7) == 0) {
-                    wms->seq = S_SEARCH;
-                    wms->ms.srch_dir = 1;
-                  } else {
-                    e = strncmp(mult->post_lp, "Stop", 4) != 0;
-                    if (e == 0)
-                      wms->seq = S_SELECT_SEARCH_CAT;
-                  }
-                  break;
-                case F_CAT:
-                  if (mult->post_fp >= 0)
-                    len = mult->post_fp;
-                  else
-                    len = mult->post_wp;
-                  e = wms->ms.cat_i != -1;
-                  if (e == 0) {
-                    a_n = sscanf(mult->post_lp, "%d%n", &wms->ms.cat_i, &consumed_n);
-                    e = a_n != 1 || consumed_n != len;
-                  }
-                  break;
-                case F_CARD:
-                  assert(wms->ms.card_i == -1);
-                  a_n = sscanf(mult->post_lp, "%d", &wms->ms.card_i);
-                  e = a_n != 1;
-                  break;
-                case F_MOV_CARD:
-                  assert(wms->ms.mov_card_i == -1);
-                  a_n = sscanf(mult->post_lp, "%d", &wms->ms.mov_card_i);
-                  e = a_n != 1;
-                  break;
-                case F_LVL:
-                  a_n = sscanf(mult->post_lp, "%d", &wms->ms.lvl);
-                  e = a_n != 1;
-                  if (e == 0) {
-                    e = wms->ms.lvl < 0 || wms->ms.lvl >= 21;
-                    if (e != 0)
-                      e =  0x21e1b31e; // WMSPPLA (Web)MemorySurfer parse_post lvl assert (failed)
-                  }
-                  break;
-                case F_Q:
-                  assert(mult->post_lp[mult->nread - 1] == '&');
-                  e = percent2c(mult->post_lp, mult->nread - 1);
-                  if (e == 0)
-                    e = sa_set(&wms->qa_sa, 0, mult->post_lp);
-                  break;
-                case F_A:
-                  if (mult->nread > 0) {
-                    len = mult->nread;
-                    if (mult->post_lp[mult->nread - 1] == '&')
-                      len--;
-                    e = percent2c(mult->post_lp, len);
-                  }
-                  if (e == 0)
-                    e = sa_set(&wms->qa_sa, 1, mult->post_lp);
-                  break;
-                case F_REVEAL_POS:
-                  e = wms->saved_reveal_pos != -1;
-                  if (e == 0) {
-                    a_n = sscanf(mult->post_lp, "%d", &wms->saved_reveal_pos);
-                    e = a_n != 1 || wms->saved_reveal_pos < 0;
-                  }
-                  if (e == 1) {
-                    e = 0x255dac21; // WMPPRPA WebMemorySurfer parse_post reveal-pos assert (failed)
-                    wms->saved_reveal_pos = -1;
-                  }
-                  break;
-                case F_TODO_MAIN:
-                  assert (wms->todo_main == -1);
-                  a_n = sscanf(mult->post_lp, "%d", &wms->todo_main);
-                  e = a_n != 1;
-                  assert (wms->todo_main >= S_FILE && wms->todo_main <= S_END);
-                  break;
-                case F_TODO_ALT:
-                  assert (wms->todo_alt == -1);
-                  a_n = sscanf(mult->post_lp, "%d", &wms->todo_alt);
-                  e = a_n != 1;
-                  assert (wms->todo_alt >= S_FILE && wms->todo_alt <= S_END);
-                  break;
-                case F_MTIME:
-                  assert(wms->mtime[0] == -1 && wms->mtime[1] == -1);
-                  a_n = sscanf(mult->post_lp, "%8x%8x", &wms->mtime[1], &wms->mtime[0]);
-                  e = a_n != 2;
-                  if (e == 0) {
-                    assert(wms->mtime[0] >= 0 && wms->mtime[1] >= 0);
-                  }
-                  break;
-                case F_PASSWORD:
-                  assert (wms->ms.password == NULL);
-                  wms->ms.password = malloc(mult->nread);
-                  e = wms->ms.password == NULL;
-                  if (e == 0)
-                  {
-                    assert(mult->post_lp[mult->nread - 1] == '&');
-                    memcpy(wms->ms.password, mult->post_lp, mult->nread);
-                    e = percent2c(wms->ms.password, mult->nread - 1);
-                  }
-                  break;
-                case F_NEW_PASSWORD:
-                  assert(wms->ms.new_password == NULL);
-                  wms->ms.new_password = malloc(mult->nread);
-                  e = wms->ms.new_password == NULL;
-                  if (e == 0) {
-                    assert(mult->post_lp[mult->nread - 1] == '&');
-                    memcpy(wms->ms.new_password, mult->post_lp, mult->nread);
-                    e = percent2c(wms->ms.new_password, mult->nread - 1);
-                  }
-                  break;
-                case F_TOKEN:
-                  e = mult->nread != 41;
-                  if (e == 0)
-                    e = scan_hex(wms->tok_digest, mult->post_lp, SHA1_HASH_SIZE);
-                  break;
-                case F_EVENT:
-                  if (mult->post_fp >= 0)
-                    len = mult->post_fp;
-                  else
-                    len = mult->post_wp;
-                  switch (len) {
-                  case 4:
-                    if (strncmp(mult->post_lp, "Show", 4) == 0)
-                      wms->seq = S_SHOW;
-                    else if (strncmp(mult->post_lp, "Stop", 4) == 0) {
-                      if (wms->from_page == P_SELECT_ARRANGE) {
-                        if (wms->saved_mode == M_CARD)
-                          wms->seq = S_EDIT;
-                        else {
-                          wms->ms.cat_i = wms->ms.mov_cat_i;
-                          wms->ms.mov_cat_i = -1;
-                          wms->seq = S_START_DECKS;
-                        }
-                      } else if (wms->from_page == P_SELECT_DEST_DECK) {
-                        if (wms->saved_mode == M_SEND) {
-                          wms->ms.cat_i = wms->ms.mov_cat_i;
-                          wms->ms.card_i = wms->ms.mov_card_i;
-                          wms->seq = S_EDIT;
-                        } else {
-                          e = wms->saved_mode != M_MOVE;
-                          if (e == 0) {
-                            wms->ms.cat_i = wms->ms.mov_cat_i;
-                            wms->ms.mov_cat_i = -1;
-                            wms->seq = S_START_DECKS;
-                          }
-                        }
-                      } else if (wms->from_page == P_CAT_NAME)
-                        wms->seq = S_START_DECKS;
-                      else {
-                        e = wms->from_page != P_PREVIEW;
-                        if (e == 0)
-                          wms->seq = S_SELECT_EDIT_CAT;
-                      }
-                    }
-                    else if (strncmp(mult->post_lp, "Edit", 4) == 0)
-                      wms->seq = S_EDIT;
-                    else if (strncmp(mult->post_lp, "Open", 4) == 0) {
-                      if (wms->from_page == P_OPEN)
-                        wms->seq = S_GO_LOGIN;
-                      else {
-                        e = wms->from_page != P_FILE;
-                        if (e == 0)
-                          wms->seq = S_FILELIST;
-                      }
-                    }
-                    else if (strncmp(mult->post_lp, "Move", 4) == 0) {
-                      if (wms->from_page == P_SELECT_DECK)
-                        wms->seq = S_SELECT_DEST_CAT;
-                      else if (wms->from_page == P_SELECT_ARRANGE && wms->saved_mode == M_DECK)
-                        wms->seq = S_MOVE_CAT;
-                      else if (wms->from_page == P_EDIT)
-                        wms->seq = S_CARD_ARRANGE;
-                      else {
-                        e = wms->from_page != P_SELECT_ARRANGE || wms->saved_mode != M_CARD;
-                        if (e == 0)
-                          wms->seq = S_MOVE_CARD;
-                      }
-                    }
-                    else if (strncmp(mult->post_lp, "Send", 4) == 0) {
-                      if (wms->from_page == P_EDIT)
-                        wms->seq = S_SELECT_SEND_CAT;
-                      else {
-                        e = wms->from_page != P_SELECT_DEST_DECK;
-                        if (e == 0)
-                          wms->seq = S_SEND_CARD;
-                      }
-                    }
-                    else if (strncmp(mult->post_lp, "Done", 4) == 0)
-                      wms->seq = S_START;
-                    else {
-                      e = strncmp(mult->post_lp, "File", 4) != 0;
-                      if (e == 0)
-                        wms->seq = S_FILE;
-                    }
-                    break;
-                  case 5:
-                    if (strncmp(mult->post_lp, "Learn", 5) == 0)
-                      if (wms->from_page == P_EDIT)
-                        wms->seq = S_QUESTION_SYNCED;
-                      else {
-                        e = wms->from_page != P_SELECT_DECK && wms->from_page != P_SEARCH && wms->from_page != P_HISTOGRAM && wms->from_page != P_TABLE && wms->from_page != P_PREVIEW;
-                        if (e == 0)
-                          wms->seq = S_QUESTION;
-                      }
-                    else if (strncmp(mult->post_lp, "Decks", 5) == 0)
-                      wms->seq = S_START_DECKS;
-                    else if (strncmp(mult->post_lp, "Table", 5) == 0)
-                      wms->seq = S_TABLE;
-                    else if (strncmp(mult->post_lp, "Apply", 5) == 0)
-                      wms->seq = S_APPLY;
-                    else if (strncmp(mult->post_lp, "Erase", 5) == 0)
-                      if (wms->from_page == P_FILE)
-                        wms->seq = S_ASK_ERASE;
-                      else {
-                        e = wms->from_page != P_MSG;
-                        if (e == 0) {
-                          e = wms->todo_main == -1;
-                          if (e == 0)
-                            wms->seq = wms->todo_main;
-                        }
-                      }
-                    else if (strncmp(mult->post_lp, "About", 5) == 0)
-                      wms->seq = S_ABOUT;
-                    else {
-                      e = strncmp(mult->post_lp, "Start", 5) != 0;
-                      if (e == 0)
-                        wms->seq = S_NONE;
-                    }
-                    break;
-                  case 6:
-                    if (strncmp(mult->post_lp, "Reveal", 6) == 0)
-                      wms->seq = S_REVEAL;
-                    else if (strncmp(mult->post_lp, "Create", 6) == 0) {
-                      if (wms->from_page == P_SELECT_DECK)
-                        wms->seq = S_DECKS_CREATE;
-                      else {
-                        e = wms->from_page != P_CAT_NAME;
-                        if (e == 0)
-                          wms->seq = S_CREATE_CAT;
-                      }
-                    } else if (strncmp(mult->post_lp, "Cancel", 6) == 0) {
-                      if (wms->from_page == P_SELECT_DECK || wms->from_page == P_PREFERENCES)
-                        wms->seq = S_START;
-                      else if (wms->from_page == P_MSG) {
-                        e = wms->todo_alt == -1;
-                        if (e == 0)
-                          wms->seq = wms->todo_alt;
-                      }
-                      else {
-                        e = wms->from_page != P_OPEN;
-                        if (e == 0)
-                          wms->seq = S_CLOSE;
-                      }
-                    } else if (strncmp(mult->post_lp, "Select", 6) == 0) {
-                      if (wms->from_page == P_SELECT_DEST_DECK)
-                        wms->seq = S_SELECT_MOVE_ARRANGE;
-                      else {
-                        e = wms->from_page != P_SELECT_ARRANGE || wms->saved_mode != M_DECK;
-                        if (e == 0)
-                          wms->seq = S_CAT_NAME;
-                      }
-                    } else if (strncmp(mult->post_lp, "Delete", 6) == 0) {
-                      if (wms->from_page == P_MSG) {
-                        e = wms->todo_main == -1;
-                        if (e == 0)
-                          wms->seq = wms->todo_main;
-                      }
-                      else {
-                        e = wms->from_page != P_SELECT_DECK;
-                        if (e == 0)
-                          wms->seq = S_ASK_DELETE_CAT;
-                      }
-                    } else if (strncmp(mult->post_lp, "Rename", 6) == 0) {
-                      if (wms->from_page == P_SELECT_DECK)
-                        wms->seq = S_RENAME_ENTER;
-                      else {
-                        e = wms->from_page != P_CAT_NAME;
-                        if (e == 0)
-                          wms->seq = S_RENAME_CAT;
-                      }
-                    } else if (strncmp(mult->post_lp, "Insert", 6) == 0) {
-                      e = wms->from_page != P_EDIT;
-                      if (e == 0)
-                        wms->seq = S_INSERT;
-                    } else if (strncmp(mult->post_lp, "Toggle", 6) == 0) {
-                        e = wms->from_page != P_SELECT_DECK;
-                        if (e == 0)
-                          wms->seq = S_TOGGLE;
-                    } else if (strncmp(mult->post_lp, "Remove", 6) == 0)
-                      if (wms->from_page == P_FILE)
-                        wms->seq = S_ASK_REMOVE;
-                      else {
-                        e = wms->from_page != P_MSG;
-                        if (e == 0) {
-                          e = wms->todo_main == -1;
-                          if (e == 0)
-                            wms->seq = wms->todo_main;
-                        }
-                      }
-                    else if (strncmp(mult->post_lp, "Resume", 6) == 0)
-                      wms->seq = S_RESUME;
-                    else if (memcmp(mult->post_lp, "Search", 6) == 0)
-                      wms->seq = S_SEARCH;
-                    else {
-                      e = strncmp(mult->post_lp, "Import", 6) != 0;
-                      if (e == 0)
-                        wms->seq = S_WARN_UPLOAD;
-                    }
-                    break;
-                  default:
-                    if (strncmp(mult->post_lp, "Set", 3) == 0) {
-                      e = wms->from_page != P_EDIT;
-                      if (e == 0)
-                        wms->seq = S_SET;
-                    }
-                    else if (strncmp(mult->post_lp, "Preferences", 11) == 0)
-                      wms->seq = S_PREFERENCES;
-                    else if (strncmp(mult->post_lp, "Histogram", 9) == 0)
-                      wms->seq = S_HISTOGRAM;
-                    else if (strncmp(mult->post_lp, "Refresh", 7) == 0)
-                      wms->seq = S_HISTOGRAM;
-                    else if (strncmp(mult->post_lp, "Preview", 7) == 0)
-                      wms->seq = S_PREVIEW_SYNC;
-                    else {
-                      e = strncmp(mult->post_lp, "OK", 2) != 0;
-                      if (e == 0) {
-                        if (wms->from_page == P_FILE || wms->from_page == P_ABOUT) {
-                          if (wms->file_title_str != NULL)
-                            wms->seq = S_START;
-                          else
-                            wms->seq = S_NONE;
-                        }
-                        else if (wms->from_page == P_UPLOAD_REPORT)
-                          wms->seq = S_START;
-                        else {
-                          e = wms->from_page != P_MSG;
-                          if (e == 0) {
-                            e = wms->todo_main == -1;
-                            if (e == 0)
-                              wms->seq = wms->todo_main;
-                          }
-                        }
-                      }
-                    }
-                    break;
-                  }
-                  break;
-                case F_PAGE:
-                  assert(wms->from_page == -1);
-                  a_n = sscanf(mult->post_lp, "%d", &wms->from_page);
-                  e = a_n != 1 || wms->from_page < P_START || wms->from_page > P_TABLE;
-                  break;
-                case F_MODE:
-                  assert(wms->saved_mode == M_NONE);
-                  a_n = sscanf(mult->post_lp, "%d", &wms->saved_mode);
-                  e = a_n != 1;
-                  assert(wms->saved_mode >= M_DEFAULT && wms->saved_mode < M_END);
-                  break;
-                case F_TIMEOUT:
-                  e = wms->from_page != P_PREFERENCES;
-                  if (e == 0) {
-                    assert(wms->timeout == -1);
-                    a_n = sscanf(mult->post_lp, "%d", &wms->timeout);
-                    e = a_n != 1;
-                    if (e == 0)
-                      assert(wms->timeout >= 0 && wms->timeout < 5);
-                  }
-                  break;
-                default:
-                  e = -1;
-                  break;
+                if (mult->post_fp < 0) {
+                  mult->post_fp = mult->post_wp;
+                  mult->post_wp++;
+                  e = mult->post_wp < 0 || mult->post_wp >= mult->post_n;
                 }
-                parse->field = F_UNKNOWN;
-                stage = T_URLENCODE_EQUALS;
-                mult->delim_str[0] = "=";
-                mult->delim_str[1] = NULL;
+                if (e == 0) {
+                  mult->post_lp[mult->post_fp] = '\0';
+                  e = parse_field(wms, mult, parse);
+                  if (e == 0) {
+                    parse->field = F_UNKNOWN;
+                    stage = T_URLENCODE_EQUALS;
+                    mult->delim_str[0] = "=";
+                    mult->delim_str[1] = NULL;
+                  }
+                }
               }
             }
           }
@@ -1789,44 +1786,9 @@ static int parse_post(struct WebMemorySurfer *wms) {
           e = mult->post_fp < 0;
           if (e == 0) {
             mult->post_lp[mult->post_fp] = '\0';
-            if (parse->field == F_PAGE) {
-              assert(wms->from_page == -1);
-              a_n = sscanf(mult->post_lp, "%d", &wms->from_page);
-              e = a_n != 1 || wms->from_page < P_START || wms->from_page > P_TABLE;
-            } else if (parse->field == F_FILE_TITLE) {
-              assert(wms->file_title_str == NULL);
-              size = mult->nread - 3;
-              wms->file_title_str = malloc(size);
-              e = wms->file_title_str == NULL;
-              if (e == 0) {
-                memcpy(wms->file_title_str, mult->post_lp, mult->nread - 4);
-                wms->file_title_str[mult->nread - 4] = '\0';
-              }
-            } else if (parse->field == F_TOKEN) {
-              e = mult->post_fp != 40;
-              if (e == 0) {
-                e = scan_hex(wms->tok_digest, mult->post_lp, SHA1_HASH_SIZE);
-              }
-            } else if (parse->field == F_MTIME) {
-              assert(wms->mtime[0] == -1 && wms->mtime[1] == -1);
-              a_n = sscanf(mult->post_lp, "%8x%8x", &wms->mtime[1], &wms->mtime[0]);
-              e = a_n != 2;
-              if (e == 0) {
-                assert(wms->mtime[0] >= 0 && wms->mtime[1] >= 0);
-              }
-            } else {
-              e = parse->field != F_FILE_ACTION;
-              if (e == 0) {
-                if (strncmp(mult->post_lp, "Upload", 6) == 0) {
-                  wms->seq = S_UPLOAD_REPORT;
-                } else {
-                  e = strncmp(mult->post_lp, "Stop", 4);
-                  if (e == 0) {
-                    wms->seq = S_FILE;
-                  }
-                }
-              }
-            }
+            assert(mult->post_wp == mult->post_fp + 4);
+            mult->post_wp = mult->post_fp + 1;
+            e = parse_field(wms, mult, parse);
             if (e == 0) {
               stage = T_BOUNDARY_CHECK;
               mult->delim_str[0] = "\r\n";
@@ -1984,8 +1946,7 @@ static int xml_escape(char **xml_str_ptr, size_t *xml_n_ptr, char *str_text, int
         *xml_str_ptr = realloc (*xml_str_ptr, *xml_n_ptr);
         e = *xml_str_ptr == NULL;
       }
-      switch (ch)
-      {
+      switch (ch) {
       case '&':
         if (escape_mask & ESC_AMP) {
           (*xml_str_ptr)[dest++] = '&';
@@ -2470,8 +2431,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
     bl_i = 0;
     while ((bl = block_seq[wms->page][bl_i++]) != B_END && e == 0)
     {
-      switch (bl)
-      {
+      switch (bl) {
       case B_START_HTML:
         rv = printf("Content-Type: text/html; charset=utf-8\r\n\r\n"
                     "<!DOCTYPE html>\n"
@@ -3155,7 +3115,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.82</h1>\n" 
+        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.83</h1>\n" 
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2021</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
@@ -3675,8 +3635,7 @@ static int ms_determine_card(struct MemorySurfer *ms) {
         reten = exp(-(double)time_diff / ms->card_l[card_i].card_strength);
         if (reten <= 1 / M_E) {
           card_state = ms->card_l[card_i].card_state & 0x07;
-          switch (card_state)
-          {
+          switch (card_state) {
           case STATE_SCHEDULED:
             ms->cards_nel++;
             if (ms->card_l[card_i].card_strength <= card_strength_thr) {
@@ -4039,10 +3998,8 @@ int main(int argc, char *argv[]) {
         act_i = 0;
         need_sync = 0;
         assert(wms->seq <= S_END);
-        while ((act_c = action_seq[wms->seq][act_i++]) != A_END && e == 0)
-        {
-          switch (act_c)
-          {
+        while ((act_c = action_seq[wms->seq][act_i++]) != A_END && e == 0) {
+          switch (act_c) {
           case A_END:
             assert (0);
             break;
@@ -4657,8 +4614,7 @@ int main(int argc, char *argv[]) {
                     e = sa_set(&wms->ms.cat_sa, cat_i, wms->ms.cat_name);
                     if (e == 0) {
                       wms->ms.cat_t[cat_i].cat_x = 1;
-                      switch (wms->ms.arrange)
-                      {
+                      switch (wms->ms.arrange) {
                       case 0: // Before
                         n_prev = -1;
                         n_parent = -1;
@@ -4865,8 +4821,7 @@ int main(int argc, char *argv[]) {
                 }
                 else
                   wms->ms.n_first = wms->ms.cat_t[wms->ms.mov_cat_i].cat_n_sibling;
-                switch (wms->ms.arrange)
-                {
+                switch (wms->ms.arrange) {
                 case 0: // Before
                   i = 0;
                   n_prev = -1;
