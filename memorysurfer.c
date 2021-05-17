@@ -1551,6 +1551,16 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
           wms->seq = S_WARN_UPLOAD;
       }
       break;
+    case 7:
+      if (memcmp(mult->post_lp, "Preview", 7) == 0)
+        wms->seq = S_PREVIEW_SYNC;
+      else {
+        e = memcmp(mult->post_lp, "Refresh", 7) != 0;
+        if (e == 0) {
+          wms->seq = S_HISTOGRAM;
+        }
+      }
+      break;
     default:
       if (strncmp(mult->post_lp, "Set", 3) == 0) {
         e = wms->from_page != P_EDIT;
@@ -1561,10 +1571,6 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
         wms->seq = S_PREFERENCES;
       else if (strncmp(mult->post_lp, "Histogram", 9) == 0)
         wms->seq = S_HISTOGRAM;
-      else if (strncmp(mult->post_lp, "Refresh", 7) == 0)
-        wms->seq = S_HISTOGRAM;
-      else if (strncmp(mult->post_lp, "Preview", 7) == 0)
-        wms->seq = S_PREVIEW_SYNC;
       else {
         e = strncmp(mult->post_lp, "OK", 2) != 0;
         if (e == 0) {
@@ -1620,7 +1626,6 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
 static int parse_post(struct WebMemorySurfer *wms) {
   int e;
   int rv; // return value
-  int a_n; // assignments
   char *str;
   enum Stage stage;
   int len;
@@ -3115,7 +3120,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.83</h1>\n" 
+        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.84</h1>\n" 
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2021</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
