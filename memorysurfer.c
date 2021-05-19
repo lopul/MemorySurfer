@@ -1328,8 +1328,8 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
     e = mult->post_fp != 16;
     if (e == 0) {
       assert(wms->mtime[0] == -1 && wms->mtime[1] == -1);
-      a_n = sscanf(mult->post_lp, "%8x%8x", &wms->mtime[1], &wms->mtime[0]);
-      e = a_n != 2;
+      a_n = sscanf(mult->post_lp, "%8x%8x%n", &wms->mtime[1], &wms->mtime[0], &consumed_n);
+      e = a_n != 2 || consumed_n != 16;
       if (e == 0) {
         assert(wms->mtime[0] >= 0 && wms->mtime[1] >= 0);
       }
@@ -2614,8 +2614,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           if (wms->mode != M_CHANGE_PASSWD) {
             header_str = "Enter the password to login";
             submit_str = "Login";
-          }
-          else {
+          } else {
             assert(wms->seq == S_GO_CHANGE);
             header_str = "Change password";
             notice_str[0] = "Enter the current password";
@@ -2623,8 +2622,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
             submit_str = "Change";
             y = 1;
           }
-        }
-        else {
+        } else {
           assert(wms->ms.passwd.pw_flag == 0);
           header_str = "Define a (initial) password (for this file) (may be empty)";
           submit_str = "Enter";
@@ -3120,7 +3118,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.84</h1>\n" 
+        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.85</h1>\n" 
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2021</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
@@ -3571,13 +3569,13 @@ static void wms_free(struct WebMemorySurfer *wms) {
   ms_free(&wms->ms);
 }
 
-static int ms_create (struct MemorySurfer *ms, int flags_mask) {
+static int ms_create(struct MemorySurfer *ms, int flags_mask) {
   int e;
   size_t size;
-  assert (ms->imf_filename != NULL);
-  e = imf_create (&ms->imf, ms->imf_filename, flags_mask);
+  assert(ms->imf_filename != NULL);
+  e = imf_create(&ms->imf, ms->imf_filename, flags_mask);
   if (e == 0) {
-    e = imf_put (&ms->imf, SA_INDEX, "", 0);
+    e = imf_put(&ms->imf, SA_INDEX, "", 0);
     if (e == 0) {
       e = imf_put(&ms->imf, C_INDEX, "", 0);
       if (e == 0) {
@@ -3592,8 +3590,9 @@ static int ms_create (struct MemorySurfer *ms, int flags_mask) {
         }
         size = sizeof(struct Password);
         e = imf_put(&ms->imf, PW_INDEX, &ms->passwd, size);
-        if (e == 0)
+        if (e == 0) {
           e = imf_sync(&ms->imf);
+        }
       }
     }
   }
@@ -4138,19 +4137,19 @@ int main(int argc, char *argv[]) {
           case A_READ_PASSWD:
             if (wms->ms.imf_filename != NULL) {
               assert(wms->ms.passwd.pw_flag == -1);
-              data_size = imf_get_size (&wms->ms.imf, PW_INDEX);
+              data_size = imf_get_size(&wms->ms.imf, PW_INDEX);
               e = data_size != sizeof(struct Password);
               if (e == 0)
-                e = imf_get (&wms->ms.imf, PW_INDEX, &wms->ms.passwd);
+                e = imf_get(&wms->ms.imf, PW_INDEX, &wms->ms.passwd);
               if (e != 0) {
                 wms->static_header = "Read of password hash failed";
                 wms->static_btn_main = "OK";
                 wms->todo_main = S_GO_LOGIN;
                 wms->page = P_MSG;
               }
-            }
-            else
+            } else {
               e = wms->seq != S_FILE && wms->seq != S_ABOUT;
+            }
             break;
           case A_CHECK_PASSWORD:
             e = wms->ms.passwd.pw_flag != 0;
@@ -4170,12 +4169,13 @@ int main(int argc, char *argv[]) {
               e = sha1_input(&sha1, (uint8_t*) wms->ms.password, len);
               if (e == 0) {
                 e = sha1_result(&sha1, message_digest);
-                if (e == 0)
+                if (e == 0) {
                   e = memcmp(wms->ms.passwd.pw_msg_digest, message_digest, SHA1_HASH_SIZE);
+                }
               }
             }
             if (e != 0) {
-              sleep (1);
+              sleep(1);
               wms->static_header = "Invalid password";
               wms->static_btn_main = "OK";
               wms->todo_main = S_GO_LOGIN;
@@ -4206,7 +4206,7 @@ int main(int argc, char *argv[]) {
                 mod_time -= wms->ms.passwd.tok_sec;
               }
               if (e != 0) {
-                sleep (1);
+                sleep(1);
                 wms->static_header = "Invalid session token";
                 wms->static_btn_main = "OK";
                 wms->todo_main = S_GO_LOGIN;
@@ -5273,7 +5273,7 @@ int main(int argc, char *argv[]) {
             size = sizeof(struct Password);
             e = imf_put(&wms->ms.imf, PW_INDEX, &wms->ms.passwd, size);
             if (e == 0) {
-              e = imf_sync (&wms->ms.imf);
+              e = imf_sync(&wms->ms.imf);
               if (e == 0)
                 wms->page = P_START;
             }
