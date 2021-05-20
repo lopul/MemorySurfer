@@ -37,5 +37,7 @@ The setup is described
  - gcc
  - make
 
-Every Linux system capable of running a web-server (eg. Apache) should also be capable of running MemorySurfer (tested on
+Every Linux system <sup>*</sup> capable of running a web-server (eg. Apache) should also be capable of running MemorySurfer (tested on
 [Raspbian](https://www.lorenz-pullwitt.de/MemorySurfer/en/raspbian.html "Raspbian"), Fedora, Debian, Ubuntu).
+
+<sup>*</sup> currently only little-endian architecture
