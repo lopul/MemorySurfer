@@ -34,7 +34,7 @@ h1.msf {
 	font-weight: bolder;
 }
 
-textarea {
+textarea.msf {
 	width: 98.5%;
 	padding: 0;
 	margin: 0 auto 0 auto;
@@ -104,7 +104,7 @@ code.msf {
 	opacity: 0.2;
 }
 
-cite {
+cite.msf {
 	display: block;
 	width: 94%;
 	max-width: 76ex;
