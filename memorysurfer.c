@@ -156,22 +156,23 @@ struct Category {
   char cat_used;
   char cat_on;
 };
-#pragma pack(pop)
-
-#pragma pack(push)
-#pragma pack(1)
 struct Card {
   int64_t card_time;
   int32_t card_strength;
   int32_t card_qai; // question/answer index
   uint8_t card_state; // ----hsss '-' = unused, h = HTML / TXT, s = state
 };
-
+struct Timeout {
+  uint8_t to_sec;
+  uint16_t to_count;
+};
 struct Password {
   uint8_t pw_msg_digest[SHA1_HASH_SIZE];
-  int8_t pw_flag; // password set?
-  uint8_t tok_sec;
-  uint8_t tok_count;
+  int8_t pw_flag;
+  struct Timeout timeout;
+  uint32_t version;
+  int32_t style_sai; // string array index
+  uint32_t mctr;
 };
 #pragma pack(pop)
 
@@ -2338,7 +2339,13 @@ static int gen_xml_category(int16_t cat_i, struct XmlGenerator *xg, struct Memor
   return e;
 }
 
-static const uint8_t timeouts[5][2] = {{5,60},{15,60},{60,60},{90,120},{240,180}};
+static const struct Timeout timeouts[5] = {
+  { 60, 10 }, // 10m
+  { 60, 60 }, // 1h
+  { 60, 360 }, // 6h
+  { 120, 360 }, //12h
+  { 240, 360 } // 24h
+};
 
 static time_t lvl_s[21] = { // level strength
   60, // 1m (0)
@@ -2396,7 +2403,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
   int dx; // delta
   int dy;
   int vby; // viewbox
-  static const char *TIMEOUTS[] = { "5 m", "15 m", "1 h", "3 h", "12 h" };
+  static const char *TIMEOUTS[] = { "10 m", "1 h", "6 h", "12 h", "24 h" };
   size_t size;
   size_t len;
   enum Block bl;
@@ -3092,33 +3099,43 @@ static int gen_html(struct WebMemorySurfer *wms) {
         break;
       case B_PREFERENCES:
         assert(wms->file_title_str != NULL && strlen(wms->tok_str) == 40);
-        printf("\t\t\t<h1 class=\"msf\">Preferences</h1>\n"
-               "\t\t\t<p class=\"msf\">Timeout</p>\n"
-               "\t\t\t<div>\n");
-        j = -1;
-        for (i = 0; i < 5 && j == -1; i++)
-          if (timeouts[i][0]*timeouts[i][1] >= wms->ms.passwd.tok_count*wms->ms.passwd.tok_sec)
-            j = i;
-        if (j == -1)
-          j = 1;
-        for (i = 0; i < 5; i++) {
-          attr_str = i == j ? " checked" : "";
-          printf("\t\t\t\t<label><input type=\"radio\" name=\"timeout\" value=\"%d\"%s>%s</label>\n",
-              i,
-              attr_str,
-              TIMEOUTS[i]);
+        rv = printf("\t\t\t<h1 class=\"msf\">Preferences</h1>\n"
+                    "\t\t\t<p class=\"msf\">Timeout</p>\n"
+                    "\t\t\t<div>\n");
+        e = rv < 0;
+        if (e == 0) {
+          j = -1;
+          for (i = 0; i < 5 && j == -1; i++) {
+            if (timeouts[i].to_sec * timeouts[i].to_count >= wms->ms.passwd.timeout.to_count * wms->ms.passwd.timeout.to_sec) {
+              j = i;
+            }
+          }
+          if (j == -1) {          
+            j = 1;
+          }
+          for (i = 0; i < 5 && e == 0; i++) {
+            attr_str = i == j ? " checked" : "";
+            rv = printf("\t\t\t\t<label><input type=\"radio\" name=\"timeout\" value=\"%d\"%s>%s</label>\n",
+                i,
+                attr_str,
+                TIMEOUTS[i]);
+            e = rv < 0;
+          }
+          if (e == 0) {
+            rv = printf("\t\t\t</div>\n"
+                        "\t\t\t<p class=\"msf\"><input type=\"submit\" name=\"event\" value=\"Apply\">\n"
+                        "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Cancel\"></p>\n"
+                        "\t\t</form>\n"
+                        "\t\t<code class=\"msf\">%s</code>\n"
+                        "\t</body>\n"
+                        "</html>\n",
+                sw_info_str);
+            e = rv < 0;
+          }
         }
-        printf("\t\t\t</div>\n"
-               "\t\t\t<p class=\"msf\"><input type=\"submit\" name=\"event\" value=\"Apply\">\n"
-               "\t\t\t\t<input type=\"submit\" name=\"event\" value=\"Cancel\"></p>\n"
-               "\t\t</form>\n"
-               "\t\t<code class=\"msf\">%s</code>\n"
-               "\t</body>\n"
-               "</html>\n",
-          sw_info_str);
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.85</h1>\n" 
+        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.86</h1>\n" 
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2021</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
@@ -3456,8 +3473,11 @@ static int ms_init(struct MemorySurfer *ms) {
     size = sizeof(ms->passwd.pw_msg_digest);
     memset(&ms->passwd.pw_msg_digest, -1, size);
     ms->passwd.pw_flag = -1;
-    ms->passwd.tok_sec = 0;
-    ms->passwd.tok_count = 0;
+    ms->passwd.timeout.to_sec = 0;
+    ms->passwd.timeout.to_count = 0;
+    ms->passwd.version = -1;
+    ms->passwd.style_sai = -1;
+    ms->passwd.mctr = 0;
   }
   return e;
 }
@@ -3581,10 +3601,10 @@ static int ms_create(struct MemorySurfer *ms, int flags_mask) {
       if (e == 0) {
         if (ms->passwd.pw_flag < 0) {
           ms->passwd.pw_flag = 0;
-          assert(ms->passwd.tok_sec == 0);
-          ms->passwd.tok_sec = 60;
-          assert(ms->passwd.tok_count == 0);
-          ms->passwd.tok_count = 10;
+          assert(ms->passwd.timeout.to_sec == 0);
+          ms->passwd.timeout.to_sec = timeouts[1].to_sec;
+          assert(ms->passwd.timeout.to_count == 0);
+          ms->passwd.timeout.to_count = timeouts[1].to_count;
         } else {
           assert(ms->passwd.pw_flag == 1);
         }
@@ -4128,20 +4148,26 @@ int main(int argc, char *argv[]) {
                   wms->ms.passwd.pw_flag = 1;
                   size = sizeof(struct Password);
                   e = imf_put(&wms->ms.imf, PW_INDEX, &wms->ms.passwd, size);
-                  if (e == 0)
+                  if (e == 0) {
                     e = imf_sync (&wms->ms.imf);
+                  }
                 }
               }
             }
             break;
           case A_READ_PASSWD:
             if (wms->ms.imf_filename != NULL) {
-              assert(wms->ms.passwd.pw_flag == -1);
+              assert(wms->ms.passwd.pw_flag == -1 && wms->ms.passwd.version == -1 && wms->ms.passwd.style_sai == -1);
               data_size = imf_get_size(&wms->ms.imf, PW_INDEX);
-              e = data_size != sizeof(struct Password);
-              if (e == 0)
+              e = data_size != 23 && data_size != sizeof(struct Password);
+              if (e == 0) {
                 e = imf_get(&wms->ms.imf, PW_INDEX, &wms->ms.passwd);
-              if (e != 0) {
+                if (e == 0) {
+                  if (data_size == 23) {
+                    wms->ms.passwd.version = 0x01000000;
+                  }
+                }
+              } else {
                 wms->static_header = "Read of password hash failed";
                 wms->static_btn_main = "OK";
                 wms->todo_main = S_GO_LOGIN;
@@ -4152,7 +4178,8 @@ int main(int argc, char *argv[]) {
             }
             break;
           case A_CHECK_PASSWORD:
-            e = wms->ms.passwd.pw_flag != 0;
+            assert(wms->ms.passwd.pw_flag >= 0);
+            e = wms->ms.passwd.pw_flag > 0;
             if (e != 0) {
               wms->static_header = "A password is already set";
               wms->static_btn_main = "OK";
@@ -4185,9 +4212,9 @@ int main(int argc, char *argv[]) {
           case A_AUTH_TOK:
             if (wms->ms.imf_filename != NULL) {
               assert(wms->ms.passwd.pw_flag > 0);
-              assert(wms->ms.passwd.tok_sec > 0 && wms->ms.passwd.tok_count > 0);
-              mod_time = wms->ms.timestamp / wms->ms.passwd.tok_sec * wms->ms.passwd.tok_sec;
-              for (i = 0; i < wms->ms.passwd.tok_count; i++) {
+              assert(wms->ms.passwd.timeout.to_sec > 0 && wms->ms.passwd.timeout.to_count > 0);
+              mod_time = wms->ms.timestamp / wms->ms.passwd.timeout.to_sec * wms->ms.passwd.timeout.to_sec;
+              for (i = 0; i < wms->ms.passwd.timeout.to_count; i++) {
                 e = sha1_reset(&sha1);
                 assert(e == 0);
                 e = sha1_input(&sha1, (uint8_t*) wms->ms.passwd.pw_msg_digest, SHA1_HASH_SIZE);
@@ -4203,7 +4230,7 @@ int main(int argc, char *argv[]) {
                     }
                   }
                 }
-                mod_time -= wms->ms.passwd.tok_sec;
+                mod_time -= wms->ms.passwd.timeout.to_sec;
               }
               if (e != 0) {
                 sleep(1);
@@ -4223,8 +4250,8 @@ int main(int argc, char *argv[]) {
               if (e == 0) {
                 e = sha1_input(&sha1, (uint8_t*) wms->ms.passwd.pw_msg_digest, SHA1_HASH_SIZE);
                 if (e == 0) {
-                  assert(wms->ms.passwd.tok_sec > 0);
-                  mod_time = wms->ms.timestamp / wms->ms.passwd.tok_sec * wms->ms.passwd.tok_sec;
+                  assert(wms->ms.passwd.timeout.to_sec > 0);
+                  mod_time = wms->ms.timestamp / wms->ms.passwd.timeout.to_sec * wms->ms.passwd.timeout.to_sec;
                   e = sha1_input(&sha1, (uint8_t*) &mod_time, sizeof(uint32_t));
                   if (e == 0) {
                     e = sha1_result(&sha1, message_digest);
@@ -5268,14 +5295,15 @@ int main(int argc, char *argv[]) {
             break;
           case A_APPLY:
             assert(wms->timeout >= 0 && wms->timeout < 5);
-            wms->ms.passwd.tok_count = timeouts[wms->timeout][0];
-            wms->ms.passwd.tok_sec = timeouts[wms->timeout][1];
+            size = sizeof(struct Timeout);
+            memcpy(&wms->ms.passwd.timeout, timeouts + wms->timeout, size);
             size = sizeof(struct Password);
             e = imf_put(&wms->ms.imf, PW_INDEX, &wms->ms.passwd, size);
             if (e == 0) {
               e = imf_sync(&wms->ms.imf);
-              if (e == 0)
+              if (e == 0) {
                 wms->page = P_START;
+              }
             }
             break;
           case A_SEARCH:
