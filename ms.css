@@ -90,14 +90,9 @@ p.msf {
 	margin: 1.1ex 0 1ex 0.5ex;
 }
 
-label {
+label.msf {
 	margin: 0.1ex 0 0.1ex 0;
 	padding: 0.4ex 0 0.4ex 0;
-}
-
-input[type=submit] {
-	padding: 1.0ex 1.5ex 1.0ex 1.5ex;
-	min-width: 10.0ex;
 }
 
 code.msf {
