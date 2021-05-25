@@ -368,7 +368,9 @@ int imf_open(struct IndexedMemoryFile *imf, const char *filename) {
         }
       }
     }
-    e = sw_stop(sw_i, &imf->sw);
+    if (e == 0) {
+      e = sw_stop(sw_i, &imf->sw);
+    }
   }
   return e;
 }
