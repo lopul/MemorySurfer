@@ -35,12 +35,12 @@ h1.msf {
 }
 
 textarea.msf {
-	width: 98.5%;
+	width: 98%;
 	padding: 0;
 	margin: 0 auto 0 auto;
 }
 
-div.msf_qa {
+div.qa_html {
 	width: 98%;
 	padding: 0.5ex 0.2ex 0.5ex 0.2ex;
 	margin: 0.3ex auto 0.3ex auto;
@@ -51,15 +51,19 @@ div.msf_qa {
 	min-height: 2.5em;
 }
 
-div.msf_txt {
+div.qa_txt {
+	width: 98%;
+	padding: 0.5ex 0.2ex 0.5ex 0.2ex;
+	margin: 0.3ex auto 0.3ex auto;
+	border-width: 1px;
+	border-style: solid;
+	border-radius: 0.3ex;
+	border-color: rgba(0, 0, 0, .25);
+	min-height: 2.5em;
 	font-family: monospace;
 	white-space: pre-wrap;
 	overflow-wrap: break-word;
 }
-
-div.msf_covered {
-	background-color: #c0c0c040;
-} 
 
 ul.msf {
 	list-style-type: none;

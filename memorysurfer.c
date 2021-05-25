@@ -37,20 +37,20 @@
 #include <errno.h>
 
 enum Field { F_UNKNOWN, F_FILE_TITLE, F_START_ACTION, F_FILE_ACTION, F_UPLOAD, F_ARRANGE, F_CAT_NAME, F_STYLE_TXT, F_MOVED_CAT, F_EDIT_ACTION, F_LEARN_ACTION, F_SEARCH_TXT, F_MATCH_CASE, F_IS_HTML, F_SEARCH_ACTION, F_CAT, F_CARD, F_MOV_CARD, F_LVL, F_Q, F_A, F_REVEAL_POS, F_TODO_MAIN, F_TODO_ALT, F_MTIME, F_PASSWORD, F_NEW_PASSWORD, F_TOKEN, F_EVENT, F_PAGE, F_MODE, F_TIMEOUT };
-enum Action { A_END, A_NONE, A_FILE, A_WARN_UPLOAD, A_CREATE, A_NEW, A_OPEN_DLG, A_FILELIST, A_OPEN, A_CHANGE_PASSWD, A_WRITE_PASSWD, A_READ_PASSWD, A_CHECK_PASSWORD, A_AUTH_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_CHECK_RESUME, A_SLASH, A_VOID, A_FILE_EXTENSION, A_GATHER, A_UPLOAD, A_UPLOAD_REPORT, A_EXPORT, A_ASK_REMOVE, A_REMOVE, A_ASK_ERASE, A_ERASE, A_CLOSE, A_START_DECKS, A_DECKS_CREATE, A_SELECT_DEST_DECK, A_SELECT_SEND_CAT, A_SELECT_ARRANGE, A_CAT_NAME, A_STYLE, A_CREATE_CAT, A_RENAME_CAT, A_STYLE_APPLY, A_ASK_DELETE_CAT, A_DELETE_CAT, A_TOGGLE, A_MOVE_CAT, A_SELECT_EDIT_CAT, A_EDIT, A_UPDATE_QA, A_UPDATE_HTML, A_SYNC, A_INSERT, A_APPEND, A_ASK_DELETE_CARD, A_DELETE_CARD, A_PREVIOUS, A_NEXT, A_SCHEDULE, A_SET, A_CARD_ARRANGE, A_MOVE_CARD, A_SEND_CARD, A_SELECT_LEARN_CAT, A_SELECT_SEARCH_CAT, A_PREFERENCES, A_ABOUT, A_APPLY, A_SEARCH, A_PREVIEW, A_DETERMINE_CARD, A_SHOW, A_REVEAL, A_PROCEED, A_SUSPEND, A_RESUME, A_CHECK_FILE, A_LOGIN, A_HISTOGRAM, A_TABLE, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CARD, A_TEST_CAT_SELECTED, A_TEST_CAT_VALID, A_TEST_CAT, A_TEST_ARRANGE, A_TEST_NAME };
+enum Action { A_END, A_NONE, A_FILE, A_WARN_UPLOAD, A_CREATE, A_NEW, A_OPEN_DLG, A_FILELIST, A_OPEN, A_CHANGE_PASSWD, A_WRITE_PASSWD, A_READ_PASSWD, A_CHECK_PASSWORD, A_AUTH_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_GET_CARD, A_CHECK_RESUME, A_SLASH, A_VOID, A_FILE_EXTENSION, A_GATHER, A_UPLOAD, A_UPLOAD_REPORT, A_EXPORT, A_ASK_REMOVE, A_REMOVE, A_ASK_ERASE, A_ERASE, A_CLOSE, A_START_DECKS, A_DECKS_CREATE, A_SELECT_DEST_DECK, A_SELECT_SEND_CAT, A_SELECT_ARRANGE, A_CAT_NAME, A_STYLE_GO, A_CREATE_CAT, A_RENAME_CAT, A_READ_STYLE, A_STYLE_APPLY, A_ASK_DELETE_CAT, A_DELETE_CAT, A_TOGGLE, A_MOVE_CAT, A_SELECT_EDIT_CAT, A_EDIT, A_UPDATE_QA, A_UPDATE_HTML, A_SYNC, A_INSERT, A_APPEND, A_ASK_DELETE_CARD, A_DELETE_CARD, A_PREVIOUS, A_NEXT, A_SCHEDULE, A_SET, A_CARD_ARRANGE, A_MOVE_CARD, A_SEND_CARD, A_SELECT_LEARN_CAT, A_SELECT_SEARCH_CAT, A_PREFERENCES, A_ABOUT, A_APPLY, A_SEARCH, A_PREVIEW, A_DETERMINE_CARD, A_SHOW, A_REVEAL, A_PROCEED, A_SUSPEND, A_RESUME, A_CHECK_FILE, A_LOGIN, A_HISTOGRAM, A_TABLE, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CARD, A_TEST_CAT_SELECTED, A_TEST_CAT_VALID, A_TEST_CAT, A_TEST_ARRANGE, A_TEST_NAME };
 enum Page { P_UNDEF = -1, P_START, P_FILE, P_PASSWORD, P_NEW, P_OPEN, P_UPLOAD, P_UPLOAD_REPORT, P_EXPORT, P_CAT_NAME, P_STYLE, P_SELECT_ARRANGE, P_SELECT_DEST_DECK, P_SELECT_DECK, P_EDIT, P_PREVIEW, P_SEARCH, P_PREFERENCES, P_ABOUT, P_LEARN, P_MSG, P_HISTOGRAM, P_TABLE };
 enum Block { B_END, B_START_HTML, B_FORM_URLENCODED, B_FORM_MULTIPART, B_OPEN_DIV, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_HIDDEN_MOV_CARD, B_CLOSE_DIV, B_START, B_FILE, B_PASSWORD, B_NEW, B_OPEN, B_UPLOAD, B_UPLOAD_REPORT, B_EXPORT, B_CAT_NAME, B_STYLE, B_SELECT_ARRANGE, B_SELECT_DEST_DECK, B_SELECT_DECK, B_EDIT, B_PREVIEW, B_SEARCH, B_PREFERENCES, B_ABOUT, B_LEARN, B_MSG, B_HISTOGRAM, B_TABLE };
 enum Mode { M_NONE = -1, M_DEFAULT, M_CHANGE_PASSWD, M_ASK, M_RATE, M_EDIT, M_LEARN, M_SEARCH, M_SEND, M_MOVE, M_CARD, M_DECK, M_START, M_END };
-enum Sequence { S_FILE, S_START_DECKS, S_DECKS_CREATE, S_SELECT_MOVE_ARRANGE, S_CAT_NAME, S_STYLE, S_SELECT_EDIT_CAT, S_SELECT_LEARN_CAT, S_SELECT_SEARCH_CAT, S_PREFERENCES, S_ABOUT, S_APPLY, S_NEW, S_FILELIST, S_WARN_UPLOAD, S_UPLOAD, S_LOGIN, S_ENTER, S_CHANGE, S_START, S_UPLOAD_REPORT, S_EXPORT, S_ASK_REMOVE, S_REMOVE, S_ASK_ERASE, S_ERASE, S_CLOSE, S_NONE, S_CREATE, S_GO_LOGIN, S_GO_CHANGE, S_RENAME_ENTER, S_RENAME_CAT, S_STYLE_APPLY, S_SELECT_DEST_CAT, S_MOVE_CAT, S_CREATE_CAT, S_ASK_DELETE_CAT, S_DELETE_CAT, S_TOGGLE, S_EDIT, S_INSERT, S_APPEND, S_ASK_DELETE_CARD, S_DELETE_CARD, S_PREVIOUS, S_NEXT, S_SCHEDULE, S_SET, S_CARD_ARRANGE, S_MOVE_CARD, S_SELECT_SEND_CAT, S_SEND_CARD, S_SEARCH_SYNCED, S_PREVIEW_SYNC, S_QUESTION_SYNCED, S_QUESTION, S_SHOW, S_REVEAL, S_PROCEED, S_SUSPEND, S_RESUME, S_SEARCH, S_HISTOGRAM, S_TABLE, S_END };
+enum Sequence { S_FILE, S_START_DECKS, S_DECKS_CREATE, S_SELECT_MOVE_ARRANGE, S_CAT_NAME, S_STYLE_GO, S_SELECT_EDIT_CAT, S_SELECT_LEARN_CAT, S_SELECT_SEARCH_CAT, S_PREFERENCES, S_ABOUT, S_APPLY, S_NEW, S_FILELIST, S_WARN_UPLOAD, S_UPLOAD, S_LOGIN, S_ENTER, S_CHANGE, S_START, S_UPLOAD_REPORT, S_EXPORT, S_ASK_REMOVE, S_REMOVE, S_ASK_ERASE, S_ERASE, S_CLOSE, S_NONE, S_CREATE, S_GO_LOGIN, S_GO_CHANGE, S_RENAME_ENTER, S_RENAME_CAT, S_STYLE_APPLY, S_SELECT_DEST_CAT, S_MOVE_CAT, S_CREATE_CAT, S_ASK_DELETE_CAT, S_DELETE_CAT, S_TOGGLE, S_EDIT, S_INSERT, S_APPEND, S_ASK_DELETE_CARD, S_DELETE_CARD, S_PREVIOUS, S_NEXT, S_SCHEDULE, S_SET, S_CARD_ARRANGE, S_MOVE_CARD, S_SELECT_SEND_CAT, S_SEND_CARD, S_SEARCH_SYNCED, S_PREVIEW_SYNC, S_PREVIEW, S_QUESTION_SYNCED, S_QUESTION, S_SHOW, S_REVEAL, S_PROCEED, S_SUSPEND, S_RESUME, S_SEARCH, S_HISTOGRAM, S_TABLE, S_END };
 enum Stage { T_NULL, T_URLENCODE_EQUALS, T_URLENCODE_AMP, T_BOUNDARY_INIT, T_CONTENT, T_NAME, T_NAME_QUOT, T_VALUE_START, T_VALUE_CRLFMINUSMINUS, T_VALUE_XML, T_BOUNDARY_CHECK, T_EPILOGUE };
 
-static enum Action action_seq[S_END+1][14] = {
+static enum Action action_seq[S_END+1][15] = {
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_FILELIST, A_FILE, A_END }, // S_FILE
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_START_DECKS, A_END }, // S_START_DECKS
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT, A_DECKS_CREATE, A_END }, // S_DECKS_CREATE 
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT_SELECTED, A_SELECT_ARRANGE, A_END }, // S_SELECT_MOVE_ARRANGE
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT, A_TEST_ARRANGE, A_CAT_NAME, A_END }, // S_CAT_NAME
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT, A_STYLE, A_END }, // S_STYLE
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT, A_READ_STYLE, A_STYLE_GO, A_END }, // S_STYLE_GO
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_SELECT_EDIT_CAT, A_END }, // S_SELECT_EDIT_CAT
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_SELECT_LEARN_CAT, A_END }, // S_SELECT_LEARN_CAT
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_SELECT_SEARCH_CAT, A_END }, // S_SELECT_SEARCH_CAT
@@ -78,7 +78,7 @@ static enum Action action_seq[S_END+1][14] = {
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOGIN, A_END }, // S_GO_CHANGE
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT_SELECTED, A_CAT_NAME, A_END }, // S_RENAME_ENTER
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT, A_TEST_NAME, A_RENAME_CAT, A_END }, // S_RENAME_CAT
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT, A_STYLE_APPLY, A_SYNC, A_END }, // S_STYLE_APPLY
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_TEST_CAT, A_READ_STYLE, A_STYLE_APPLY, A_GET_CARD, A_SYNC, A_END }, // S_STYLE_APPLY
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT, A_SELECT_DEST_DECK, A_END }, // S_SELECT_DEST_CAT
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT, A_TEST_ARRANGE, A_MOVE_CAT, A_END }, // S_MOVE_CAT
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT, A_TEST_ARRANGE, A_TEST_NAME, A_CREATE_CAT, A_END }, // S_CREATE_CAT
@@ -99,11 +99,12 @@ static enum Action action_seq[S_END+1][14] = {
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_UPDATE_QA, A_UPDATE_HTML, A_SELECT_SEND_CAT, A_SYNC, A_END }, // S_SELECT_SEND_CAT
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_LOAD_CARDLIST, A_SEND_CARD, A_END }, // S_SEND_CARD
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_UPDATE_QA, A_UPDATE_HTML, A_SEARCH, A_SYNC, A_END }, // S_SEARCH_SYNCED
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_TEST_CARD, A_UPDATE_QA, A_UPDATE_HTML, A_PREVIEW, A_SYNC, A_END }, // S_PREVIEW_SYNC
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_UPDATE_QA, A_UPDATE_HTML, A_DETERMINE_CARD, A_SYNC, A_CHECK_RESUME, A_END }, // S_QUESTION_SYNCED
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_DETERMINE_CARD, A_CHECK_RESUME, A_END }, // S_QUESTION
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT_SELECTED, A_TEST_CAT_VALID, A_LOAD_CARDLIST, A_TEST_CARD, A_SHOW, A_CHECK_RESUME, A_END }, // S_SHOW
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT, A_LOAD_CARDLIST, A_TEST_CARD, A_REVEAL, A_CHECK_RESUME, A_END }, // S_REVEAL
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_TEST_CARD, A_UPDATE_QA, A_UPDATE_HTML, A_PREVIEW, A_SYNC, A_READ_STYLE, A_END }, // S_PREVIEW_SYNC
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_TEST_CARD, A_PREVIEW, A_GET_CARD, A_READ_STYLE, A_END }, // S_PREVIEW
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_UPDATE_QA, A_UPDATE_HTML, A_DETERMINE_CARD, A_SYNC, A_READ_STYLE, A_CHECK_RESUME, A_END }, // S_QUESTION_SYNCED
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_DETERMINE_CARD, A_READ_STYLE, A_CHECK_RESUME, A_END }, // S_QUESTION
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT_SELECTED, A_TEST_CAT_VALID, A_LOAD_CARDLIST, A_TEST_CARD, A_SHOW, A_READ_STYLE, A_CHECK_RESUME, A_END }, // S_SHOW
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT, A_LOAD_CARDLIST, A_TEST_CARD, A_REVEAL, A_READ_STYLE, A_CHECK_RESUME, A_END }, // S_REVEAL
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT, A_LOAD_CARDLIST, A_TEST_CARD, A_PROCEED, A_DETERMINE_CARD, A_CHECK_RESUME, A_END }, // S_PROCEED
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_LOAD_CARDLIST, A_TEST_CARD, A_SUSPEND, A_DETERMINE_CARD, A_CHECK_RESUME, A_END }, // S_SUSPEND
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_LOAD_CARDLIST, A_RESUME, A_DETERMINE_CARD, A_END }, // S_RESUME
@@ -1372,13 +1373,13 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
   case F_EVENT:
     switch (mult->post_fp) {
     case 4:
-      if (strncmp(mult->post_lp, "Show", 4) == 0)
+      if (memcmp(mult->post_lp, "Show", 4) == 0) {
         wms->seq = S_SHOW;
-      else if (strncmp(mult->post_lp, "Stop", 4) == 0) {
+      } else if (memcmp(mult->post_lp, "Stop", 4) == 0) {
         if (wms->from_page == P_SELECT_ARRANGE) {
-          if (wms->saved_mode == M_CARD)
+          if (wms->saved_mode == M_CARD) {
             wms->seq = S_EDIT;
-          else {
+          } else {
             wms->ms.cat_i = wms->ms.mov_cat_i;
             wms->ms.mov_cat_i = -1;
             wms->seq = S_START_DECKS;
@@ -1396,26 +1397,28 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
               wms->seq = S_START_DECKS;
             }
           }
-        } else if (wms->from_page == P_CAT_NAME)
+        } else if (wms->from_page == P_CAT_NAME) {
           wms->seq = S_START_DECKS;
-        else {
+        } else if (wms->from_page == P_STYLE) {
+          wms->seq = S_PREVIEW;
+        } else {
           e = wms->from_page != P_PREVIEW;
-          if (e == 0)
+          if (e == 0) {
             wms->seq = S_SELECT_EDIT_CAT;
+          }
         }
-      }
-      else if (strncmp(mult->post_lp, "Edit", 4) == 0)
+      } else if (memcmp(mult->post_lp, "Edit", 4) == 0) {
         wms->seq = S_EDIT;
-      else if (strncmp(mult->post_lp, "Open", 4) == 0) {
-        if (wms->from_page == P_OPEN)
+      } else if (memcmp(mult->post_lp, "Open", 4) == 0) {
+        if (wms->from_page == P_OPEN) {
           wms->seq = S_GO_LOGIN;
-        else {
+        } else {
           e = wms->from_page != P_FILE;
-          if (e == 0)
+          if (e == 0) {
             wms->seq = S_FILELIST;
+          }
         }
-      }
-      else if (strncmp(mult->post_lp, "Move", 4) == 0) {
+      } else if (memcmp(mult->post_lp, "Move", 4) == 0) {
         if (wms->from_page == P_SELECT_DECK)
           wms->seq = S_SELECT_DEST_CAT;
         else if (wms->from_page == P_SELECT_ARRANGE && wms->saved_mode == M_DECK)
@@ -1427,8 +1430,7 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
           if (e == 0)
             wms->seq = S_MOVE_CARD;
         }
-      }
-      else if (strncmp(mult->post_lp, "Send", 4) == 0) {
+      } else if (memcmp(mult->post_lp, "Send", 4) == 0) {
         if (wms->from_page == P_EDIT)
           wms->seq = S_SELECT_SEND_CAT;
         else {
@@ -1436,11 +1438,10 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
           if (e == 0)
             wms->seq = S_SEND_CARD;
         }
-      }
-      else if (strncmp(mult->post_lp, "Done", 4) == 0)
+      } else if (memcmp(mult->post_lp, "Done", 4) == 0) {
         wms->seq = S_START;
-      else {
-        e = strncmp(mult->post_lp, "File", 4) != 0;
+      } else {
+        e = memcmp(mult->post_lp, "File", 4) != 0;
         if (e == 0)
           wms->seq = S_FILE;
       }
@@ -1460,7 +1461,7 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
       } else if (memcmp(mult->post_lp, "Table", 5) == 0) {
         wms->seq = S_TABLE;
       } else if (memcmp(mult->post_lp, "Style", 5) == 0) {
-        wms->seq = S_STYLE;
+        wms->seq = S_STYLE_GO;
       } else if (memcmp(mult->post_lp, "Apply", 5) == 0) {
         if (wms->from_page == P_PREFERENCES) {
           wms->seq = S_APPLY;
@@ -1573,9 +1574,12 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
       }
       break;
     case 7:
-      if (memcmp(mult->post_lp, "Preview", 7) == 0)
-        wms->seq = S_PREVIEW_SYNC;
-      else {
+      if (memcmp(mult->post_lp, "Preview", 7) == 0) {
+        e = wms->from_page != P_EDIT;
+        if (e == 0) {
+          wms->seq = S_PREVIEW_SYNC;
+        }
+      } else {
         e = memcmp(mult->post_lp, "Refresh", 7) != 0;
         if (e == 0) {
           wms->seq = S_HISTOGRAM;
@@ -2263,7 +2267,7 @@ static int gen_xml_category(int16_t cat_i, struct XmlGenerator *xg, struct Memor
                 while ((card_i < card_a) && (e == 0))
                 {
                   card_ptr = card_l + card_i;
-                  e = sa_load (&card_sa, &ms->imf, card_ptr->card_qai);
+                  e = sa_load(&card_sa, &ms->imf, card_ptr->card_qai);
                   if (e == 0) {
                     rv = fprintf(xg->w_stream, "\n%s<card>", inds->str);
                     e = rv < 0;
@@ -2471,12 +2475,26 @@ static int gen_html(struct WebMemorySurfer *wms) {
                     "\t\t<meta name=\"viewport\" content=\"width=device-width\">\n"
                     "\t\t<meta name=\"description\" content=\"Open source software to efficiently memorize flashcards.\">\n"
                     "\t\t<link rel=\"shortcut icon\" href=\"/favicon.ico\">\n"
-                    "\t\t<link rel=\"stylesheet\" type=\"text/css\" href=\"/ms.css\">\n"
-                    "\t\t<link rel=\"license\" href=\"https://www.gnu.org/licenses/old-licenses/gpl-2.0.html\">\n"
-                    "\t</head>\n"
-                    "\t<body>\n",
+                    "\t\t<link rel=\"stylesheet\" type=\"text/css\" href=\"/ms.css\">\n",
             title_str);
         e = rv < 0;
+        if (e == 0 && (wms->page == P_LEARN || wms->page == P_PREVIEW)) {
+          assert(wms->ms.passwd.style_sai < 0 || wms->ms.style_sa.sa_n > 0);
+          str = sa_get(&wms->ms.style_sa, wms->ms.cat_i);
+          if (str != NULL) {
+            rv = printf("\t\t<style>%s</style>\n", str);
+            e = rv < 0;
+          }
+        }
+        if (e == 0) {
+          rv = printf("\t\t<link rel=\"license\" href=\"https://www.gnu.org/licenses/old-licenses/gpl-2.0.html\">\n"
+                      "\t</head>\n"
+                      "\t<body>\n");
+          e = rv < 0;
+        }
+
+
+
         break;
       case B_FORM_URLENCODED:
         rv = printf("\t\t<form enctype=\"application/x-www-form-urlencoded\" method=\"post\" action=\"memorysurfer.cgi\">\n");
@@ -2508,7 +2526,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         }
         if (e == 0 && wms->ms.card_i >= 0 && ((wms->page == P_SELECT_ARRANGE && wms->mode == M_CARD) || (wms->page == P_SELECT_DEST_DECK && wms->mode == M_SEND)
             || wms->page == P_EDIT || wms->page == P_PREVIEW || wms->page == P_SEARCH || wms->page == P_LEARN
-            || wms->page == P_MSG || wms->page == P_HISTOGRAM || wms->page == P_TABLE)) {
+            || wms->page == P_MSG || wms->page == P_HISTOGRAM || wms->page == P_TABLE || wms->page == P_STYLE)) {
           rv = printf("\t\t\t\t<input type=\"hidden\" name=\"card\" value=\"%d\">\n", wms->ms.card_i);
           e = rv < 0;
         }
@@ -2881,7 +2899,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         e = xml_escape(&wms->html_lp, &wms->html_n, str, ESC_AMP | ESC_LT);
         if (e == 0) {
           rv = printf("\t\t\t<h1 class=\"msf\">Style</h1>\n"
-                      "\t\t\t<p class=\"msf\">Define a style for this deck.</p>\n"
+                      "\t\t\t<p class=\"msf\">Define the (inline) style for this deck (and it's cards).</p>\n"
                       "\t\t\t<div><textarea class=\"msf\" name=\"style-txt\" rows=\"12\" cols=\"46\">%s</textarea></div>\n"
                       "\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Apply\">Apply</button>\n"
                       "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Stop\">Stop</button></p>\n"
@@ -2981,13 +2999,11 @@ static int gen_html(struct WebMemorySurfer *wms) {
                 rv = printf("\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Edit\"%s>Edit</button>\n"
                             "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Learn\"%s>Learn</button>\n"
                             "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Search\"%s>Search</button>\n"
-                            "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Style\"%s>Style</button>\n"
                             "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Cancel\">Cancel</button></p>\n"
                             "\t\t</form>\n"
                             "\t\t<code class=\"msf\">%s</code>\n"
                             "\t</body>\n"
                             "</html>\n",
-                    dis_str,
                     dis_str,
                     dis_str,
                     dis_str,
@@ -3063,8 +3079,9 @@ static int gen_html(struct WebMemorySurfer *wms) {
           e = xml_escape(&wms->html_lp, &wms->html_n, q_str, (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? 0 : ESC_AMP | ESC_LT);
           if (e == 0) {
             rv = printf("\t\t\t<h1 class=\"msf\">Preview</h1>\n"
-                        "\t\t\t<div id=\"q\" class=\"qa msf_qa%s\">%s</div>\n",
-                (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? "" : " msf_txt",
+                        "\t\t\t<div id=\"%s\" class=\"%s\">%s</div>\n",
+                (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? "q_html" : "q_txt",
+                (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? "qa_html" : "qa_txt",
                 wms->html_lp);
             e = rv < 0;
           }
@@ -3072,8 +3089,9 @@ static int gen_html(struct WebMemorySurfer *wms) {
         if (e == 0) {
           e = xml_escape(&wms->html_lp, &wms->html_n, a_str, (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? 0 : ESC_AMP | ESC_LT);
           if (e == 0) {
-            rv = printf("\t\t\t<div id=\"a\" class=\"qa msf_qa%s\">%s</div>\n",
-                (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? "" : " msf_txt",
+            rv = printf("\t\t\t<div id=\"%s\" class=\"%s\">%s</div>\n",
+                (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? "a_html" : " a_txt",
+                (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? "qa_html" : " qa_txt",
                 wms->html_lp);
             e = rv < 0;
           }
@@ -3082,6 +3100,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           rv = printf("\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Edit\">Edit</button>\n"
                       "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Learn\">Learn</button>\n"
                       "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Search\">Search</button>\n"
+                      "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Style\">Style</button>\n"
                       "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Stop\">Stop</button></p>\n");
           e = rv < 0;
         }
@@ -3180,7 +3199,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         }
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.89</h1>\n" 
+        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.90</h1>\n" 
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2021</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
@@ -3230,9 +3249,10 @@ static int gen_html(struct WebMemorySurfer *wms) {
           if (e == 0) {
             e = xml_escape(&wms->html_lp, &wms->html_n, q_str, (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? 0 : ESC_AMP | ESC_LT);
             if (e == 0) {
-              rv = printf("\t\t\t<div id=\"q\" class=\"qa msf_qa%s\">%s</div>\n"
+              rv = printf("\t\t\t<div id=\"%s\" class=\"%s\">%s</div>\n"
                           "\t\t\t<table>\n",
-                  (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? "" : " msf_txt",
+                  (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? "q_html" : "q_txt",
+                  (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? "qa_html" : "qa_txt",
                   wms->html_lp);
               e = rv < 0;
             }
@@ -3300,9 +3320,10 @@ static int gen_html(struct WebMemorySurfer *wms) {
             e = xml_escape(&wms->html_lp, &wms->html_n, a_str, (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? 0 : ESC_AMP | ESC_LT);
             if (e == 0) {
               rv = printf("\t\t\t</table>\n"
-                          "\t\t\t<div id=\"a\" class=\"qa msf_qa%s%s\">%s</div>\n",
-                  (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? "" : " msf_txt",
-                  wms->mode == M_RATE || wms->reveal_pos > 0 ? "" : " msf_covered",
+                          "\t\t\t<div id=\"%s\" class=\"%s\"%s>%s</div>\n",
+                  (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? "a_html" : "a_txt",
+                  (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? "qa_html" : "qa_txt",
+                  wms->mode == M_RATE || wms->reveal_pos > 0 ? "" : " style=\"background-color: #c0c0c040;\"",
                   wms->mode == M_RATE || wms->reveal_pos > 0 ? wms->html_lp : "");
               e = rv < 0;
             }
@@ -4580,6 +4601,9 @@ int main(int argc, char *argv[]) {
               wms->page = P_MSG;
             }
             break;
+          case A_GET_CARD:
+            e = ms_get_card_sa(&wms->ms);
+            break;
           case A_CHECK_RESUME:
             if (wms->ms.card_a > 0)
               for (card_i = 0; card_i < wms->ms.card_a && wms->ms.can_resume == 0; card_i++)
@@ -4662,7 +4686,7 @@ int main(int argc, char *argv[]) {
           case A_CAT_NAME:
             wms->page = P_CAT_NAME;
             break;
-          case A_STYLE:
+          case A_STYLE_GO:
             wms->page = P_STYLE;
             break;
           case A_CREATE_CAT:
@@ -4788,7 +4812,14 @@ int main(int argc, char *argv[]) {
               }
             }
             break;
+          case A_READ_STYLE:
+            assert(wms->ms.passwd.pw_flag >= 0);
+            if (wms->ms.passwd.style_sai >= 0) {
+              e = sa_load(&wms->ms.style_sa, &wms->ms.imf, wms->ms.passwd.style_sai);
+            }
+            break;
           case A_STYLE_APPLY:
+            assert(wms->ms.passwd.pw_flag > 0);
             str = sa_get(&wms->ms.style_sa, wms->ms.cat_i);
             if (str == NULL || strcmp(str, wms->ms.style_txt)) {
               e = sa_set(&wms->ms.style_sa, wms->ms.cat_i, wms->ms.style_txt);
@@ -4804,6 +4835,9 @@ int main(int argc, char *argv[]) {
                   }
                 }
               }
+            }
+            if (e == 0) {
+              wms->page = P_PREVIEW;
             }
             break;
           case A_ASK_DELETE_CAT:
