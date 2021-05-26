@@ -40,7 +40,7 @@ enum Field { F_UNKNOWN, F_FILE_TITLE, F_START_ACTION, F_FILE_ACTION, F_UPLOAD, F
 enum Action { A_END, A_NONE, A_FILE, A_WARN_UPLOAD, A_CREATE, A_NEW, A_OPEN_DLG, A_FILELIST, A_OPEN, A_CHANGE_PASSWD, A_WRITE_PASSWD, A_READ_PASSWD, A_CHECK_PASSWORD, A_AUTH_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_GET_CARD, A_CHECK_RESUME, A_SLASH, A_VOID, A_FILE_EXTENSION, A_GATHER, A_UPLOAD, A_UPLOAD_REPORT, A_EXPORT, A_ASK_REMOVE, A_REMOVE, A_ASK_ERASE, A_ERASE, A_CLOSE, A_START_DECKS, A_DECKS_CREATE, A_SELECT_DEST_DECK, A_SELECT_SEND_CAT, A_SELECT_ARRANGE, A_CAT_NAME, A_STYLE_GO, A_CREATE_CAT, A_RENAME_CAT, A_READ_STYLE, A_STYLE_APPLY, A_ASK_DELETE_CAT, A_DELETE_CAT, A_TOGGLE, A_MOVE_CAT, A_SELECT_EDIT_CAT, A_EDIT, A_UPDATE_QA, A_UPDATE_HTML, A_SYNC, A_INSERT, A_APPEND, A_ASK_DELETE_CARD, A_DELETE_CARD, A_PREVIOUS, A_NEXT, A_SCHEDULE, A_SET, A_CARD_ARRANGE, A_MOVE_CARD, A_SEND_CARD, A_SELECT_LEARN_CAT, A_SELECT_SEARCH_CAT, A_PREFERENCES, A_ABOUT, A_APPLY, A_SEARCH, A_PREVIEW, A_DETERMINE_CARD, A_SHOW, A_REVEAL, A_PROCEED, A_SUSPEND, A_RESUME, A_CHECK_FILE, A_LOGIN, A_HISTOGRAM, A_TABLE, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CARD, A_TEST_CAT_SELECTED, A_TEST_CAT_VALID, A_TEST_CAT, A_TEST_ARRANGE, A_TEST_NAME };
 enum Page { P_UNDEF = -1, P_START, P_FILE, P_PASSWORD, P_NEW, P_OPEN, P_UPLOAD, P_UPLOAD_REPORT, P_EXPORT, P_CAT_NAME, P_STYLE, P_SELECT_ARRANGE, P_SELECT_DEST_DECK, P_SELECT_DECK, P_EDIT, P_PREVIEW, P_SEARCH, P_PREFERENCES, P_ABOUT, P_LEARN, P_MSG, P_HISTOGRAM, P_TABLE };
 enum Block { B_END, B_START_HTML, B_FORM_URLENCODED, B_FORM_MULTIPART, B_OPEN_DIV, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_HIDDEN_MOV_CARD, B_CLOSE_DIV, B_START, B_FILE, B_PASSWORD, B_NEW, B_OPEN, B_UPLOAD, B_UPLOAD_REPORT, B_EXPORT, B_CAT_NAME, B_STYLE, B_SELECT_ARRANGE, B_SELECT_DEST_DECK, B_SELECT_DECK, B_EDIT, B_PREVIEW, B_SEARCH, B_PREFERENCES, B_ABOUT, B_LEARN, B_MSG, B_HISTOGRAM, B_TABLE };
-enum Mode { M_NONE = -1, M_DEFAULT, M_CHANGE_PASSWD, M_ASK, M_RATE, M_EDIT, M_LEARN, M_SEARCH, M_SEND, M_MOVE, M_CARD, M_DECK, M_START, M_END };
+enum Mode { M_NONE = -1, M_DEFAULT, M_CHANGE_PASSWD, M_ASK, M_RATE, M_EDIT, M_LEARN, M_SEARCH, M_SEND, M_MOVE, M_CARD, M_MOVE_DECK, M_CREATE_DECK, M_START, M_END };
 enum Sequence { S_FILE, S_START_DECKS, S_DECKS_CREATE, S_SELECT_MOVE_ARRANGE, S_CAT_NAME, S_STYLE_GO, S_SELECT_EDIT_CAT, S_SELECT_LEARN_CAT, S_SELECT_SEARCH_CAT, S_PREFERENCES, S_ABOUT, S_APPLY, S_NEW, S_FILELIST, S_WARN_UPLOAD, S_UPLOAD, S_LOGIN, S_ENTER, S_CHANGE, S_START, S_UPLOAD_REPORT, S_EXPORT, S_ASK_REMOVE, S_REMOVE, S_ASK_ERASE, S_ERASE, S_CLOSE, S_NONE, S_CREATE, S_GO_LOGIN, S_GO_CHANGE, S_RENAME_ENTER, S_RENAME_CAT, S_STYLE_APPLY, S_SELECT_DEST_CAT, S_MOVE_CAT, S_CREATE_CAT, S_ASK_DELETE_CAT, S_DELETE_CAT, S_TOGGLE, S_EDIT, S_INSERT, S_APPEND, S_ASK_DELETE_CARD, S_DELETE_CARD, S_PREVIOUS, S_NEXT, S_SCHEDULE, S_SET, S_CARD_ARRANGE, S_MOVE_CARD, S_SELECT_SEND_CAT, S_SEND_CARD, S_SEARCH_SYNCED, S_PREVIEW_SYNC, S_PREVIEW, S_QUESTION_SYNCED, S_QUESTION, S_SHOW, S_REVEAL, S_PROCEED, S_SUSPEND, S_RESUME, S_SEARCH, S_HISTOGRAM, S_TABLE, S_END };
 enum Stage { T_NULL, T_URLENCODE_EQUALS, T_URLENCODE_AMP, T_BOUNDARY_INIT, T_CONTENT, T_NAME, T_NAME_QUOT, T_VALUE_START, T_VALUE_CRLFMINUSMINUS, T_VALUE_XML, T_BOUNDARY_CHECK, T_EPILOGUE };
 
@@ -1380,9 +1380,15 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
           if (wms->saved_mode == M_CARD) {
             wms->seq = S_EDIT;
           } else {
-            wms->ms.cat_i = wms->ms.mov_cat_i;
-            wms->ms.mov_cat_i = -1;
-            wms->seq = S_START_DECKS;
+            if (wms->saved_mode == M_MOVE_DECK) {
+              wms->ms.cat_i = wms->ms.mov_cat_i;
+              wms->ms.mov_cat_i = -1;
+            } else {
+              e = wms->saved_mode != M_CREATE_DECK;
+            }
+            if (e == 0) {
+              wms->seq = S_START_DECKS;
+            }
           }
         } else if (wms->from_page == P_SELECT_DEST_DECK) {
           if (wms->saved_mode == M_SEND) {
@@ -1421,7 +1427,7 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
       } else if (memcmp(mult->post_lp, "Move", 4) == 0) {
         if (wms->from_page == P_SELECT_DECK)
           wms->seq = S_SELECT_DEST_CAT;
-        else if (wms->from_page == P_SELECT_ARRANGE && wms->saved_mode == M_DECK)
+        else if (wms->from_page == P_SELECT_ARRANGE && wms->saved_mode == M_MOVE_DECK)
           wms->seq = S_MOVE_CAT;
         else if (wms->from_page == P_EDIT)
           wms->seq = S_CARD_ARRANGE;
@@ -1493,9 +1499,9 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
       }
       break;
     case 6:
-      if (strncmp(mult->post_lp, "Reveal", 6) == 0)
+      if (memcmp(mult->post_lp, "Reveal", 6) == 0)
         wms->seq = S_REVEAL;
-      else if (strncmp(mult->post_lp, "Create", 6) == 0) {
+      else if (memcmp(mult->post_lp, "Create", 6) == 0) {
         if (wms->from_page == P_SELECT_DECK)
           wms->seq = S_DECKS_CREATE;
         else {
@@ -1503,7 +1509,7 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
           if (e == 0)
             wms->seq = S_CREATE_CAT;
         }
-      } else if (strncmp(mult->post_lp, "Cancel", 6) == 0) {
+      } else if (memcmp(mult->post_lp, "Cancel", 6) == 0) {
         if (wms->from_page == P_SELECT_DECK || wms->from_page == P_PREFERENCES)
           wms->seq = S_START;
         else if (wms->from_page == P_MSG) {
@@ -1516,15 +1522,16 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
           if (e == 0)
             wms->seq = S_CLOSE;
         }
-      } else if (strncmp(mult->post_lp, "Select", 6) == 0) {
-        if (wms->from_page == P_SELECT_DEST_DECK)
+      } else if (memcmp(mult->post_lp, "Select", 6) == 0) {
+        if (wms->from_page == P_SELECT_DEST_DECK) {
           wms->seq = S_SELECT_MOVE_ARRANGE;
-        else {
-          e = wms->from_page != P_SELECT_ARRANGE || wms->saved_mode != M_DECK;
-          if (e == 0)
+        } else {
+          e = wms->from_page != P_SELECT_ARRANGE || wms->saved_mode != M_CREATE_DECK;
+          if (e == 0) {
             wms->seq = S_CAT_NAME;
+          }
         }
-      } else if (strncmp(mult->post_lp, "Delete", 6) == 0) {
+      } else if (memcmp(mult->post_lp, "Delete", 6) == 0) {
         if (wms->from_page == P_MSG) {
           e = wms->todo_main == -1;
           if (e == 0)
@@ -1535,7 +1542,7 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
           if (e == 0)
             wms->seq = S_ASK_DELETE_CAT;
         }
-      } else if (strncmp(mult->post_lp, "Rename", 6) == 0) {
+      } else if (memcmp(mult->post_lp, "Rename", 6) == 0) {
         if (wms->from_page == P_SELECT_DECK) {
           wms->seq = S_RENAME_ENTER;
         } else {
@@ -1544,15 +1551,15 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
             wms->seq = S_RENAME_CAT;
           }
         }
-      } else if (strncmp(mult->post_lp, "Insert", 6) == 0) {
+      } else if (memcmp(mult->post_lp, "Insert", 6) == 0) {
         e = wms->from_page != P_EDIT;
         if (e == 0)
           wms->seq = S_INSERT;
-      } else if (strncmp(mult->post_lp, "Toggle", 6) == 0) {
+      } else if (memcmp(mult->post_lp, "Toggle", 6) == 0) {
           e = wms->from_page != P_SELECT_DECK;
           if (e == 0)
             wms->seq = S_TOGGLE;
-      } else if (strncmp(mult->post_lp, "Remove", 6) == 0)
+      } else if (memcmp(mult->post_lp, "Remove", 6) == 0)
         if (wms->from_page == P_FILE)
           wms->seq = S_ASK_REMOVE;
         else {
@@ -1563,12 +1570,12 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
               wms->seq = wms->todo_main;
           }
         }
-      else if (strncmp(mult->post_lp, "Resume", 6) == 0)
+      else if (memcmp(mult->post_lp, "Resume", 6) == 0)
         wms->seq = S_RESUME;
       else if (memcmp(mult->post_lp, "Search", 6) == 0)
         wms->seq = S_SEARCH;
       else {
-        e = strncmp(mult->post_lp, "Import", 6) != 0;
+        e = memcmp(mult->post_lp, "Import", 6) != 0;
         if (e == 0)
           wms->seq = S_WARN_UPLOAD;
       }
@@ -2542,7 +2549,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           rv = printf("\t\t\t\t<input type=\"hidden\" name=\"match-case\" value=\"on\">\n");
           e = rv < 0;
         }
-        if (e == 0 && wms->ms.mov_cat_i >= 0 && (wms->page == P_SELECT_DEST_DECK || (wms->page == P_SELECT_ARRANGE && wms->mode == M_DECK))) {
+        if (e == 0 && wms->ms.mov_cat_i >= 0 && (wms->page == P_SELECT_DEST_DECK || (wms->page == P_SELECT_ARRANGE && wms->mode == M_MOVE_DECK))) {
           rv = printf("\t\t\t\t<input type=\"hidden\" name=\"mov-cat\" value=\"%d\">\n", wms->ms.mov_cat_i);
           e = rv < 0;
         }
@@ -3199,7 +3206,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         }
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.91</h1>\n" 
+        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.92</h1>\n" 
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2021</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
@@ -4661,9 +4668,10 @@ int main(int argc, char *argv[]) {
           case A_DECKS_CREATE:
             if (wms->ms.n_first >= 0) {
               wms->page = P_SELECT_ARRANGE;
-              wms->mode = M_DECK;
-            } else
+              wms->mode = M_CREATE_DECK;
+            } else {
               wms->page = P_CAT_NAME;
+            }
             break;
           case A_SELECT_DEST_DECK:
             wms->ms.mov_cat_i = wms->ms.cat_i;
@@ -4681,7 +4689,7 @@ int main(int argc, char *argv[]) {
             break;
           case A_SELECT_ARRANGE:
             wms->page = P_SELECT_ARRANGE;
-            wms->mode = M_DECK;
+            wms->mode = M_MOVE_DECK;
             break;
           case A_CAT_NAME:
             wms->page = P_CAT_NAME;
