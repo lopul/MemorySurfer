@@ -70,7 +70,7 @@ static enum Action action_seq[S_END+1][15] = {
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_ASK_REMOVE, A_END }, // S_ASK_REMOVE
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_REMOVE, A_FILELIST, A_CLOSE, A_END }, // S_REMOVE
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_ASK_ERASE, A_END }, // S_ASK_ERASE
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_ERASE, A_END }, // S_ERASE
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_ERASE, A_END }, // S_ERASE
   { A_FILELIST, A_CLOSE, A_END }, // S_CLOSE
   { A_NONE, A_END }, // S_NONE
   { A_SLASH, A_VOID, A_FILE_EXTENSION, A_GATHER, A_CREATE, A_LOGIN, A_END }, // S_CREATE
@@ -3216,7 +3216,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         }
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.93</h1>\n" 
+        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.94</h1>\n" 
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2021</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
@@ -4657,6 +4657,7 @@ int main(int argc, char *argv[]) {
           case A_ERASE:
             e = ms_close(&wms->ms);
             if (e == 0) {
+              wms->ms.passwd.style_sai = -1;
               e = ms_create(&wms->ms, O_TRUNC);
               if (e == 0) {
                 wms->ms.cat_i = -1;
