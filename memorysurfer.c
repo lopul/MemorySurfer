@@ -3097,8 +3097,8 @@ static int gen_html(struct WebMemorySurfer *wms) {
           if (e == 0) {
             rv = printf("\t\t\t<h1 class=\"msf\">Preview</h1>\n"
                         "\t\t\t<div id=\"%s\" class=\"%s\">%s</div>\n",
-                (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? "q_html" : "q_txt",
-                (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? "qa_html" : "qa_txt",
+                (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? "q-html" : "q-txt",
+                (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? "qa-html" : "qa-txt",
                 wms->html_lp);
             e = rv < 0;
           }
@@ -3107,8 +3107,8 @@ static int gen_html(struct WebMemorySurfer *wms) {
           e = xml_escape(&wms->html_lp, &wms->html_n, a_str, (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? 0 : ESC_AMP | ESC_LT);
           if (e == 0) {
             rv = printf("\t\t\t<div id=\"%s\" class=\"%s\">%s</div>\n",
-                (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? "a_html" : "a_txt",
-                (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? "qa_html" : "qa_txt",
+                (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? "a-html" : "a-txt",
+                (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? "qa-html" : "qa-txt",
                 wms->html_lp);
             e = rv < 0;
           }
@@ -3216,7 +3216,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         }
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.95</h1>\n"
+        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.96</h1>\n"
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2021</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
@@ -3268,8 +3268,8 @@ static int gen_html(struct WebMemorySurfer *wms) {
             if (e == 0) {
               rv = printf("\t\t\t<div id=\"%s\" class=\"%s\">%s</div>\n"
                           "\t\t\t<table>\n",
-                  (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? "q_html" : "q_txt",
-                  (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? "qa_html" : "qa_txt",
+                  (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? "q-html" : "q-txt",
+                  (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? "qa-html" : "qa-txt",
                   wms->html_lp);
               e = rv < 0;
             }
@@ -3280,7 +3280,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
                 rv = printf ("\t\t\t\t<tr>\n");
                 e = rv < 0;
                 for (x = 0; x < 2 && e == 0; x++) {
-                  rv = printf("\t\t\t\t\t<td class=\"msf_lvl\"><label class=\"msf\"><input type=\"radio\" disabled>Level</label></td>\n");
+                  rv = printf("\t\t\t\t\t<td class=\"msf-lvl\"><label class=\"msf\"><input type=\"radio\" disabled>Level</label></td>\n");
                   e = rv < 0;
                 }
                 if (e == 0) {
@@ -3320,7 +3320,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
                   if (i == lvl_sel)
                     attr_str = " autofocus";
                   set_time_str(time_str, lvl_s[i]);
-                  rv = printf("\t\t\t\t\t<td class=\"msf_lvl\"><label class=\"msf\"><input type=\"radio\" name=\"lvl\" value=\"%d\"%s>Level %d (%s)</label></td>\n",
+                  rv = printf("\t\t\t\t\t<td class=\"msf-lvl\"><label class=\"msf\"><input type=\"radio\" name=\"lvl\" value=\"%d\"%s>Level %d (%s)</label></td>\n",
                       i, attr_str,
                       i, time_str);
                   e = rv < 0;
@@ -3338,8 +3338,8 @@ static int gen_html(struct WebMemorySurfer *wms) {
             if (e == 0) {
               rv = printf("\t\t\t</table>\n"
                           "\t\t\t<div id=\"%s\" class=\"%s\"%s>%s</div>\n",
-                  (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? "a_html" : "a_txt",
-                  (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? "qa_html" : "qa_txt",
+                  (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? "a-html" : "a-txt",
+                  (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? "qa-html" : "qa-txt",
                   wms->mode == M_RATE || wms->reveal_pos > 0 ? "" : " style=\"background-color: #c0c0c040;\"",
                   wms->mode == M_RATE || wms->reveal_pos > 0 ? wms->html_lp : "");
               e = rv < 0;
@@ -3497,7 +3497,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         e = rv < 0;
         for (i = 0; i < 21 && e == 0; i++) {
           set_time_str(time_str, lvl_s[i]);
-          rv = printf("\t\t\t\t<tr><td class=\"msf_strength\">%d</td><td class=\"msf_strength\"><code class=\"msf\">(%s)</code></td><td class=\"msf_strength\">%d</td></tr>\n", i, time_str, wms->lvl_bucket[0][i]);
+          rv = printf("\t\t\t\t<tr><td class=\"msf-strength\">%d</td><td class=\"msf-strength\"><code class=\"msf\">(%s)</code></td><td class=\"msf-strength\">%d</td></tr>\n", i, time_str, wms->lvl_bucket[0][i]);
           e = rv < 0;
         }
         if (e == 0) {

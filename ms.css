@@ -40,7 +40,7 @@ textarea.msf {
 	margin: 0 auto 0 auto;
 }
 
-div.qa_html {
+div.qa-html {
 	width: 98%;
 	padding: 0.5ex 0.2ex 0.5ex 0.2ex;
 	margin: 0.3ex auto 0.3ex auto;
@@ -51,7 +51,7 @@ div.qa_html {
 	min-height: 2.5em;
 }
 
-div.qa_txt {
+div.qa-txt {
 	width: 98%;
 	padding: 0.5ex 0.2ex 0.5ex 0.2ex;
 	margin: 0.3ex auto 0.3ex auto;
@@ -71,11 +71,11 @@ ul.msf {
 	padding: 0;
 }
 
-td.msf_lvl {
+td.msf-lvl {
 	min-width: 19ex;
 }
 
-td.msf_strength {
+td.msf-strength {
 	min-width: auto;
 }
 
