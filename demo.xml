@@ -39,28 +39,28 @@ But this would involve regularly Exporting and Importing, and keeping the freque
 		<name>Creating Cards</name>
 		<card>
 			<type>1</type>
-			<question>A Card can be either |___| or TXT.</question>
+			<question>A Card can be either TXT or |___|.</question>
 			<answer>HTML
 &lt;br>
 For simple text based flashcard TXT is very much sufficient.</answer></card>
 		<card>
-			<question>Even for a simple TXT card, styling is possible - to overwrite the |___| definition,set the following style:
+			<question>Even for a simple TXT card, styling is possible - to overwrite the |___| definition, set the following style:
 
-div.qa_txt {
-  font-family: sans-serif;
-}</question>
+  div.qa-txt {
+    font-family: sans-serif;
+  }</question>
 			<answer>monospace
-The &lt;div>'s for displaying the question and answer of the card use the (CSS) class "qa_txt", which is defined in ms.css as follows:
-div.qa_txt {
-  width: 98%;
-  padding: 0.5ex 0.2ex 0.5ex 0.2ex;
-  margin: 0.3ex auto 0.3ex auto;
-  border-width: 1px;
-  border-style: solid;
-  border-radius: 0.3ex;
-  border-color: rgba(0, 0, 0, .25);
-  min-height: 2.5em;
-  font-family: monospace;
-  white-space: pre-wrap;
-  overflow-wrap: break-word;
-}</answer></card></deck></memorysurfer>
+The &lt;div>'s for displaying the question and answer of the card use the (CSS) class "qa-txt", which is defined in ms.css as follows:
+  div.qa-txt {
+    width: 98%;
+    padding: 0.5ex 0.2ex 0.5ex 0.2ex;
+    margin: 0.3ex auto 0.3ex auto;
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 0.3ex;
+    border-color: rgba(0, 0, 0, .25);
+    min-height: 2.5em;
+    font-family: monospace;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+  }</answer></card></deck></memorysurfer>
