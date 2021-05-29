@@ -47,7 +47,7 @@ enum Stage { T_NULL, T_URLENCODE_EQUALS, T_URLENCODE_AMP, T_BOUNDARY_INIT, T_CON
 static enum Action action_seq[S_END+1][15] = {
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_FILELIST, A_FILE, A_END }, // S_FILE
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_START_DECKS, A_END }, // S_START_DECKS
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT, A_DECKS_CREATE, A_END }, // S_DECKS_CREATE 
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT, A_DECKS_CREATE, A_END }, // S_DECKS_CREATE
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT_SELECTED, A_SELECT_ARRANGE, A_END }, // S_SELECT_MOVE_ARRANGE
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT, A_TEST_ARRANGE, A_CAT_NAME, A_END }, // S_CAT_NAME
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT, A_READ_STYLE, A_STYLE_GO, A_END }, // S_STYLE_GO
@@ -1203,9 +1203,7 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
     }
     break;
   case F_LEARN_ACTION:
-    if (strncmp(mult->post_lp, "Suspend", 7) == 0) {
-      wms->seq = S_SUSPEND;
-    } else if (strncmp(mult->post_lp, "Stop", 4) == 0) {
+    if (strncmp(mult->post_lp, "Stop", 4) == 0) {
       wms->seq = S_SELECT_LEARN_CAT;
     } else {
       e = strncmp(mult->post_lp, "Proceed", 7) != 0;
@@ -1596,6 +1594,8 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
         if (e == 0) {
           wms->seq = S_PREVIEW_SYNC;
         }
+      } else if (memcmp(mult->post_lp, "Suspend", 7) == 0) {
+        wms->seq = S_SUSPEND;
       } else {
         e = memcmp(mult->post_lp, "Refresh", 7) != 0;
         if (e == 0) {
@@ -1901,7 +1901,7 @@ static int parse_post(struct WebMemorySurfer *wms) {
                     if (e == 0) {
                       stage = T_CONTENT;
                       mult->delim_str[0] = "; ";
-                      mult->delim_str[1] = NULL;  
+                      mult->delim_str[1] = NULL;
                     }
                   }
                   rv = fclose(temp_stream);
@@ -3191,7 +3191,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
               j = i;
             }
           }
-          if (j == -1) {          
+          if (j == -1) {
             j = 1;
           }
           for (i = 0; i < 5 && e == 0; i++) {
@@ -3216,7 +3216,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         }
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.94</h1>\n" 
+        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.95</h1>\n"
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2021</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
@@ -3349,7 +3349,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
             rv = printf("\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Edit\">Edit</button>\n"
                         "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Search\">Search</button>\n"
                         "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"learn_action\" value=\"Stop\">Stop</button>\n"
-                        "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"learn_action\" value=\"Suspend\"%s>Suspend</button>\n"
+                        "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Suspend\"%s>Suspend</button>\n"
                         "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Resume\"%s>Resume</button></p>\n"
                         "\t\t</form>\n"
                         "\t\t<code class=\"msf\">%s; nel: %d; html_n: %zu</code>\n"
@@ -4442,7 +4442,7 @@ int main(int argc, char *argv[]) {
                   wms->static_header = "Please select a deck to move";
                 }
                 wms->todo_main = S_START_DECKS;
-              } 
+              }
             }
             break;
           case A_TEST_ARRANGE:
