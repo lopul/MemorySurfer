@@ -3206,7 +3206,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         }
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.98</h1>\n"
+        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.99</h1>\n"
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2021</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
@@ -4511,15 +4511,16 @@ int main(int argc, char *argv[]) {
               str = malloc(size);
               e = str == NULL;
               if (e == 0) {
-                strcpy(str, DATA_PATH);
-                strcat(str, "/");
-                strcat(str, wms->file_title_str);
-                assert(wms->ms.imf_filename == NULL);
-                wms->ms.imf_filename = str;
+                rv = snprintf(str, size, "%s/%s", DATA_PATH, wms->file_title_str);
+                e = rv < 0 || rv >= size;
+                if (e == 0) {
+                  assert(wms->ms.imf_filename == NULL);
+                  wms->ms.imf_filename = str;
+                }
               }
-            }
-            else
+            } else {
               e = wms->seq != S_FILE && wms->seq != S_ABOUT;
+            }
             break;
           case A_UPLOAD:
             wms->page = P_UPLOAD;
