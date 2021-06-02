@@ -1229,10 +1229,7 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
     }
     break;
   case F_SEARCH_ACTION:
-    if (strncmp(mult->post_lp, "Reverse", 7) == 0) {
-      wms->seq = S_SEARCH;
-      wms->ms.srch_dir = -1;
-    } else if (strncmp(mult->post_lp, "Forward", 7) == 0) {
+    if (strncmp(mult->post_lp, "Forward", 7) == 0) {
       wms->seq = S_SEARCH;
       wms->ms.srch_dir = 1;
     } else {
@@ -1584,6 +1581,9 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
         if (e == 0) {
           wms->seq = S_PREVIEW_SYNC;
         }
+      } else if (memcmp(mult->post_lp, "Reverse", 7) == 0) {
+        wms->seq = S_SEARCH;
+        wms->ms.srch_dir = -1;
       } else if (memcmp(mult->post_lp, "Suspend", 7) == 0) {
         wms->seq = S_SUSPEND;
       } else {
@@ -3139,7 +3139,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
             e = xml_escape(&wms->html_lp, &wms->html_n, q_str, ESC_AMP | ESC_LT);
             if (e == 0) {
               rv = printf("\t\t\t<div><textarea class=\"msf\" rows=\"10\" cols=\"46\"%s>%s</textarea></div>\n"
-                          "\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"search_action\" value=\"Reverse\"%s>Reverse</button>\n"
+                          "\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Reverse\"%s>Reverse</button>\n"
                           "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"search_action\" value=\"Forward\"%s>Forward</button></p>\n",
                   wms->found_str != NULL ? " readonly" : " disabled",
                   wms->html_lp,
@@ -3206,7 +3206,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         }
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.99</h1>\n"
+        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.100</h1>\n"
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2021</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
