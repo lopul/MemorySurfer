@@ -3192,7 +3192,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         }
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.101</h1>\n"
+        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.102</h1>\n"
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2021</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
@@ -4224,18 +4224,21 @@ int main(int argc, char *argv[]) {
             if (wms->ms.imf_filename != NULL) {
               assert(wms->ms.passwd.pw_flag == -1 && wms->ms.passwd.version == 0 && wms->ms.passwd.style_sai == -1);
               data_size = imf_get_size(&wms->ms.imf, PW_INDEX);
-              e = data_size != 23 && data_size != sizeof(struct Password);
+              e = data_size != 23 && data_size != 32 && data_size != sizeof(struct Password);
               if (e == 0) {
                 e = imf_get(&wms->ms.imf, PW_INDEX, &wms->ms.passwd);
                 if (e == 0) {
-                  if (data_size == 23) {
+                  if (data_size == 23 || data_size == 32) {
                     wms->ms.passwd.version = 0x01000000;
+                    wms->ms.passwd.mctr = 0;
                   }
                 }
               } else {
+                free(wms->file_title_str);
+                wms->file_title_str = NULL;
                 wms->static_header = "Read of password hash failed";
                 wms->static_btn_main = "OK";
-                wms->todo_main = S_GO_LOGIN;
+                wms->todo_main = S_NONE;
                 wms->page = P_MSG;
               }
             } else {
