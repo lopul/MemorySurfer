@@ -1173,9 +1173,7 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
     e = a_n != 1;
     break;
   case F_EDIT_ACTION:
-    if (strncmp(mult->post_lp, "Append", 6) == 0) {
-      wms->seq = S_APPEND;
-    } else if (strncmp(mult->post_lp, "Delete", 6) == 0) {
+    if (strncmp(mult->post_lp, "Delete", 6) == 0) {
       wms->seq = S_ASK_DELETE_CARD;
     } else if (strncmp(mult->post_lp, "Previous", 8) == 0) {
       wms->seq = S_PREVIOUS;
@@ -1472,28 +1470,32 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
       }
       break;
     case 6:
-      if (memcmp(mult->post_lp, "Reveal", 6) == 0)
+      if (memcmp(mult->post_lp, "Reveal", 6) == 0) {
         wms->seq = S_REVEAL;
-      else if (memcmp(mult->post_lp, "Create", 6) == 0) {
-        if (wms->from_page == P_SELECT_DECK)
+      } else if (memcmp(mult->post_lp, "Append", 6) == 0) {
+        wms->seq = S_APPEND;
+      } else if (memcmp(mult->post_lp, "Create", 6) == 0) {
+        if (wms->from_page == P_SELECT_DECK) {
           wms->seq = S_DECKS_CREATE;
-        else {
+        } else {
           e = wms->from_page != P_CAT_NAME;
-          if (e == 0)
+          if (e == 0) {
             wms->seq = S_CREATE_CAT;
+          }
         }
       } else if (memcmp(mult->post_lp, "Cancel", 6) == 0) {
-        if (wms->from_page == P_SELECT_DECK || wms->from_page == P_PREFERENCES)
+        if (wms->from_page == P_SELECT_DECK || wms->from_page == P_PREFERENCES) {
           wms->seq = S_START;
-        else if (wms->from_page == P_MSG) {
+        } else if (wms->from_page == P_MSG) {
           e = wms->todo_alt == -1;
-          if (e == 0)
+          if (e == 0) {
             wms->seq = wms->todo_alt;
-        }
-        else {
+          }
+        } else {
           e = wms->from_page != P_OPEN;
-          if (e == 0)
+          if (e == 0) {
             wms->seq = S_CLOSE;
+          }
         }
       } else if (memcmp(mult->post_lp, "Select", 6) == 0) {
         if (wms->from_page == P_SELECT_DEST_DECK) {
@@ -1507,13 +1509,14 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
       } else if (memcmp(mult->post_lp, "Delete", 6) == 0) {
         if (wms->from_page == P_MSG) {
           e = wms->todo_main == -1;
-          if (e == 0)
+          if (e == 0) {
             wms->seq = wms->todo_main;
-        }
-        else {
+          }
+        } else {
           e = wms->from_page != P_SELECT_DECK;
-          if (e == 0)
+          if (e == 0) {
             wms->seq = S_ASK_DELETE_CAT;
+          }
         }
       } else if (memcmp(mult->post_lp, "Rename", 6) == 0) {
         if (wms->from_page == P_SELECT_DECK) {
@@ -1530,8 +1533,9 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
           wms->seq = S_INSERT;
       } else if (memcmp(mult->post_lp, "Toggle", 6) == 0) {
           e = wms->from_page != P_SELECT_DECK;
-          if (e == 0)
+          if (e == 0) {
             wms->seq = S_TOGGLE;
+          }
       } else if (memcmp(mult->post_lp, "Remove", 6) == 0) {
         if (wms->from_page == P_FILE) {
           wms->seq = S_ASK_REMOVE;
@@ -3015,7 +3019,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           assert(strlen(mtime_str) == 16 && wms->file_title_str != NULL && strlen(wms->tok_str) == 40);
           rv = printf("\t\t\t<h1 class=\"msf\">Editing</h1>\n"
                       "\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Insert\"%s>Insert</button>\n"
-                      "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"edit_action\" value=\"Append\">Append</button>\n"
+                      "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Append\">Append</button>\n"
                       "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"edit_action\" value=\"Delete\"%s>Delete</button>\n"
                       "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"edit_action\" value=\"Previous\"%s>Previous</button>\n"
                       "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"edit_action\" value=\"Next\"%s>Next</button></p>\n"
@@ -3192,7 +3196,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         }
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.102</h1>\n"
+        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.103</h1>\n"
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2021</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
