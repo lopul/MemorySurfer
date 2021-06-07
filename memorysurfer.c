@@ -36,7 +36,7 @@
 #include <fcntl.h> // O_TRUNC / O_EXCL
 #include <errno.h>
 
-enum Field { F_UNKNOWN, F_FILE_TITLE, F_FILE_ACTION, F_UPLOAD, F_ARRANGE, F_CAT_NAME, F_STYLE_TXT, F_MOVED_CAT, F_EDIT_ACTION, F_SEARCH_TXT, F_MATCH_CASE, F_IS_HTML, F_CAT, F_CARD, F_MOV_CARD, F_LVL, F_Q, F_A, F_REVEAL_POS, F_TODO_MAIN, F_TODO_ALT, F_MTIME, F_PASSWORD, F_NEW_PASSWORD, F_TOKEN, F_EVENT, F_PAGE, F_MODE, F_TIMEOUT };
+enum Field { F_UNKNOWN, F_FILE_TITLE, F_FILE_ACTION, F_UPLOAD, F_ARRANGE, F_CAT_NAME, F_STYLE_TXT, F_MOVED_CAT, F_SEARCH_TXT, F_MATCH_CASE, F_IS_HTML, F_CAT, F_CARD, F_MOV_CARD, F_LVL, F_Q, F_A, F_REVEAL_POS, F_TODO_MAIN, F_TODO_ALT, F_MTIME, F_PASSWORD, F_NEW_PASSWORD, F_TOKEN, F_EVENT, F_PAGE, F_MODE, F_TIMEOUT };
 enum Action { A_END, A_NONE, A_FILE, A_WARN_UPLOAD, A_CREATE, A_NEW, A_OPEN_DLG, A_FILELIST, A_OPEN, A_CHANGE_PASSWD, A_WRITE_PASSWD, A_READ_PASSWD, A_CHECK_PASSWORD, A_AUTH_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_GET_CARD, A_CHECK_RESUME, A_SLASH, A_VOID, A_FILE_EXTENSION, A_GATHER, A_UPLOAD, A_UPLOAD_REPORT, A_EXPORT, A_ASK_REMOVE, A_REMOVE, A_ASK_ERASE, A_ERASE, A_SET_FILE, A_CLOSE, A_START_DECKS, A_DECKS_CREATE, A_SELECT_DEST_DECK, A_SELECT_SEND_CAT, A_SELECT_ARRANGE, A_CAT_NAME, A_STYLE_GO, A_CREATE_CAT, A_RENAME_CAT, A_READ_STYLE, A_STYLE_APPLY, A_ASK_DELETE_CAT, A_DELETE_CAT, A_TOGGLE, A_MOVE_CAT, A_SELECT_EDIT_CAT, A_EDIT, A_UPDATE_QA, A_UPDATE_HTML, A_SYNC, A_INSERT, A_APPEND, A_ASK_DELETE_CARD, A_DELETE_CARD, A_PREVIOUS, A_NEXT, A_SCHEDULE, A_SET, A_CARD_ARRANGE, A_MOVE_CARD, A_SEND_CARD, A_SELECT_LEARN_CAT, A_SELECT_SEARCH_CAT, A_PREFERENCES, A_ABOUT, A_APPLY, A_SEARCH, A_PREVIEW, A_DETERMINE_CARD, A_SHOW, A_REVEAL, A_PROCEED, A_SUSPEND, A_RESUME, A_CHECK_FILE, A_LOGIN, A_HISTOGRAM, A_TABLE, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CARD, A_TEST_CAT_SELECTED, A_TEST_CAT_VALID, A_TEST_CAT, A_TEST_ARRANGE, A_TEST_NAME };
 enum Page { P_UNDEF = -1, P_START, P_FILE, P_PASSWORD, P_NEW, P_OPEN, P_UPLOAD, P_UPLOAD_REPORT, P_EXPORT, P_CAT_NAME, P_STYLE, P_SELECT_ARRANGE, P_SELECT_DEST_DECK, P_SELECT_DECK, P_EDIT, P_PREVIEW, P_SEARCH, P_PREFERENCES, P_ABOUT, P_LEARN, P_MSG, P_HISTOGRAM, P_TABLE };
 enum Block { B_END, B_START_HTML, B_FORM_URLENCODED, B_FORM_MULTIPART, B_OPEN_DIV, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_HIDDEN_MOV_CARD, B_CLOSE_DIV, B_START, B_FILE, B_PASSWORD, B_NEW, B_OPEN, B_UPLOAD, B_UPLOAD_REPORT, B_EXPORT, B_CAT_NAME, B_STYLE, B_SELECT_ARRANGE, B_SELECT_DEST_DECK, B_SELECT_DECK, B_EDIT, B_PREVIEW, B_SEARCH, B_PREFERENCES, B_ABOUT, B_LEARN, B_MSG, B_HISTOGRAM, B_TABLE };
@@ -1060,13 +1060,9 @@ static int determine_field(struct Multi *mult, struct Parse *parse) {
       }
       break;
     case 11:
-      if (memcmp(mult->post_lp, "file_action", 11) == 0) {
+      e = memcmp(mult->post_lp, "file_action", 11) != 0;
+      if (e == 0) {
         parse->field = F_FILE_ACTION;
-      } else {
-        e = memcmp(mult->post_lp, "edit_action", 11) != 0;
-        if (e == 0) {
-          parse->field = F_EDIT_ACTION;
-        }
       }
       break;
     case 12:
@@ -1171,16 +1167,6 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
     assert(wms->ms.mov_cat_i == -1);
     a_n = sscanf(mult->post_lp, "%d", &wms->ms.mov_cat_i);
     e = a_n != 1;
-    break;
-  case F_EDIT_ACTION:
-    if (strncmp(mult->post_lp, "Stop", 4) == 0) {
-      wms->seq = S_SELECT_EDIT_CAT;
-    } else {
-      e = strncmp(mult->post_lp, "Search", 6) != 0;
-      if (e == 0) {
-        wms->seq = S_SEARCH_SYNCED;
-      }
-    }
     break;
   case F_SEARCH_TXT:
     e = wms->ms.search_txt != NULL;
@@ -1355,7 +1341,7 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
         } else if (wms->from_page == P_STYLE) {
           wms->seq = S_PREVIEW;
         } else {
-          e = wms->from_page != P_PREVIEW;
+          e = wms->from_page != P_PREVIEW && wms->from_page != P_EDIT;
           if (e == 0) {
             wms->seq = S_SELECT_EDIT_CAT;
           }
@@ -1547,7 +1533,9 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
       } else if (memcmp(mult->post_lp, "Resume", 6) == 0) {
         wms->seq = S_RESUME;
       } else if (memcmp(mult->post_lp, "Search", 6) == 0) {
-        if (wms->from_page == P_START) {
+        if (wms->from_page == P_EDIT) {
+          wms->seq = S_SEARCH_SYNCED;
+        } else if (wms->from_page == P_START) {
           wms->seq = S_SELECT_SEARCH_CAT;
         } else {
           wms->seq = S_SEARCH;
@@ -3050,9 +3038,9 @@ static int gen_html(struct WebMemorySurfer *wms) {
             if (e == 0) {
               rv = printf("\t\t\t<div><textarea class=\"msf\" name=\"a\" rows=\"10\" cols=\"46\"%s>%s</textarea></div>\n"
                           "\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Learn\">Learn</button>\n"
-                          "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"edit_action\" value=\"Search\">Search</button>\n"
+                          "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Search\">Search</button>\n"
                           "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Preview\">Preview</button>\n"
-                          "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"edit_action\" value=\"Stop\">Stop</button>\n"
+                          "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Stop\">Stop</button>\n"
                           "\t\t\t\t<label class=\"msf\"><input type=\"checkbox\" name=\"is-html\"%s>HTML</label></p>\n",
                   a_str != NULL ? "" : " disabled",
                   wms->html_lp,
@@ -3202,7 +3190,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         }
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.104</h1>\n"
+        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.105</h1>\n"
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2021</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
