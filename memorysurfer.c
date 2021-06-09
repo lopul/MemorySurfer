@@ -66,7 +66,7 @@ static enum Action action_seq[S_END+1][15] = {
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_PASSWD, A_CHANGE_PASSWD, A_WRITE_PASSWD, A_GEN_TOK, A_NONE, A_END }, // S_CHANGE
   { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_NONE, A_END }, // S_START
   { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_UPLOAD_REPORT, A_END }, // S_UPLOAD_REPORT
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_EXPORT, A_END }, // S_EXPORT
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_EXPORT, A_END }, // S_EXPORT
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_ASK_REMOVE, A_END }, // S_ASK_REMOVE
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_REMOVE, A_FILELIST, A_CLOSE, A_END }, // S_REMOVE
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_ASK_ERASE, A_END }, // S_ASK_ERASE
@@ -3190,7 +3190,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         }
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.105</h1>\n"
+        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.106</h1>\n"
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2021</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
@@ -4321,14 +4321,15 @@ int main(int argc, char *argv[]) {
                   e = sha1_input(&sha1, (uint8_t*) &mod_time, sizeof(uint32_t));
                   if (e == 0) {
                     e = sha1_result(&sha1, message_digest);
-                    if (e == 0)
+                    if (e == 0) {
                       print_hex(wms->tok_str, message_digest, 20);
+                    }
                   }
                 }
               }
-            }
-            else
+            } else {
               e = wms->seq != S_FILE && wms->seq != S_ABOUT;
+            }
             break;
           case A_RETRIEVE_MTIME:
             e = mtime_test != -1;
