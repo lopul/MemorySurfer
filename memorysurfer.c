@@ -1096,9 +1096,7 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
     }
     break;
   case F_FILE_ACTION:
-    if (strncmp(mult->post_lp, "New", 3) == 0) {
-      wms->seq = S_NEW;
-    } else if (strncmp(mult->post_lp, "Upload", 6) == 0) {
+    if (strncmp(mult->post_lp, "Upload", 6) == 0) {
       wms->seq = S_UPLOAD_REPORT;
     } else if (strncmp(mult->post_lp, "Export", 6) == 0) {
       wms->seq = S_EXPORT;
@@ -1301,6 +1299,16 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
     break;
   case F_EVENT:
     switch (mult->post_fp) {
+    case 3:
+      if (memcmp(mult->post_lp, "New", 3) == 0) {
+        wms->seq = S_NEW;
+      } else {
+        e = memcmp(mult->post_lp, "Set", 3) != 0;
+        if (e == 0) {
+          wms->seq = S_SET;
+        }
+      }
+      break;
     case 4:
       if (memcmp(mult->post_lp, "Show", 4) == 0) {
         wms->seq = S_SHOW;
@@ -1397,8 +1405,9 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
         wms->seq = S_START;
       } else {
         e = memcmp(mult->post_lp, "File", 4) != 0;
-        if (e == 0)
+        if (e == 0) {
           wms->seq = S_FILE;
+        }
       }
       break;
     case 5:
@@ -1580,11 +1589,7 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
       }
       break;
     default:
-      if (strncmp(mult->post_lp, "Set", 3) == 0) {
-        e = wms->from_page != P_EDIT;
-        if (e == 0)
-          wms->seq = S_SET;
-      } else if (strncmp(mult->post_lp, "Preferences", 11) == 0) {
+      if (strncmp(mult->post_lp, "Preferences", 11) == 0) {
         wms->seq = S_PREFERENCES;
       } else if (strncmp(mult->post_lp, "Histogram", 9) == 0) {
         wms->seq = S_HISTOGRAM;
@@ -2605,13 +2610,12 @@ static int gen_html(struct WebMemorySurfer *wms) {
         if (wms->file_title_str != NULL) {
           dis_str = "";
           attr_str = " disabled";
-        }
-        else {
+        } else {
           dis_str = " disabled";
           attr_str = "";
         }
         rv = printf("\t\t\t<h1 class=\"msf\">File</h1>\n"
-                    "\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"file_action\" value=\"New\"%s>New</button></p>\n"
+                    "\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"New\"%s>New</button></p>\n"
                     "\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Open\"%s>Open</button></p>\n"
                     "\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"file_action\" value=\"Password\"%s>Password</button></p>\n"
                     "\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Import\"%s>Import</button></p>\n"
@@ -3190,7 +3194,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         }
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.106</h1>\n"
+        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.107</h1>\n"
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2021</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
