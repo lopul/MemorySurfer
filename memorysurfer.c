@@ -1096,11 +1096,7 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
     }
     break;
   case F_FILE_ACTION:
-    if (strncmp(mult->post_lp, "Upload", 6) == 0) {
-      wms->seq = S_UPLOAD_REPORT;
-    } else if (strncmp(mult->post_lp, "Export", 6) == 0) {
-      wms->seq = S_EXPORT;
-    } else if (strncmp(mult->post_lp, "Close", 5) == 0) {
+    if (strncmp(mult->post_lp, "Close", 5) == 0) {
       wms->seq = S_CLOSE;
     } else if (strncmp(mult->post_lp, "Cancel", 6) == 0) {
       if (wms->file_title_str != NULL) {
@@ -1520,8 +1516,13 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
         }
       } else if (memcmp(mult->post_lp, "Insert", 6) == 0) {
         e = wms->from_page != P_EDIT;
-        if (e == 0)
+        if (e == 0) {
           wms->seq = S_INSERT;
+        }
+      } else if (memcmp(mult->post_lp, "Export", 6) == 0) {
+        wms->seq = S_EXPORT;
+      } else if (memcmp(mult->post_lp, "Upload", 6) == 0) {
+        wms->seq = S_UPLOAD_REPORT;
       } else if (memcmp(mult->post_lp, "Toggle", 6) == 0) {
           e = wms->from_page != P_SELECT_DECK;
           if (e == 0) {
@@ -2619,7 +2620,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
                     "\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Open\"%s>Open</button></p>\n"
                     "\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"file_action\" value=\"Password\"%s>Password</button></p>\n"
                     "\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Import\"%s>Import</button></p>\n"
-                    "\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"file_action\" value=\"Export\"%s>Export</button></p>\n"
+                    "\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Export\"%s>Export</button></p>\n"
                     "\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Remove\"%s>Remove</button></p>\n"
                     "\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Erase\"%s>Erase</button></p>\n"
                     "\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"file_action\" value=\"Close\"%s>Close</button></p>\n"
@@ -2752,7 +2753,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         rv = printf("\t\t\t<h1 class=\"msf\">Upload</h1>\n"
                     "\t\t\t<p class=\"msf\">Choose a (previously exported .XML) File to upload (which will be used for the Import)</p>\n"
                     "\t\t\t<p class=\"msf\"><input type=\"file\" name=\"upload\"></p>\n"
-                    "\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"file_action\" value=\"Upload\">Upload</button>\n"
+                    "\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Upload\">Upload</button>\n"
                     "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"file_action\" value=\"Stop\">Stop</button></p>\n"
                     "\t\t</form>\n"
                     "\t</body>\n"
@@ -3194,7 +3195,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         }
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.107</h1>\n"
+        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.108</h1>\n"
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2021</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
