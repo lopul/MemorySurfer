@@ -1096,15 +1096,7 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
     }
     break;
   case F_FILE_ACTION:
-    if (strncmp(mult->post_lp, "Close", 5) == 0) {
-      wms->seq = S_CLOSE;
-    } else if (strncmp(mult->post_lp, "Cancel", 6) == 0) {
-      if (wms->file_title_str != NULL) {
-        wms->seq = S_START;
-      } else {
-        wms->seq = S_NONE;
-      }
-    } else if (strncmp(mult->post_lp, "Enter", 5) == 0) {
+    if (strncmp(mult->post_lp, "Enter", 5) == 0) {
       wms->seq = S_ENTER;
     } else if (strncmp(mult->post_lp, "Login", 5) == 0) {
       wms->seq = S_LOGIN;
@@ -1447,6 +1439,8 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
         }
       } else if (memcmp(mult->post_lp, "About", 5) == 0) {
         wms->seq = S_ABOUT;
+      } else if (memcmp(mult->post_lp, "Close", 5) == 0) {
+        wms->seq = S_CLOSE;
       } else {
         e = memcmp(mult->post_lp, "Start", 5) != 0;
         if (e == 0) {
@@ -1471,6 +1465,12 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
       } else if (memcmp(mult->post_lp, "Cancel", 6) == 0) {
         if (wms->from_page == P_SELECT_DECK || wms->from_page == P_PREFERENCES) {
           wms->seq = S_START;
+        } else if (wms->from_page == P_FILE) {
+          if (wms->file_title_str != NULL) {
+            wms->seq = S_START;
+          } else {
+            wms->seq = S_NONE;
+          }
         } else if (wms->from_page == P_MSG) {
           e = wms->todo_alt == -1;
           if (e == 0) {
@@ -2224,7 +2224,7 @@ static int gen_xml_category(int16_t cat_i, struct XmlGenerator *xg, struct Memor
   int e;
   int rv;
   struct Category *cat_ptr;
-  char *c_str;
+  char *str;
   int32_t data_size;
   struct Card *card_l;
   int card_a;
@@ -2244,22 +2244,22 @@ static int gen_xml_category(int16_t cat_i, struct XmlGenerator *xg, struct Memor
     e = inds_set(inds, 1, 1);
     if (e == 0) {
       cat_ptr = ms->cat_t + cat_i;
-      c_str = sa_get(&ms->cat_sa, cat_i);
-      e = c_str == NULL;
+      str = sa_get(&ms->cat_sa, cat_i);
+      e = str == NULL;
       if (e == 0) {
-        e = xml_escape(&xg->w_lineptr, &xg->w_n, c_str, ESC_AMP | ESC_LT);
+        e = xml_escape(&xg->w_lineptr, &xg->w_n, str, ESC_AMP | ESC_LT);
         if (e == 0) {
           rv = fprintf(xg->w_stream, "\n%s<name>%s</name>", inds->str, xg->w_lineptr);
           e = rv < 0;
           if (e == 0) {
-            data_size = imf_get_size (&ms->imf, cat_ptr->cat_cli);
-            card_l = malloc (data_size);
+            data_size = imf_get_size(&ms->imf, cat_ptr->cat_cli);
+            card_l = malloc(data_size);
             e = card_l == NULL;
             if (e == 0) {
-              e = imf_get (&ms->imf, cat_ptr->cat_cli, card_l);
+              e = imf_get(&ms->imf, cat_ptr->cat_cli, card_l);
               if (e == 0) {
                 sa_init(&card_sa);
-                card_a = data_size / sizeof (struct Card);
+                card_a = data_size / sizeof(struct Card);
                 card_i = 0;
                 while ((card_i < card_a) && (e == 0))
                 {
@@ -2623,8 +2623,8 @@ static int gen_html(struct WebMemorySurfer *wms) {
                     "\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Export\"%s>Export</button></p>\n"
                     "\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Remove\"%s>Remove</button></p>\n"
                     "\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Erase\"%s>Erase</button></p>\n"
-                    "\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"file_action\" value=\"Close\"%s>Close</button></p>\n"
-                    "\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"file_action\" value=\"Cancel\">Cancel</button></p>\n"
+                    "\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Close\"%s>Close</button></p>\n"
+                    "\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Cancel\">Cancel</button></p>\n"
                     "\t\t</form>\n"
                     "\t\t<code class=\"msf\" >%s</code>\n"
                     "\t</body>\n"
@@ -3195,7 +3195,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         }
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.108</h1>\n"
+        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.109</h1>\n"
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2021</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
