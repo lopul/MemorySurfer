@@ -1107,8 +1107,6 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
       if ((wms->from_page == P_PASSWORD && wms->saved_mode == M_DEFAULT) || wms->from_page == P_NEW) {
         wms->seq = S_CLOSE;
       }
-    } else if (strncmp(mult->post_lp, "Password", 8) == 0) {
-      wms->seq = S_GO_CHANGE;
     } else {
       e = strncmp(mult->post_lp, "Change", 6) != 0;
       if (e == 0) {
@@ -1582,6 +1580,8 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
     case 8:
       if (memcmp(mult->post_lp, "Previous", 8) == 0) {
         wms->seq = S_PREVIOUS;
+      } else if (memcmp(mult->post_lp, "Password", 8) == 0) {
+        wms->seq = S_GO_CHANGE;
       } else {
         e = memcmp(mult->post_lp, "Schedule", 8) != 0;
         if (e == 0) {
@@ -2618,7 +2618,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         rv = printf("\t\t\t<h1 class=\"msf\">File</h1>\n"
                     "\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"New\"%s>New</button></p>\n"
                     "\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Open\"%s>Open</button></p>\n"
-                    "\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"file_action\" value=\"Password\"%s>Password</button></p>\n"
+                    "\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Password\"%s>Password</button></p>\n"
                     "\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Import\"%s>Import</button></p>\n"
                     "\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Export\"%s>Export</button></p>\n"
                     "\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Remove\"%s>Remove</button></p>\n"
@@ -2689,9 +2689,9 @@ static int gen_html(struct WebMemorySurfer *wms) {
         if (e == 0) {
           i = 0;
           do {
-            if (i > 0)
+            if (i > 0) {
               rv = snprintf(str, size, "new-%d.imsf", i);
-            else
+            } else
               rv = snprintf(str, size, "new.imsf");
             e = rv < 0 || rv >= size;
             if (e == 0) {
@@ -3195,7 +3195,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         }
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.110</h1>\n"
+        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.111</h1>\n"
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2021</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
@@ -3738,7 +3738,7 @@ static int ms_determine_card(struct MemorySurfer *ms) {
                   reten_state[STATE_SCHEDULED] = 1.0;
                 }
               }
-              if (reten < reten_state[STATE_SCHEDULED] || (reten == reten_state[STATE_SCHEDULED] && time_diff < state_time_diff[STATE_SCHEDULED])) {
+              if (reten < reten_state[STATE_SCHEDULED] || (reten == reten_state[STATE_SCHEDULED] && time_diff > state_time_diff[STATE_SCHEDULED])) {
                 reten_state[STATE_SCHEDULED] = reten;
                 state_time_diff[STATE_SCHEDULED] = time_diff;
                 sel_card[STATE_SCHEDULED] = card_i;
@@ -3773,8 +3773,7 @@ static int ms_determine_card(struct MemorySurfer *ms) {
   return e;
 }
 
-int sa_cmp (struct StringArray *sa_ls, struct StringArray *sa_rs)
-{
+static int sa_cmp (struct StringArray *sa_ls, struct StringArray *sa_rs) {
   int eq; // equal
   int i;
   int j;
@@ -3783,14 +3782,11 @@ int sa_cmp (struct StringArray *sa_ls, struct StringArray *sa_rs)
   char ch_rs; // right
   n = sa_ls->sa_c;
   eq = n == sa_rs->sa_c;
-  if (eq != 0)
-  {
+  if (eq != 0) {
     i = 0;
     j = 0;
-    while (i < n && eq != 0)
-    {
-      do
-      {
+    while (i < n && eq != 0) {
+      do {
         ch_ls = sa_ls->sa_d[j];
         ch_rs = sa_rs->sa_d[j];
         eq = ch_ls == ch_rs;
@@ -5532,8 +5528,7 @@ int main(int argc, char *argv[]) {
                           wms->mode = M_ASK;
                         }
                       }
-                    }
-                    else {
+                    } else {
                       assert(wms->reveal_pos == len);
                       wms->reveal_pos = -1;
                       wms->page = P_LEARN;
