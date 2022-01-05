@@ -2270,7 +2270,7 @@ static int gen_xml_category(int16_t cat_i, struct XmlGenerator *xg, struct Memor
                     e = rv < 0;
                     if (e == 0) {
                       memset(&bd_time, 0, sizeof (bd_time));
-                      assert ((card_ptr->card_time < INT32_MAX) || (sizeof (card_time) == 8));
+                      assert((card_ptr->card_time < INT32_MAX) || (sizeof(card_time) == 8));
                       card_time = card_ptr->card_time;
                       e = gmtime_r(&card_time, &bd_time) == NULL;
                       if (e == 0) {
@@ -2489,9 +2489,6 @@ static int gen_html(struct WebMemorySurfer *wms) {
                       "\t<body>\n");
           e = rv < 0;
         }
-
-
-
         break;
       case B_FORM_URLENCODED:
         rv = printf("\t\t<form enctype=\"application/x-www-form-urlencoded\" method=\"post\" action=\"memorysurfer.cgi\">\n");
@@ -3195,7 +3192,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         }
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.111</h1>\n"
+        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.112</h1>\n"
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2021</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
@@ -3325,20 +3322,22 @@ static int gen_html(struct WebMemorySurfer *wms) {
             }
           }
           if (e == 0) {
+            time_diff = wms->ms.timestamp - wms->ms.card_l[wms->ms.card_i].card_time;
             rv = printf("\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Edit\">Edit</button>\n"
                         "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Search\">Search</button>\n"
                         "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Stop\">Stop</button>\n"
                         "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Suspend\"%s>Suspend</button>\n"
                         "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Resume\"%s>Resume</button></p>\n"
                         "\t\t</form>\n"
-                        "\t\t<code class=\"msf\">%s; nel: %d; html_n: %zu</code>\n"
+                        "\t\t<code class=\"msf\">%s; nel: %d; html_n: %zu; time_diff: %lu</code>\n"
                         "\t</body>\n"
                         "</html>\n",
                 (wms->ms.card_l[wms->ms.card_i].card_state & 0x07) != STATE_SUSPENDED ? "" : " disabled",
                 wms->ms.can_resume != 0 ? "" : " disabled",
                 sw_info_str,
                 wms->ms.cards_nel,
-                wms->html_n);
+                wms->html_n,
+                time_diff);
             e = rv < 0;
           }
         }
@@ -3699,13 +3698,13 @@ static int ms_get_card_sa(struct MemorySurfer *ms) {
   return e;
 }
 
-static int RANK = 6;
+static int RANK = 3;
 
 static int ms_determine_card(struct MemorySurfer *ms) {
   int e;
   time_t time_diff;
   int32_t card_strength_thr; // threshold
-  double reten; // retention
+  double retent; // retention
   double reten_state[4];
   time_t state_time_diff[4];
   int sel_card[4]; // selected
@@ -3725,8 +3724,8 @@ static int ms_determine_card(struct MemorySurfer *ms) {
       }
       for (card_i = 0; card_i < ms->card_a && e == 0; card_i++) {
         time_diff = ms->timestamp - ms->card_l[card_i].card_time;
-        reten = exp(-(double)time_diff / ms->card_l[card_i].card_strength);
-        if (reten <= 1 / M_E) {
+        retent = exp(-(double)time_diff / ms->card_l[card_i].card_strength);
+        if (retent <= 1 / M_E) {
           card_state = ms->card_l[card_i].card_state & 0x07;
           switch (card_state) {
           case STATE_SCHEDULED:
@@ -3738,8 +3737,8 @@ static int ms_determine_card(struct MemorySurfer *ms) {
                   reten_state[STATE_SCHEDULED] = 1.0;
                 }
               }
-              if (reten < reten_state[STATE_SCHEDULED] || (reten == reten_state[STATE_SCHEDULED] && time_diff > state_time_diff[STATE_SCHEDULED])) {
-                reten_state[STATE_SCHEDULED] = reten;
+              if (retent < reten_state[STATE_SCHEDULED] || (retent == reten_state[STATE_SCHEDULED] && time_diff > state_time_diff[STATE_SCHEDULED])) {
+                reten_state[STATE_SCHEDULED] = retent;
                 state_time_diff[STATE_SCHEDULED] = time_diff;
                 sel_card[STATE_SCHEDULED] = card_i;
               }
@@ -3748,8 +3747,8 @@ static int ms_determine_card(struct MemorySurfer *ms) {
           case STATE_ALARM:
           case STATE_NEW:
           case STATE_SUSPENDED:
-            if (reten < reten_state[card_state]) {
-              reten_state[card_state] = reten;
+            if (retent < reten_state[card_state]) {
+              reten_state[card_state] = retent;
               sel_card[card_state] = card_i;
             }
             break;
@@ -3767,9 +3766,8 @@ static int ms_determine_card(struct MemorySurfer *ms) {
           ms->card_i = sel_card[STATE_SUSPENDED];
       }
     }
-  } else {
+  } else
     assert(ms->card_i == -1);
-  }
   return e;
 }
 
@@ -4020,7 +4018,7 @@ int main(int argc, char *argv[]) {
   char *ext_str;
   int card_i;
   time_t time_diff;
-  double retention;
+  double retent; // retention
   char *str;
   struct Sha1Context sha1;
   uint8_t message_digest[SHA1_HASH_SIZE];
@@ -5152,7 +5150,7 @@ int main(int argc, char *argv[]) {
                     e = wms->ms.card_l == NULL;
                     if (e == 0) {
                       card_ptr = wms->ms.card_l + wms->ms.card_i;
-                      card_ptr->card_time = time (NULL);
+                      card_ptr->card_time = time(NULL);
                       e = card_ptr->card_time == -1;
                       if (e == 0) {
                         card_ptr->card_strength = 60;
@@ -5611,8 +5609,8 @@ int main(int argc, char *argv[]) {
                 for (card_i = 0; card_i < wms->ms.card_a; card_i++)
                   if ((wms->ms.card_l[card_i].card_state & 0x07) == STATE_SCHEDULED) {
                     time_diff = wms->ms.timestamp - wms->ms.card_l[card_i].card_time;
-                    retention = exp (- ((double)(time_diff) / wms->ms.card_l[card_i].card_strength));
-                    i = retention * 100;
+                    retent = exp(-(double)time_diff / wms->ms.card_l[card_i].card_strength);
+                    i = retent * 100;
                     assert(i >= 0 && i < 100);
                     wms->hist_bucket[i]++;
                   }
