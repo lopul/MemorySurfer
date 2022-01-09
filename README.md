@@ -12,7 +12,7 @@ A program (cgi-bin) to memorize (text- or HTML-based) flashcards. (Runs in a web
 Some screenshots could be viewed
 [here](https://www.lorenz-pullwitt.de/MemorySurfer/en/screenshots.html "screenshots").
 
-## Try / Online
+## Try / Online / Live Demo
 
 You can try MemorySurfer online without installing anything on your computer.
 [Try MemorySurfer without installing](https://vps.lorenz-pullwitt.de/cgi-bin/memorysurfer.cgi).
