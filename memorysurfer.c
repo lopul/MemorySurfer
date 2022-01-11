@@ -2144,7 +2144,7 @@ enum
   SECONDS_YEAR = SECONDS_DAY * 365
 };
 
-static void set_time_str(char *time_str, time_t time_set) {
+static void set_time_str(char *time_diff_str, time_t time_set) {
   int n_stored;
   char *str_cursor;
   int n_years;
@@ -2155,7 +2155,7 @@ static void set_time_str(char *time_str, time_t time_set) {
   int n_seconds;
   int valid_c; // count
   char *space_str;
-  str_cursor = time_str;
+  str_cursor = time_diff_str;
   valid_c = 0;
   n_years = time_set / SECONDS_YEAR;
   if (n_years) {
@@ -2416,7 +2416,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
   char *q_str;
   char *a_str;
   time_t time_diff;
-  char time_str[32];
+  char time_diff_str[32];
   int x;
   int y;
   char *str;
@@ -3221,7 +3221,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         }
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.113</h1>\n"
+        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.114</h1>\n"
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2021</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
@@ -3324,10 +3324,10 @@ static int gen_html(struct WebMemorySurfer *wms) {
                     attr_str = " checked";
                   if (i == lvl_sel)
                     attr_str = " autofocus";
-                  set_time_str(time_str, lvl_s[i]);
+                  set_time_str(time_diff_str, lvl_s[i]);
                   rv = printf("\t\t\t\t\t<td class=\"msf-lvl\"><label class=\"msf\"><input type=\"radio\" name=\"lvl\" value=\"%d\"%s>Level %d (%s)</label></td>\n",
                       i, attr_str,
-                      i, time_str);
+                      i, time_diff_str);
                   e = rv < 0;
                 }
                 if (e == 0) {
@@ -3352,13 +3352,14 @@ static int gen_html(struct WebMemorySurfer *wms) {
           }
           if (e == 0) {
             time_diff = wms->ms.timestamp - wms->ms.card_l[wms->ms.card_i].card_time;
+            set_time_str(time_diff_str, time_diff);
             rv = printf("\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Edit\">Edit</button>\n"
                         "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Search\">Search</button>\n"
                         "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Stop\">Stop</button>\n"
                         "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Suspend\"%s>Suspend</button>\n"
                         "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Resume\"%s>Resume</button></p>\n"
                         "\t\t</form>\n"
-                        "\t\t<code class=\"msf\">%s; nel: %d; html_n: %zu; time_diff: %lu</code>\n"
+                        "\t\t<code class=\"msf\">%s; nel: %d; html_n: %zu; time_diff: %s</code>\n"
                         "\t</body>\n"
                         "</html>\n",
                 (wms->ms.card_l[wms->ms.card_i].card_state & 0x07) != STATE_SUSPENDED ? "" : " disabled",
@@ -3366,7 +3367,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
                 sw_info_str,
                 wms->ms.cards_nel,
                 wms->html_n,
-                time_diff);
+                time_diff_str);
             e = rv < 0;
           }
         }
@@ -3503,8 +3504,8 @@ static int gen_html(struct WebMemorySurfer *wms) {
                     "\t\t\t<table>\n");
         e = rv < 0;
         for (i = 0; i < 21 && e == 0; i++) {
-          set_time_str(time_str, lvl_s[i]);
-          rv = printf("\t\t\t\t<tr><td class=\"msf-strength\">%d</td><td class=\"msf-strength\"><code class=\"msf\">(%s)</code></td><td class=\"msf-strength\">%d</td></tr>\n", i, time_str, wms->lvl_bucket[0][i]);
+          set_time_str(time_diff_str, lvl_s[i]);
+          rv = printf("\t\t\t\t<tr><td class=\"msf-strength\">%d</td><td class=\"msf-strength\"><code class=\"msf\">(%s)</code></td><td class=\"msf-strength\">%d</td></tr>\n", i, time_diff_str, wms->lvl_bucket[0][i]);
           e = rv < 0;
         }
         if (e == 0) {
