@@ -3236,7 +3236,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         }
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.115</h1>\n"
+        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.116</h1>\n"
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2021</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
@@ -3818,10 +3818,12 @@ static int ms_determine_card(struct MemorySurfer *ms) {
         }
       }
       if (e == 0) {
-        if (sel_card[STATE_SCHEDULED] != -1)
+        if (sel_card[STATE_SCHEDULED] != -1 && card_strength_thr == lvl_s[ms->passwd.rank])
           ms->card_i = sel_card[STATE_SCHEDULED];
         else if (sel_card[STATE_NEW] != -1)
           ms->card_i = sel_card[STATE_NEW];
+        else if (sel_card[STATE_SCHEDULED] != -1)
+          ms->card_i = sel_card[STATE_SCHEDULED];
         else if (sel_card[STATE_SUSPENDED] != -1)
           ms->card_i = sel_card[STATE_SUSPENDED];
       }
