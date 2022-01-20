@@ -19,25 +19,44 @@
 	https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 */
 
+"use strict";
+
 const msf_form = document.querySelector("form");
 const msf_unlock = document.querySelector("#msf-unlock");
 const msf_qa = document.querySelectorAll(".qa-html");
 
-msf_unlock.addEventListener('click', msf_toggle);
 msf_form.addEventListener('submit', msf_onSubmit);
+msf_unlock.addEventListener('click', msf_toggle);
 
-function msf_toggle(event) {
-	let checked = event.target.checked;
-	let i;
-	for (i = 0; i < msf_qa.length; i++) {
-		msf_qa[i].contentEditable = checked;
+function msf_onSubmit() {
+	let checked;
+	let q;
+	let a;
+	if (msf_qa.length > 0) {
+		checked = msf_unlock.checked;
+		if (checked) {
+			q = document.querySelector('input[name = "q"]');
+			a = document.querySelector('input[name = "a"]');
+			q.value = msf_qa[0].innerHTML;
+			a.value = msf_qa[1].innerHTML;
+		}
 	}
 }
 
-function msf_onSubmit() {
-	debugger;
-	let q = document.querySelector('input[name = "q"]');
-	let a = document.querySelector('input[name = "a"]');
-	q.value = msf_qa[0].innerHTML;
-	a.value = msf_qa[1].innerHTML;
+function msf_toggle() {
+	let checked;
+	let is_txt;
+	let i;
+	checked = msf_unlock.checked;
+	if (checked) {
+		is_txt = msf_qa.length == 0;
+		if (!is_txt) {
+			for (i = 0; i < msf_qa.length; i++) {
+				msf_qa[i].contentEditable = checked;
+			}
+		} else {
+			window.alert("A card in TXT format can't be unlocked.");
+			msf_unlock.checked = false;
+		}
+	}
 }
