@@ -47,16 +47,14 @@ function msf_toggle() {
 	let checked;
 	let is_txt;
 	let i;
-	checked = msf_unlock.checked;
-	if (checked) {
-		is_txt = msf_qa.length == 0;
-		if (!is_txt) {
-			for (i = 0; i < msf_qa.length; i++) {
-				msf_qa[i].contentEditable = checked;
-			}
-		} else {
-			window.alert("A card in TXT format can't be unlocked.");
-			msf_unlock.checked = false;
+	is_txt = msf_qa.length == 0;
+	if (!is_txt) {
+		checked = msf_unlock.checked;
+		for (i = 0; i < msf_qa.length; i++) {
+			msf_qa[i].contentEditable = checked;
 		}
+	} else {
+		window.alert("A card in TXT format can't be unlocked.");
+		msf_unlock.checked = false;
 	}
 }
