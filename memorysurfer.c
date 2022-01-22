@@ -2632,7 +2632,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
                     "\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Edit\"%s>Edit</button></p>\n"
                     "\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Learn\"%s>Learn</button></p>\n"
                     "\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Search\"%s>Search</button></p>\n"
-                    "\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Preferences\"%s>Preferences</button></p>\n"
+                    "\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Preferences\"%s>Settings</button></p>\n"
                     "\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"About\">About</button></p>\n"
                     "\t\t</form>\n"
                     "\t\t<code class=\"msf\">%s</code>\n"
@@ -2934,7 +2934,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         e = xml_escape(&wms->html_lp, &wms->html_n, str, ESC_AMP | ESC_LT);
         if (e == 0) {
           rv = printf("\t\t\t<h1 class=\"msf\">Style</h1>\n"
-                      "\t\t\t<p class=\"msf\">Define the (inline) style for this deck (and it's cards).</p>\n"
+                      "\t\t\t<p class=\"msf\">Define the (inline) &lt;style&gt; for this deck (and it's cards).</p>\n"
                       "\t\t\t<div><textarea class=\"msf\" name=\"style-txt\" rows=\"12\" cols=\"46\">%s</textarea></div>\n"
                       "\t\t\t<p class=\"msf\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Apply\">Apply</button>\n"
                       "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Stop\">Stop</button></p>\n"
@@ -3115,7 +3115,22 @@ static int gen_html(struct WebMemorySurfer *wms) {
           if (e == 0) {
             rv = printf("\t\t\t<h1 class=\"msf\">Preview</h1>\n"
                         "\t\t\t<p class=\"msf\"><label class=\"msf\"><input id=\"msf-unlock\" type=\"checkbox\" name=\"is-unlocked\"%s>Unlock</label>\n"
-                        "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Style\">Style</button></p>\n"
+                        "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Style\">Style</button>\n"
+                        "\t\t\t\t<button id=\"msf-inl-btn\" class=\"msf\" type=\"button\" disabled>Inline..</button>\n"
+                        "\t\t\t\t<button id=\"msf-unformat-btn\" class=\"msf\" type=\"button\" disabled>Unformat</button></p>\n"
+                        "\t\t\t\t<div id=\"msf-inl-dlg\" class=\"msf-dlg\">\n"
+                        "\t\t\t\t\t<h1 class=\"msf\">Inline Format</h1>\n"
+                        "\t\t\t\t\t<select id=\"msf-format-inline\">\n"
+                        "\t\t\t\t\t\t<option value=\"SPAN\">&lt;span&gt;</option>\n"
+                        "\t\t\t\t\t\t<option value=\"CODE\">&lt;code&gt;</option>\n"
+                        "\t\t\t\t\t\t<option value=\"EM\">&lt;em&gt;</option>\n"
+                        "\t\t\t\t\t\t<option value=\"I\">&lt;i&gt;</option>\n"
+                        "\t\t\t\t\t\t<option value=\"B\">&lt;b&gt;</option>\n"
+                        "\t\t\t\t\t\t<option value=\"U\">&lt;u&gt;</option>\n"
+                        "\t\t\t\t\t</select>\n"
+                        "\t\t\t\t\t<p class=\"msf\"><button id=\"msf-inl-apply\" class=\"msf\" type=\"button\">Apply</button>\n"
+                        "\t\t\t\t\t\t<button id=\"msf-inl-cancel\" class=\"msf\" type=\"button\">Cancel</button></p>\n"
+                        "\t\t\t\t\t</div>\n"
                         "\t\t\t<div id=\"%s\" class=\"%s\">%s</div>\n",
                 wms->ms.card_i >= 0 && wms->ms.card_a > 0 && wms->ms.card_i < wms->ms.card_a && (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? "" : " disabled",
                 (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? "q-html" : "q-txt",
@@ -3236,7 +3251,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         }
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.116</h1>\n"
+        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.117</h1>\n"
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2021</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"

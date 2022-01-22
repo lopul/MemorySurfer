@@ -3,7 +3,7 @@
 	Author: Lorenz Pullwitt <memorysurfer@lorenz-pullwitt.de>
 	Copyright 2016-2022
 
-	This file is part of MemorySurfer.
+	This file (ms.css - 1.0.0.20) is part of MemorySurfer.
 
 	MemorySurfer is free software; you can redistribute it and/or
 	modify it under the terms of the GNU General Public License
@@ -81,7 +81,7 @@ td.msf-strength {
 
 button.msf {
 	padding: 0.9ex 0 0.9ex 0;
-	width: 18.4%;
+	width: 18.3%;
 	max-width: 12.0ex;
 }
 
@@ -98,6 +98,7 @@ p.msf {
 label.msf {
 	margin: 0.1ex 0 0.1ex 0;
 	padding: 0.4ex 0 0.4ex 0;
+	font-size: smaller;
 }
 
 code.msf {
@@ -110,4 +111,23 @@ cite.msf {
 	max-width: 76ex;
 	padding: 0.2ex 1ex 0 1ex;
 	margin: 0.2ex 0 2ex 2ex;
+}
+
+div.msf-anchor {
+	position: relative;
+}
+
+div.msf-dlg {
+	position: absolute;
+	visibility: hidden;
+	top: 40px;
+	left: 25%;
+	width: 50%;
+	max-width: 50ex;
+	padding: 0.5ex 0 0 0.5ex;
+	background-color: #fff;
+	border-width: 1px;
+	border-style: solid;
+	border-radius: 3px;
+	border-color: #999;
 }
