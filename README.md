@@ -17,7 +17,7 @@ Some screenshots could be viewed
 You can try MemorySurfer online without installing anything on your computer.
 [Try MemorySurfer without installing](https://vps.lorenz-pullwitt.de/cgi-bin/memorysurfer.cgi).
 
-Here is a <a href="https://www.lorenz-pullwitt.de/MemorySurfer/demo.xml" download>demo.xml</a> which you can use to Import.
+Here is a (little set of cards) <a href="https://www.lorenz-pullwitt.de/MemorySurfer/demo.xml" download>demo.xml</a> which you can use to Import (and testing).
 
 ## Installing MemorySurfer
 
