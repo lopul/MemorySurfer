@@ -26,7 +26,7 @@ The setup is described
 
 ## Features
 
- - HTML or TXT cards
+ - HTML or (and) TXT cards
  - XML export / import (for backup and version control tracking)
  - hierarchical decks
  - passphrase (access control of session / file)
