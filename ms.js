@@ -2,7 +2,7 @@
 	Author: Lorenz Pullwitt <memorysurfer@lorenz-pullwitt.de>
 	Copyright 2022
 
-	This file (ms.js - v1.0.0.13) is part of MemorySurfer.
+	This file (ms.js - v1.0.0.14) is part of MemorySurfer.
 
 	MemorySurfer is free software; you can redistribute it and/or
 	modify it under the terms of the GNU General Public License
@@ -31,7 +31,7 @@ const msfInlApply = document.getElementById("msf-inl-apply");
 const msfInlCancel = document.getElementById("msf-inl-cancel");
 const msfQA = document.querySelectorAll(".qa-html");
 
-document.addEventListener('selectionchange', msf_selChanged);
+document.addEventListener('selectionchange', msfSelChanged);
 msfForm.addEventListener('submit', msfOnSubmit);
 msfUnlock.addEventListener('click', msfOnUnlock);
 msfInlBtn.addEventListener('click', msfOnInline);
@@ -39,7 +39,7 @@ msfUnformatBtn.addEventListener('click', msfOnUnformat);
 msfInlApply.addEventListener('click', msfOnApply);
 msfInlCancel.addEventListener('click', msfOnCancel);
 
-function msf_selChanged() {
+function msfSelChanged() {
 	let range;
 	let selection;
 	let startContainer;
@@ -68,7 +68,7 @@ function msf_selChanged() {
 			range = selection.getRangeAt(0);
 			startContainer = range.startContainer;
 			endContainer = range.endContainer;
-			canFormat = startContainer === endContainer;
+			canFormat = startContainer.nodeType == Node.TEXT_NODE && endContainer.nodeType == Node.TEXT_NODE && startContainer.parentNode === endContainer.parentNode;
 			parentNode = range.commonAncestorContainer;
 			while (parentNode !== null && !isChildOfQA) {
 				for (i = 0; i < msfQA.length && !isChildOfQA; i++) {
@@ -133,6 +133,7 @@ function msfOnApply() {
 	let endContainer;
 	let parentNode;
 	let isChildOfQA;
+	let canFormat;
 	let i;
 	let tagName;
 	let newParent;
@@ -146,7 +147,8 @@ function msfOnApply() {
 				range = selection.getRangeAt(0);
 				startContainer = range.startContainer;
 				endContainer = range.endContainer;
-				if (startContainer.parentNode === endContainer.parentNode) {
+				canFormat = startContainer.nodeType == Node.TEXT_NODE && endContainer.nodeType == Node.TEXT_NODE && startContainer.parentNode === endContainer.parentNode;
+				if (canFormat) {
 					parentNode = range.commonAncestorContainer;
 					isChildOfQA = false;
 					while (parentNode !== null && !isChildOfQA) {
