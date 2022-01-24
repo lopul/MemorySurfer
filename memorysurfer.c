@@ -50,7 +50,7 @@ static enum Action action_seq[S_END+1][15] = {
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT, A_DECKS_CREATE, A_END }, // S_DECKS_CREATE
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT_SELECTED, A_SELECT_ARRANGE, A_END }, // S_SELECT_MOVE_ARRANGE
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT, A_TEST_ARRANGE, A_CAT_NAME, A_END }, // S_CAT_NAME
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT, A_READ_STYLE, A_STYLE_GO, A_END }, // S_STYLE_GO
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_TEST_CAT, A_LOAD_CARDLIST, A_TEST_CARD, A_UPDATE_QA, A_READ_STYLE, A_STYLE_GO, A_SYNC, A_END }, // S_STYLE_GO
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_SELECT_EDIT_CAT, A_END }, // S_SELECT_EDIT_CAT
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_SELECT_LEARN_CAT, A_END }, // S_SELECT_LEARN_CAT
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_SELECT_SEARCH_CAT, A_END }, // S_SELECT_SEARCH_CAT
@@ -3121,16 +3121,20 @@ static int gen_html(struct WebMemorySurfer *wms) {
                         "\t\t\t\t<div id=\"msf-inl-dlg\" class=\"msf-dlg\">\n"
                         "\t\t\t\t\t<h1 class=\"msf\">Inline Format</h1>\n"
                         "\t\t\t\t\t<select id=\"msf-format-inline\">\n"
+                        "\t\t\t\t\t\t<option value=\"P\">&lt;p&gt;</option>\n"
                         "\t\t\t\t\t\t<option value=\"SPAN\">&lt;span&gt;</option>\n"
                         "\t\t\t\t\t\t<option value=\"CODE\">&lt;code&gt;</option>\n"
                         "\t\t\t\t\t\t<option value=\"EM\">&lt;em&gt;</option>\n"
+                        "\t\t\t\t\t\t<option value=\"MARK\">&lt;mark&gt;</option>\n"
+                        "\t\t\t\t\t\t<option value=\"STRONG\">&lt;strong&gt;</option>\n"
+                        "\t\t\t\t\t\t<option value=\"CITE\">&lt;cite&gt;</option>\n"
                         "\t\t\t\t\t\t<option value=\"I\">&lt;i&gt;</option>\n"
                         "\t\t\t\t\t\t<option value=\"B\">&lt;b&gt;</option>\n"
                         "\t\t\t\t\t\t<option value=\"U\">&lt;u&gt;</option>\n"
                         "\t\t\t\t\t</select>\n"
                         "\t\t\t\t\t<p class=\"msf\"><button id=\"msf-inl-apply\" class=\"msf\" type=\"button\">Apply</button>\n"
                         "\t\t\t\t\t\t<button id=\"msf-inl-cancel\" class=\"msf\" type=\"button\">Cancel</button></p>\n"
-                        "\t\t\t\t\t</div>\n"
+                        "\t\t\t\t</div>\n"
                         "\t\t\t<div id=\"%s\" class=\"%s\">%s</div>\n",
                 wms->ms.card_i >= 0 && wms->ms.card_a > 0 && wms->ms.card_i < wms->ms.card_a && (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? "" : " disabled",
                 (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? "q-html" : "q-txt",
@@ -3251,7 +3255,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         }
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.117</h1>\n"
+        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.118</h1>\n"
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2021</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
@@ -5143,8 +5147,9 @@ int main(int argc, char *argv[]) {
               qa_err |= sa_get(&wms->qa_sa, 1) == NULL;
               if (qa_err == 0) {
                 e = ms_get_card_sa(&wms->ms);
-                if (e == 0)
+                if (e == 0) {
                   e = ms_modify_qa(&wms->qa_sa, &wms->ms, &need_sync);
+                }
               }
             }
             break;
