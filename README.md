@@ -17,7 +17,7 @@ Some screenshots could be viewed
 You can try MemorySurfer online without installing anything on your computer.
 [Try MemorySurfer without installing anything](https://vps.lorenz-pullwitt.de/cgi-bin/memorysurfer.cgi).
 
-Here is a (little set of cards) <a href="https://www.lorenz-pullwitt.de/MemorySurfer/demo.xml" download>demo.xml</a> which you can use to Import (and testing).
+Here is a (set of cards) <a href="https://www.lorenz-pullwitt.de/MemorySurfer/demo.xml" download>demo.xml</a> which you can use for Import (and testing).
 
 ## Installing MemorySurfer
 
@@ -37,7 +37,7 @@ The setup is described
  - gcc
  - make
 
-Every Linux system <sup>*</sup> capable of running a web-server (eg. Apache) should also be capable of running MemorySurfer (tested on
+Every Linux system<sup>*</sup> capable of running a web-server (eg. Apache) should also be capable of running MemorySurfer (tested on
 [Raspbian](https://www.lorenz-pullwitt.de/MemorySurfer/en/raspbian.html "Raspbian"), Fedora, Debian, Ubuntu).
 
 <sup>*</sup> currently only little-endian architecture
