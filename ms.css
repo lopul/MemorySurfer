@@ -3,7 +3,7 @@
 	Author: Lorenz Pullwitt <memorysurfer@lorenz-pullwitt.de>
 	Copyright 2016-2022
 
-	This file (ms.css - 1.0.0.20) is part of MemorySurfer.
+	This file (ms.css - 1.0.0.21) is part of MemorySurfer.
 
 	MemorySurfer is free software; you can redistribute it and/or
 	modify it under the terms of the GNU General Public License
@@ -41,9 +41,8 @@ textarea.msf {
 }
 
 div.qa-html {
-	width: 98%;
 	padding: 0.5ex 0.2ex 0.5ex 0.2ex;
-	margin: 0.3ex auto 0.3ex auto;
+	margin: 0.3ex 1px 0.3ex 1px;
 	border-width: 1px;
 	border-style: solid;
 	border-radius: 0.3ex;
@@ -52,9 +51,8 @@ div.qa-html {
 }
 
 div.qa-txt {
-	width: 98%;
 	padding: 0.5ex 0.2ex 0.5ex 0.2ex;
-	margin: 0.3ex auto 0.3ex auto;
+	margin: 0.3ex 1px 0.3ex 1px;
 	border-width: 1px;
 	border-style: solid;
 	border-radius: 0.3ex;
@@ -79,10 +77,23 @@ td.msf-strength {
 	min-width: auto;
 }
 
+div.msf-btns {
+	display: flex;
+	margin: 5px 0 5px 1px;
+}
+
 button.msf {
-	padding: 0.9ex 0 0.9ex 0;
-	width: 18.3%;
-	max-width: 12.0ex;
+	padding: 0.9ex 0.9ex 0.9ex 0.9ex;
+	max-width: 13.4ex;
+	margin: 0 1px 0 0;
+	flex-grow: 1;
+	flex-shrink: 1;
+}
+
+span.msf-space {
+	flex-grow: 1;
+	flex-shrink: 1;
+	flex-basis: 1px;
 }
 
 svg.msf {
