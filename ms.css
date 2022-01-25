@@ -3,7 +3,7 @@
 	Author: Lorenz Pullwitt <memorysurfer@lorenz-pullwitt.de>
 	Copyright 2016-2022
 
-	This file (ms.css - 1.0.0.21) is part of MemorySurfer.
+	The file ms.css (1.0.0.22) is part of MemorySurfer.
 
 	MemorySurfer is free software; you can redistribute it and/or
 	modify it under the terms of the GNU General Public License
@@ -34,10 +34,13 @@ h1.msf {
 	font-weight: bolder;
 }
 
+div.msf-txtarea {
+	margin: auto 1px auto 1px;
+}
+
 textarea.msf {
-	width: 98%;
-	padding: 0;
-	margin: 0 auto 0 auto;
+	box-sizing: border-box;
+	width: 100%;
 }
 
 div.qa-html {
@@ -107,9 +110,8 @@ p.msf {
 }
 
 label.msf {
-	margin: 0.1ex 0 0.1ex 0;
-	padding: 0.4ex 0 0.4ex 0;
-	font-size: smaller;
+	margin: 0 1px 0 0;
+	padding: 0.9ex 0.4ex 0.9ex 0.3ex;
 }
 
 code.msf {
