@@ -2,7 +2,7 @@
 	Author: Lorenz Pullwitt <memorysurfer@lorenz-pullwitt.de>
 	Copyright 2022
 
-	This file (ms.js - v1.0.0.14) is part of MemorySurfer.
+	This file (ms.js - v1.0.0.15) is part of MemorySurfer.
 
 	MemorySurfer is free software; you can redistribute it and/or
 	modify it under the terms of the GNU General Public License
@@ -23,8 +23,9 @@
 
 const msfForm = document.querySelector("form");
 const msfUnlock = document.getElementById("msf-unlock");
-const msfInlBtn = document.getElementById("msf-inl-btn");
+const msfSurrBtn = document.getElementById("msf-surround");
 const msfUnformatBtn = document.getElementById("msf-unformat-btn");
+const msfBrBtn = document.getElementById("msf-br");
 const msfInlDlg = document.getElementById("msf-inl-dlg");
 const msfInlList = document.getElementById("msf-format-inline");
 const msfInlApply = document.getElementById("msf-inl-apply");
@@ -34,54 +35,65 @@ const msfQA = document.querySelectorAll(".qa-html");
 document.addEventListener('selectionchange', msfSelChanged);
 msfForm.addEventListener('submit', msfOnSubmit);
 msfUnlock.addEventListener('click', msfOnUnlock);
-msfInlBtn.addEventListener('click', msfOnInline);
+msfSurrBtn.addEventListener('click', msfOnInline);
 msfUnformatBtn.addEventListener('click', msfOnUnformat);
+msfBrBtn.addEventListener('click', msfOnBr);
 msfInlApply.addEventListener('click', msfOnApply);
 msfInlCancel.addEventListener('click', msfOnCancel);
 
 function msfSelChanged() {
-	let range;
 	let selection;
+	let type;
+	let range;
+	let rangeCount;
 	let startContainer;
 	let endContainer;
 	let parentNode;
+	let i;
 	let isChildOfQA;
 	let canFormat;
-	let i;
 	let value;
 	let selected;
 	if (msfUnlock.checked) {
 		isChildOfQA = false;
-		selection = document.getSelection();
-		if (selection.type === "Caret") {
-			range = selection.getRangeAt(0);
-			parentNode = range.commonAncestorContainer;
-			while (parentNode !== null && !isChildOfQA) {
-				for (i = 0; i < msfQA.length && !isChildOfQA; i++) {
-					isChildOfQA = msfQA[i] === parentNode;
-				}
-				if (!isChildOfQA) {
-					parentNode = parentNode.parentNode;
+		selection = window.getSelection();
+		type = selection.type;
+		if (type === 'Caret') {
+			rangeCount = selection.rangeCount;
+			if (rangeCount === 1) {
+				range = selection.getRangeAt(0);
+				parentNode = range.commonAncestorContainer;
+				while (parentNode !== null && !isChildOfQA) {
+					for (i = 0; i < msfQA.length && !isChildOfQA; i++) {
+						isChildOfQA = msfQA[i] === parentNode;
+					}
+					if (!isChildOfQA) {
+						parentNode = parentNode.parentNode;
+					}
 				}
 			}
-		} else if (selection.type === "Range") {
-			range = selection.getRangeAt(0);
-			startContainer = range.startContainer;
-			endContainer = range.endContainer;
-			canFormat = startContainer.nodeType == Node.TEXT_NODE && endContainer.nodeType == Node.TEXT_NODE && startContainer.parentNode === endContainer.parentNode;
-			parentNode = range.commonAncestorContainer;
-			while (parentNode !== null && !isChildOfQA) {
-				for (i = 0; i < msfQA.length && !isChildOfQA; i++) {
-					isChildOfQA = msfQA[i] === parentNode;
-				}
-				if (!isChildOfQA) {
-					parentNode = parentNode.parentNode;
+		} else if (type === 'Range') {
+			rangeCount = selection.rangeCount;
+			if (rangeCount === 1) {
+				range = selection.getRangeAt(0);
+				startContainer = range.startContainer;
+				endContainer = range.endContainer;
+				canFormat = startContainer.nodeType == Node.TEXT_NODE && endContainer.nodeType == Node.TEXT_NODE && startContainer.parentNode === endContainer.parentNode;
+				parentNode = range.commonAncestorContainer;
+				while (parentNode !== null && !isChildOfQA) {
+					for (i = 0; i < msfQA.length && !isChildOfQA; i++) {
+						isChildOfQA = msfQA[i] === parentNode;
+					}
+					if (!isChildOfQA) {
+						parentNode = parentNode.parentNode;
+					}
 				}
 			}
 		}
 	}
-	msfInlBtn.disabled = !msfUnlock.checked || selection.type !== "Range" || isChildOfQA !== true || canFormat !== true;
-	msfUnformatBtn.disabled = !msfUnlock.checked || selection.type !== "Range" || isChildOfQA !== true;
+	msfSurrBtn.disabled = !msfUnlock.checked || type !== 'Range' || isChildOfQA !== true || canFormat !== true;
+	msfUnformatBtn.disabled = !msfUnlock.checked || type !== 'Range' || isChildOfQA !== true;
+	msfBrBtn.disabled = !msfUnlock.checked || type !== 'Caret' || isChildOfQA !== true;
 }
 
 function msfOnSubmit() {
@@ -123,25 +135,65 @@ function msfOnUnformat() {
 	document.execCommand("removeFormat", false, null);
 }
 
+function msfOnBr() {
+	let checked;
+	let selection;
+	let type;
+	let range;
+	let parentNode;
+	let i;
+	let isChildOfQA;
+	let newElem;
+	checked = msfUnlock.checked;
+	if (checked) {
+		selection = window.getSelection();
+		type = selection.type;
+		if (type === 'Caret') {
+			range = selection.getRangeAt(0);
+			parentNode = range.commonAncestorContainer;
+			isChildOfQA = false;
+			while (parentNode !== null && !isChildOfQA) {
+				for (i = 0; i < msfQA.length && !isChildOfQA; i++) {
+					isChildOfQA = msfQA[i] === parentNode;
+				}
+				if (!isChildOfQA) {
+					parentNode = parentNode.parentNode;
+				}
+			}
+			if (isChildOfQA) {
+				newElem = document.createElement('br');
+				if (newElem) {
+					range.insertNode(newElem);
+					selection.removeAllRanges();
+					range = new Range();
+					range.setStartAfter(newElem);
+					range.setEndAfter(newElem);
+					selection.addRange(range);
+				}
+			}
+		}
+	}
+}
+
 function msfOnApply() {
 	let checked;
 	let selection;
-	let range;
 	let type;
+	let range;
 	let rangeCount;
 	let startContainer;
 	let endContainer;
 	let parentNode;
+	let i;
 	let isChildOfQA;
 	let canFormat;
-	let i;
 	let tagName;
 	let newParent;
 	checked = msfUnlock.checked;
 	if (checked) {
 		selection = window.getSelection();
 		type = selection.type;
-		if (type === "Range") {
+		if (type === 'Range') {
 			rangeCount = selection.rangeCount;
 			if (rangeCount === 1) {
 				range = selection.getRangeAt(0);

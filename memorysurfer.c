@@ -2938,7 +2938,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         if (e == 0) {
           rv = printf("\t\t\t<h1 class=\"msf\">Style</h1>\n"
                       "\t\t\t<p class=\"msf\">Define the (inline) &lt;style&gt; for this deck (and it's cards).</p>\n"
-                      "\t\t\t<div class=\"msf-txtarea\"><textarea class=\"msf\" name=\"style-txt\" rows=\"10\">%s</textarea></div>\n"
+                      "\t\t\t<div class=\"msf-txtarea\"><textarea class=\"msf\" name=\"style-txt\" rows=\"10\" placeholder=\"div.qa-txt { font-family: serif; }\ndiv.qa-html { background-color: #ffe; }\">%s</textarea></div>\n"
                       "\t\t\t<div class=\"msf-btns\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Apply\">Apply</button>\n"
                       "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Stop\">Stop</button></div>\n"
                       "\t\t</form>\n"
@@ -3119,8 +3119,9 @@ static int gen_html(struct WebMemorySurfer *wms) {
             rv = printf("\t\t\t<h1 class=\"msf\">Preview</h1>\n"
                         "\t\t\t<div class=\"msf-btns\"><label class=\"msf\"><input id=\"msf-unlock\" type=\"checkbox\" name=\"is-unlocked\"%s>Unlock</label>\n"
                         "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Style\">Style</button>\n"
-                        "\t\t\t\t<button id=\"msf-inl-btn\" class=\"msf\" type=\"button\" disabled>Surround</button>\n"
-                        "\t\t\t\t<button id=\"msf-unformat-btn\" class=\"msf\" type=\"button\" disabled>Unformat</button></div>\n"
+                        "\t\t\t\t<button id=\"msf-surround\" class=\"msf\" type=\"button\" disabled>Surround</button>\n"
+                        "\t\t\t\t<button id=\"msf-unformat-btn\" class=\"msf\" type=\"button\" disabled>Unformat</button>\n"
+                        "\t\t\t\t<button id=\"msf-br\" class=\"msf\" type=\"button\" disabled>&lt;br&gt;</button></div>\n"
                         "\t\t\t\t<div id=\"msf-inl-dlg\" class=\"msf-dlg\">\n"
                         "\t\t\t\t\t<h1 class=\"msf\">Surround Node</h1>\n"
                         "\t\t\t\t\t<select id=\"msf-format-inline\">\n"
@@ -3261,7 +3262,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         }
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.120</h1>\n"
+        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.122</h1>\n"
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2021</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
