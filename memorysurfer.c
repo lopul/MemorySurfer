@@ -2517,7 +2517,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
                     "\t\t<link rel=\"stylesheet\" type=\"text/css\" href=\"/ms.css\">\n",
             title_str);
         e = rv < 0;
-        if (wms->page == P_PREVIEW && e == 0) {
+        if ((wms->page == P_PREVIEW || wms->page == P_LEARN) && e == 0) {
           rv = printf("\t\t<script src=\"/ms.js\" defer></script>\n");
           e = rv < 0;
         }
@@ -3270,7 +3270,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         }
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.123</h1>\n"
+        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.124</h1>\n"
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2021</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
@@ -3310,8 +3310,13 @@ static int gen_html(struct WebMemorySurfer *wms) {
                         "\t\t\t<div class=\"msf-btns\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Proceed\"%s>Proceed</button>\n"
                         "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Show\"%s>Show</button>\n"
                         "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Reveal\"%s>Reveal</button>\n"
-                        "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Histogram\">Histogram</button>\n"
-                        "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Table\">Table</button></div>\n",
+                        "\t\t\t\t<span class=\"msf-space\"></span><button id=\"msf-menu\" class=\"msf\" type=\"button\">☰</button></div>\n"
+                        "\t\t\t<div id=\"msf-data\" class=\"msf-dlg\">\n"
+                        "\t\t\t\t<h1 class=\"msf\">Data Views</h1>\n"
+                        "\t\t\t\t<div class=\"msf-btns\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Histogram\">Histogram</button>\n"
+                        "\t\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Table\">Table</button>\n"
+                        "\t\t\t\t\t<span class=\"msf-space\"></span><button id=\"msf-data-close\" class=\"msf\" type=\"button\">Close</button></div>\n"
+                        "\t\t\t</div>\n",
                 header_str,
                 wms->mode != M_RATE ? " disabled" : "",
                 wms->mode != M_ASK ? " disabled" : "",

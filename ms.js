@@ -2,7 +2,7 @@
 	Author: Lorenz Pullwitt <memorysurfer@lorenz-pullwitt.de>
 	Copyright 2022
 
-	This file (ms.js - v1.0.0.15) is part of MemorySurfer.
+	This file (ms.js - v1.0.0.16) is part of MemorySurfer.
 
 	MemorySurfer is free software; you can redistribute it and/or
 	modify it under the terms of the GNU General Public License
@@ -26,20 +26,33 @@ const msfUnlock = document.getElementById("msf-unlock");
 const msfSurrBtn = document.getElementById("msf-surround");
 const msfUnformatBtn = document.getElementById("msf-unformat-btn");
 const msfBrBtn = document.getElementById("msf-br");
-const msfInlDlg = document.getElementById("msf-inl-dlg");
+const msfSurrDlg = document.getElementById("msf-inl-dlg");
 const msfInlList = document.getElementById("msf-format-inline");
 const msfInlApply = document.getElementById("msf-inl-apply");
 const msfInlCancel = document.getElementById("msf-inl-cancel");
+const msfDataDlg = document.getElementById("msf-data");
+const msfDataBtn = document.getElementById("msf-menu");
+const msfCancelDataBtn = document.getElementById("msf-data-close");
 const msfQA = document.querySelectorAll(".qa-html");
 
-document.addEventListener('selectionchange', msfSelChanged);
-msfForm.addEventListener('submit', msfOnSubmit);
-msfUnlock.addEventListener('click', msfOnUnlock);
-msfSurrBtn.addEventListener('click', msfOnInline);
-msfUnformatBtn.addEventListener('click', msfOnUnformat);
-msfBrBtn.addEventListener('click', msfOnBr);
-msfInlApply.addEventListener('click', msfOnApply);
-msfInlCancel.addEventListener('click', msfOnCancel);
+document.addEventListener('DOMContentLoaded', msfOnDOMContentLoaded);
+
+function msfOnDOMContentLoaded() {
+	if (msfUnlock != null) {
+		document.addEventListener('selectionchange', msfSelChanged);
+		msfForm.addEventListener('submit', msfOnSubmit);
+		msfUnlock.addEventListener('click', msfOnUnlock);
+		msfSurrBtn.addEventListener('click', msfShowSurround);
+		msfUnformatBtn.addEventListener('click', msfOnUnformat);
+		msfBrBtn.addEventListener('click', msfOnBr);
+		msfInlApply.addEventListener('click', msfOnApply);
+		msfInlCancel.addEventListener('click', msfOnCancel);
+	}
+	if (msfDataBtn != null) {
+		msfDataBtn.addEventListener('click', msfShowData);
+		msfCancelDataBtn.addEventListener('click', msfCloseData);
+	}
+}
 
 function msfSelChanged() {
 	let selection;
@@ -54,7 +67,7 @@ function msfSelChanged() {
 	let canFormat;
 	let value;
 	let selected;
-	if (msfUnlock.checked) {
+	if (msfUnlock != null && msfUnlock.checked) {
 		isChildOfQA = false;
 		selection = window.getSelection();
 		type = selection.type;
@@ -127,8 +140,8 @@ function msfOnUnlock() {
 	}
 }
 
-function msfOnInline() {
-	msfInlDlg.style.visibility = 'visible';
+function msfShowSurround() {
+	msfSurrDlg.style.visibility = 'visible';
 }
 
 function msfOnUnformat() {
@@ -226,9 +239,17 @@ function msfOnApply() {
 			}
 		}
 	}
-	msfInlDlg.style.visibility = 'hidden';
+	msfSurrDlg.style.visibility = 'hidden';
 }
 
 function msfOnCancel() {
-	msfInlDlg.style.visibility = 'hidden';
+	msfSurrDlg.style.visibility = 'hidden';
+}
+
+function msfShowData() {
+	msfDataDlg.style.visibility = 'visible';
+}
+
+function msfCloseData() {
+	msfDataDlg.style.visibility = 'hidden';
 }
