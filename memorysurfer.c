@@ -2059,7 +2059,8 @@ static int xml_escape(char **xml_str_ptr, size_t *xml_n_ptr, char *str_text, int
 
 enum HIERARCHY { H_CHILD, H_SIBLING };
 
-static int inds_set(struct IndentStr *inds, int indent_n, int change_flag) {
+static int inds_set(struct IndentStr *inds, int indent_n, int change_flag)
+{
   int e;
   char *str;
   size_t size;
@@ -2100,7 +2101,8 @@ static int inds_set(struct IndentStr *inds, int indent_n, int change_flag) {
   return e;
 }
 
-static int gen_html_cat(int16_t n_create, enum HIERARCHY hierarchy, struct WebMemorySurfer *wms) {
+static int gen_html_cat(int16_t n_create, enum HIERARCHY hierarchy, struct WebMemorySurfer *wms)
+{
   int e;
   int rv;
   char *c_str;
@@ -2116,7 +2118,7 @@ static int gen_html_cat(int16_t n_create, enum HIERARCHY hierarchy, struct WebMe
       if (e == 0) {
         e = xml_escape(&wms->html_lp, &wms->html_n, c_str, ESC_AMP | ESC_LT);
         if (e == 0) {
-          rv = printf("%s\t<li><label class=\"msf\"><input type=\"radio\" name=\"cat\" value=\"%d\"%s%s>%s</label>%s\n",
+          rv = printf("%s\t<li><label class=\"msf-td\"><input type=\"radio\" name=\"cat\" value=\"%d\"%s%s>%s</label>%s\n",
               wms->inds->str,
               n_create,
               n_create == wms->ms.cat_i ? " checked" : "",
@@ -2778,7 +2780,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         for (i = 0; e == 0 && i < wms->fl_c; i++) {
           e = xml_escape(&wms->html_lp, &wms->html_n, wms->fl_v[i], ESC_AMP | ESC_QUOT);
           if (e == 0) {
-            rv = printf("\t\t\t\t<li><label class=\"msf\"><input type=\"radio\" name=\"file-title\" value=\"%s\">", wms->html_lp);
+            rv = printf("\t\t\t\t<li><label class=\"msf-td\"><input type=\"radio\" name=\"file-title\" value=\"%s\">", wms->html_lp);
             e = rv < 0;
             if (e == 0) {
               e = xml_escape(&wms->html_lp, &wms->html_n, wms->fl_v[i], ESC_AMP | ESC_LT);
@@ -2889,7 +2891,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         if (e == 0) {
           for (i = 0; i < 3 && e == 0; i++)
             if (wms->mode != M_CARD || i != 1) {
-              rv = printf("\t\t\t\t<label class=\"msf\"><input type=\"radio\" name=\"arrange\" value=\"%d\"%s>%s</label>\n",
+              rv = printf("\t\t\t\t<label class=\"msf-div\"><input type=\"radio\" name=\"arrange\" value=\"%d\"%s>%s</label>\n",
                   i,
                   i == wms->ms.arrange ? " checked" : "",
                   ARRANGE[i]);
@@ -3096,7 +3098,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
                           "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Search\">Search</button>\n"
                           "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Preview\">Preview</button>\n"
                           "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Stop\">Stop</button>\n"
-                          "\t\t\t\t<label class=\"msf\"><input type=\"checkbox\" name=\"is-html\"%s>HTML</label></div>\n",
+                          "\t\t\t\t<label class=\"msf-div\"><input type=\"checkbox\" name=\"is-html\"%s>HTML</label></div>\n",
                   a_str != NULL ? "" : " disabled",
                   wms->html_lp,
                   wms->ms.card_i >= 0 && wms->ms.card_a > 0 && wms->ms.card_i < wms->ms.card_a && (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? " checked" : "");
@@ -3125,7 +3127,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           e = xml_escape(&wms->html_lp, &wms->html_n, q_str, (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? 0 : ESC_AMP | ESC_LT);
           if (e == 0) {
             rv = printf("\t\t\t<h1 class=\"msf\">Preview</h1>\n"
-                        "\t\t\t<div class=\"msf-btns\"><label class=\"msf\"><input id=\"msf-unlock\" type=\"checkbox\" name=\"is-unlocked\"%s>Unlock</label>\n"
+                        "\t\t\t<div class=\"msf-btns\"><label class=\"msf-div\"><input id=\"msf-unlock\" type=\"checkbox\" name=\"is-unlocked\"%s>Unlock</label>\n"
                         "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Style\">Style</button>\n"
                         "\t\t\t\t<button id=\"msf-surround\" class=\"msf\" type=\"button\" disabled>Surround</button>\n"
                         "\t\t\t\t<button id=\"msf-unformat-btn\" class=\"msf\" type=\"button\" disabled>Unformat</button>\n"
@@ -3192,8 +3194,8 @@ static int gen_html(struct WebMemorySurfer *wms) {
           assert(wms->file_title_str != NULL && strlen(wms->tok_str) == 40);
           assert(wms->ms.match_case == -1 || wms->ms.match_case == 1);
           rv = printf("\t\t\t<h1 class=\"msf\">Searching</h1>\n"
-                      "\t\t\t<div class=\"msf-btns\"><input type=\"text\" name=\"search-txt\" value=\"%s\" size=25>\n"
-                      "\t\t\t\t<label class=\"msf\"><input type=\"checkbox\" name=\"match-case\"%s>Match Case</label></div>\n",
+                      "\t\t\t<div class=\"msf-btns\"><input class=\"msf\" type=\"text\" name=\"search-txt\" value=\"%s\" size=25>\n"
+                      "\t\t\t\t<label class=\"msf-div\"><input type=\"checkbox\" name=\"match-case\"%s>Match&nbsp;Case</label></div>\n",
               wms->html_lp,
               wms->ms.match_case > 0 ? " checked" : "");
           e = rv < 0;
@@ -3250,7 +3252,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           }
           for (i = 0; i < 5 && e == 0; i++) {
             attr_str = i == j ? " checked" : "";
-            rv = printf("\t\t\t\t<label class=\"msf\"><input type=\"radio\" name=\"timeout\" value=\"%d\"%s>%s</label>\n",
+            rv = printf("\t\t\t\t<label class=\"msf-td\"><input type=\"radio\" name=\"timeout\" value=\"%d\"%s>%s</label>\n",
                 i,
                 attr_str,
                 TIMEOUTS[i]);
@@ -3270,7 +3272,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         }
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.124</h1>\n"
+        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.125</h1>\n"
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2021</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
@@ -3340,7 +3342,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
                 rv = printf ("\t\t\t\t<tr>\n");
                 e = rv < 0;
                 for (x = 0; x < 2 && e == 0; x++) {
-                  rv = printf("\t\t\t\t\t<td class=\"msf-lvl\"><label class=\"msf\"><input type=\"radio\" disabled>Level</label></td>\n");
+                  rv = printf("\t\t\t\t\t<td class=\"msf-lvl\"><label class=\"msf-td\"><input type=\"radio\" disabled>Level</label></td>\n");
                   e = rv < 0;
                 }
                 if (e == 0) {
@@ -3380,7 +3382,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
                   if (i == lvl_sel)
                     attr_str = " autofocus";
                   set_time_str(time_diff_str, lvl_s[i]);
-                  rv = printf("\t\t\t\t\t<td class=\"msf-lvl\"><label class=\"msf\"><input type=\"radio\" name=\"lvl\" value=\"%d\"%s>Level %d (%s)</label></td>\n",
+                  rv = printf("\t\t\t\t\t<td class=\"msf-lvl\"><label class=\"msf-td\"><input type=\"radio\" name=\"lvl\" value=\"%d\"%s>Level %d (%s)</label></td>\n",
                       i, attr_str,
                       i, time_diff_str);
                   e = rv < 0;
@@ -3660,7 +3662,8 @@ static int ms_init(struct MemorySurfer *ms) {
   return e;
 }
 
-static void inds_init(struct IndentStr *inds) {
+static void inds_init(struct IndentStr *inds)
+{
   inds->str = NULL;
   inds->size = 0;
   inds->indent_n = -1;
@@ -3744,7 +3747,8 @@ static void ms_free(struct MemorySurfer *ms) {
   sw_free(&ms->imf.sw);
 }
 
-static void inds_free(struct IndentStr *inds) {
+static void inds_free(struct IndentStr *inds)
+{
   free(inds->str);
   inds->str = NULL;
   inds->size = 0;

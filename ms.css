@@ -3,7 +3,7 @@
 	Author: Lorenz Pullwitt <memorysurfer@lorenz-pullwitt.de>
 	Copyright 2016-2022
 
-	The file ms.css (1.0.0.24) is part of MemorySurfer.
+	The file ms.css (1.0.0.25) is part of MemorySurfer.
 
 	MemorySurfer is free software; you can redistribute it and/or
 	modify it under the terms of the GNU General Public License
@@ -75,6 +75,7 @@ ul.msf {
 
 td.msf-lvl {
 	min-width: 19ex;
+	padding: 0 0 1px 0;
 }
 
 td.msf-strength {
@@ -83,11 +84,11 @@ td.msf-strength {
 
 div.msf-btns {
 	display: flex;
-	margin: 5px 0 5px 1px;
+	margin: 1px 0 1px 1px;
 }
 
 button.msf {
-	padding: 0.9ex 0.9ex 0.9ex 0.9ex;
+	padding: 0.9ex 0.8ex 0.9ex 0.8ex;
 	max-width: 13.4ex;
 	margin: 0 1px 0 0;
 	flex-grow: 1;
@@ -110,9 +111,22 @@ p.msf {
 	margin: 1.1ex 0 1ex 0.5ex;
 }
 
-label.msf {
-	margin: 0 1px 0 0;
-	padding: 0.9ex 0.4ex 0.9ex 0.3ex;
+input[type=text].msf {
+	max-width: 25em;
+	min-width: 10em;
+	flex-grow: 1;
+	flex-shrink: 1;
+}
+
+label.msf-div {
+	display: flex;
+	margin: 0.9ex 0.8ex 0.9ex 1px;
+	padding: 0;
+}
+
+label.msf-td {
+	margin: 0;
+	padding: 0;
 }
 
 code.msf {
@@ -135,8 +149,8 @@ div.msf-dlg {
 	position: absolute;
 	visibility: hidden;
 	top: 60px;
-	left: 25%;
-	width: 50%;
+	left: 17%;
+	width: 66%;
 	max-width: 50ex;
 	padding: 0.5ex 0.5ex 0 0.5ex;
 	background-color: #fff;
