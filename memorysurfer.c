@@ -446,7 +446,8 @@ static int sa_set(struct StringArray *sa, int16_t sa_i, char *sa_str) {
   return e;
 }
 
-static int multi_delim(struct Multi *mult) {
+static int multi_delim(struct Multi *mult)
+{
   int e;
   int i;
   int ch;
@@ -708,7 +709,7 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
           }
           switch (len) {
           case 12:
-            e = memcmp(str, "memorysurfer", 12);
+            e = memcmp(str, "memorysurfer", 12) != 0;
             if (e == 0) {
               if (slash_f == 0) {
                 e = tag != TAG_ROOT;
@@ -730,7 +731,7 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
                 e = tag != TAG_STRENGTH;
               }
             } else {
-              e = memcmp(str, "question", 8);
+              e = memcmp(str, "question", 8) != 0;
               if (e == 0) {
                 if (slash_f == 0) {
                   e = tag != TAG_CARD;
@@ -742,7 +743,7 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
             }
             break;
           case 6:
-            e = memcmp(str, "answer", 6);
+            e = memcmp(str, "answer", 6) != 0;
             if (e == 0) {
               if (slash_f == 0) {
                 e = tag != TAG_CARD;
@@ -755,7 +756,7 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
             }
             break;
           case 5:
-            e = memcmp(str, "state", 5);
+            e = memcmp(str, "state", 5) != 0;
             if (e == 0) {
               if (slash_f == 0) {
                 e = tag != TAG_CARD;
@@ -814,7 +815,7 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
               } else
                 e = tag != TAG_NAME;
             } else {
-              e = memcmp(str, "deck", 4);
+              e = memcmp(str, "deck", 4) != 0;
               if (e == 0) {
                 if (slash_f == 0) {
                   e = tag != TAG_MEMORYSURFER && tag != TAG_DECK;
@@ -2534,7 +2535,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         if (e == 0) {
           rv = printf("\t\t<link rel=\"license\" href=\"https://www.gnu.org/licenses/old-licenses/gpl-2.0.html\">\n"
                       "\t</head>\n"
-                      "\t<body>\n");
+                      "\t<body id=\"msf\">\n");
           e = rv < 0;
         }
         break;
@@ -3127,11 +3128,11 @@ static int gen_html(struct WebMemorySurfer *wms) {
           e = xml_escape(&wms->html_lp, &wms->html_n, q_str, (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? 0 : ESC_AMP | ESC_LT);
           if (e == 0) {
             rv = printf("\t\t\t<h1 class=\"msf\">Preview</h1>\n"
-                        "\t\t\t<div class=\"msf-btns\"><label class=\"msf-div\"><input id=\"msf-unlock\" type=\"checkbox\" name=\"is-unlocked\"%s>Unlock</label>\n"
+                        "\t\t\t<div class=\"msf-btns msf-anchor\"><label class=\"msf-div\"><input id=\"msf-unlock\" type=\"checkbox\" name=\"is-unlocked\"%s>Unlock</label>\n"
                         "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Style\">Style</button>\n"
                         "\t\t\t\t<button id=\"msf-surround\" class=\"msf\" type=\"button\" disabled>Surround</button>\n"
                         "\t\t\t\t<button id=\"msf-unformat-btn\" class=\"msf\" type=\"button\" disabled>Unformat</button>\n"
-                        "\t\t\t\t<button id=\"msf-br\" class=\"msf\" type=\"button\" disabled>&lt;br&gt;</button></div>\n"
+                        "\t\t\t\t<button id=\"msf-br\" class=\"msf\" type=\"button\" disabled>&lt;br&gt;</button>\n"
                         "\t\t\t\t<div id=\"msf-inl-dlg\" class=\"msf-dlg\">\n"
                         "\t\t\t\t\t<h1 class=\"msf\">Surround Node</h1>\n"
                         "\t\t\t\t\t<select id=\"msf-format-inline\">\n"
@@ -3152,6 +3153,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
                         "\t\t\t\t\t<div class=\"msf-btns\"><button id=\"msf-inl-apply\" class=\"msf\" type=\"button\">Apply</button>\n"
                         "\t\t\t\t\t\t<button id=\"msf-inl-cancel\" class=\"msf\" type=\"button\">Cancel</button></div>\n"
                         "\t\t\t\t</div>\n"
+                        "\t\t\t</div>\n"
                         "\t\t\t<div id=\"%s\" class=\"%s\">%s</div>\n",
                 wms->ms.card_i >= 0 && wms->ms.card_a > 0 && wms->ms.card_i < wms->ms.card_a && (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? "" : " disabled",
                 (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? "q-html" : "q-txt",
@@ -3272,7 +3274,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         }
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.125</h1>\n"
+        rv = printf("\t\t\t<h1 class=\"msf\">About MemorySurfer v1.0.1.126</h1>\n"
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2021</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
@@ -3309,15 +3311,16 @@ static int gen_html(struct WebMemorySurfer *wms) {
           }
           if (e == 0) {
             rv = printf("\t\t\t<h1 class=\"msf\">%s</h1>\n"
-                        "\t\t\t<div class=\"msf-btns\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Proceed\"%s>Proceed</button>\n"
+                        "\t\t\t<div class=\"msf-btns msf-anchor\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Proceed\"%s>Proceed</button>\n"
                         "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Show\"%s>Show</button>\n"
                         "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Reveal\"%s>Reveal</button>\n"
-                        "\t\t\t\t<span class=\"msf-space\"></span><button id=\"msf-menu\" class=\"msf\" type=\"button\">☰</button></div>\n"
-                        "\t\t\t<div id=\"msf-data\" class=\"msf-dlg\">\n"
-                        "\t\t\t\t<h1 class=\"msf\">Data Views</h1>\n"
-                        "\t\t\t\t<div class=\"msf-btns\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Histogram\">Histogram</button>\n"
-                        "\t\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Table\">Table</button>\n"
-                        "\t\t\t\t\t<span class=\"msf-space\"></span><button id=\"msf-data-close\" class=\"msf\" type=\"button\">Close</button></div>\n"
+                        "\t\t\t\t<span class=\"msf-space\"></span><button id=\"msf-menu\" class=\"msf\" type=\"button\">☰</button>\n"
+                        "\t\t\t\t<div id=\"msf-data\" class=\"msf-dlg\">\n"
+                        "\t\t\t\t\t<h1 class=\"msf\">Data Views</h1>\n"
+                        "\t\t\t\t\t<div class=\"msf-btns\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Histogram\">Histogram</button>\n"
+                        "\t\t\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Table\">Table</button>\n"
+                        "\t\t\t\t\t\t<span class=\"msf-space\"></span><button id=\"msf-data-close\" class=\"msf\" type=\"button\">Close</button></div>\n"
+                        "\t\t\t\t</div>\n"
                         "\t\t\t</div>\n",
                 header_str,
                 wms->mode != M_RATE ? " disabled" : "",
@@ -4381,7 +4384,7 @@ int main(int argc, char *argv[]) {
               if (e == 0) {
                 e = sha1_result(&sha1, message_digest);
                 if (e == 0) {
-                  e = memcmp(wms->ms.passwd.pw_msg_digest, message_digest, SHA1_HASH_SIZE);
+                  e = memcmp(wms->ms.passwd.pw_msg_digest, message_digest, SHA1_HASH_SIZE) != 0;
                 }
               }
             }

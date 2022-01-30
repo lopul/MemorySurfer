@@ -3,7 +3,7 @@
 	Author: Lorenz Pullwitt <memorysurfer@lorenz-pullwitt.de>
 	Copyright 2016-2022
 
-	The file ms.css (1.0.0.25) is part of MemorySurfer.
+	ms.css (1.0.0.26) is part of MemorySurfer.
 
 	MemorySurfer is free software; you can redistribute it and/or
 	modify it under the terms of the GNU General Public License
@@ -20,7 +20,7 @@
 	https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 */
 
-body {
+body#msf {
 	width: 100%;
 	max-width: 80ex;
 	margin: 0 auto 0 auto;
@@ -35,7 +35,7 @@ h1.msf {
 }
 
 div.msf-txtarea {
-	margin: auto 1px auto 1px;
+	margin: 4px 1px 4px 1px;
 }
 
 textarea.msf {
@@ -46,7 +46,7 @@ textarea.msf {
 
 div.qa-html {
 	padding: 0.5ex 0.2ex 0.5ex 0.2ex;
-	margin: 0.3ex 1px 0.3ex 1px;
+	margin: 1px;
 	border-width: 1px;
 	border-style: solid;
 	border-radius: 0.3ex;
@@ -56,7 +56,7 @@ div.qa-html {
 
 div.qa-txt {
 	padding: 0.5ex 0.2ex 0.5ex 0.2ex;
-	margin: 0.3ex 1px 0.3ex 1px;
+	margin: 1px;
 	border-width: 1px;
 	border-style: solid;
 	border-radius: 0.3ex;
@@ -75,7 +75,7 @@ ul.msf {
 
 td.msf-lvl {
 	min-width: 19ex;
-	padding: 0 0 1px 0;
+	padding: 2px;
 }
 
 td.msf-strength {
@@ -120,13 +120,13 @@ input[type=text].msf {
 
 label.msf-div {
 	display: flex;
-	margin: 0.9ex 0.8ex 0.9ex 1px;
-	padding: 0;
+	margin: 0;
+	padding: 0.9ex 0.8ex 0.9ex 1px;
 }
 
 label.msf-td {
 	margin: 0;
-	padding: 0;
+	padding: 2px 0 2px 0;
 }
 
 code.msf {
