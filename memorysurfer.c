@@ -85,7 +85,7 @@ static enum Action action_seq[S_END+1][16] = {
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT, A_ASK_DELETE_CAT, A_END }, // S_ASK_DELETE_CAT
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT, A_DELETE_CAT, A_END }, // S_DELETE_CAT
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_TEST_CAT, A_TOGGLE, A_END }, // S_TOGGLE
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_EDIT, A_END }, // S_EDIT
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_EDIT, A_END }, // S_EDIT
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_TEST_CARD, A_UPDATE_QA, A_EDIT, A_SYNC, A_END }, // S_EDIT_SYNC
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_UPDATE_QA, A_UPDATE_HTML, A_INSERT, A_SYNC, A_END }, // S_INSERT
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_UPDATE_QA, A_UPDATE_HTML, A_APPEND, A_SYNC, A_END }, // S_APPEND
@@ -108,7 +108,7 @@ static enum Action action_seq[S_END+1][16] = {
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_LOAD_CARDLIST, A_RANK, A_DETERMINE_CARD, A_SYNC, A_READ_STYLE, A_CHECK_RESUME, A_END }, // S_QUESTION_RANK
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT_SELECTED, A_TEST_CAT_VALID, A_LOAD_CARDLIST, A_TEST_CARD, A_SHOW, A_READ_STYLE, A_CHECK_RESUME, A_END }, // S_SHOW
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT, A_LOAD_CARDLIST, A_TEST_CARD, A_REVEAL, A_READ_STYLE, A_CHECK_RESUME, A_END }, // S_REVEAL
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_TEST_CAT, A_LOAD_CARDLIST, A_TEST_CARD, A_UPDATE_QA, A_PROCEED, A_DETERMINE_CARD, A_SYNC, A_READ_STYLE, A_CHECK_RESUME, A_END }, // S_PROCEED_SYNC_QA
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_TEST_CAT, A_LOAD_CARDLIST, A_TEST_CARD, A_UPDATE_QA, A_PROCEED, A_SYNC, A_DETERMINE_CARD, A_READ_STYLE, A_CHECK_RESUME, A_END }, // S_PROCEED_SYNC_QA
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_LOAD_CARDLIST, A_TEST_CARD, A_SUSPEND, A_DETERMINE_CARD, A_READ_STYLE, A_CHECK_RESUME, A_END }, // S_SUSPEND
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_LOAD_CARDLIST, A_RESUME, A_DETERMINE_CARD, A_READ_STYLE, A_END }, // S_RESUME
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_SEARCH, A_END }, // S_SEARCH
@@ -1377,11 +1377,11 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
           break;
         case P_SELECT_DECK:
         case P_SEARCH:
-        case P_LEARN:
         case P_HISTOGRAM:
         case P_TABLE:
           wms->seq = S_EDIT;
           break;
+        case P_LEARN:
         case P_PREVIEW:
           wms->seq = S_EDIT_SYNC;
           break;
@@ -1429,21 +1429,21 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
       }
       break;
     case 5:
-			if (memcmp(mult->post_lp, "Learn", 5) == 0) {
-				if (wms->from_page == P_EDIT) {
-					wms->seq = S_QUESTION_SYNCED;
-				} else if (wms->from_page == P_START) {
-					wms->seq = S_SELECT_LEARN_CAT;
-				} else if (wms->from_page == P_TABLE) {
-					wms->seq = S_QUESTION_RANK;
-				} else if (wms->from_page == P_PREVIEW) {
-					wms->seq = S_QUESTION_SYNC_QA;
-				} else {
-					e = wms->from_page != P_SELECT_DECK && wms->from_page != P_SEARCH && wms->from_page != P_HISTOGRAM;
-					if (e == 0) {
-						wms->seq = S_QUESTION;
-					}
-				}
+      if (memcmp(mult->post_lp, "Learn", 5) == 0) {
+        if (wms->from_page == P_EDIT) {
+          wms->seq = S_QUESTION_SYNCED;
+        } else if (wms->from_page == P_START) {
+          wms->seq = S_SELECT_LEARN_CAT;
+        } else if (wms->from_page == P_TABLE) {
+          wms->seq = S_QUESTION_RANK;
+        } else if (wms->from_page == P_PREVIEW) {
+          wms->seq = S_QUESTION_SYNC_QA;
+        } else {
+          e = wms->from_page != P_SELECT_DECK && wms->from_page != P_SEARCH && wms->from_page != P_HISTOGRAM;
+          if (e == 0) {
+            wms->seq = S_QUESTION;
+          }
+        }
       } else if (memcmp(mult->post_lp, "Decks", 5) == 0) {
         wms->seq = S_START_DECKS;
       } else if (memcmp(mult->post_lp, "Table", 5) == 0) {
@@ -3277,7 +3277,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         }
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.127</h1>\n"
+        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.128</h1>\n"
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2022</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
@@ -3933,7 +3933,7 @@ sa_move (struct StringArray *sa_dest, struct StringArray *sa_src)
   sa_src->sa_n = 0;
 }
 
-static int ms_modify_qa(struct StringArray *sa, struct MemorySurfer *ms, uint8_t *need_sync) {
+static int ms_modify_qa(struct StringArray *sa, struct MemorySurfer *ms, int *need_sync) {
   int e;
   int eq;
   int32_t data_size;
@@ -3942,11 +3942,11 @@ static int ms_modify_qa(struct StringArray *sa, struct MemorySurfer *ms, uint8_t
   if (e == 0) {
     eq = sa_cmp(sa, &ms->card_sa);
     if (eq == 0) {
-      (*need_sync)++;
       sa_move(&ms->card_sa, sa);
       data_size = sa_length(&ms->card_sa);
       card_ptr = ms->card_l + ms->card_i;
       e = imf_put(&ms->imf, card_ptr->card_qai, ms->card_sa.sa_d, data_size);
+      *need_sync = e == 0;
     }
   }
   return e;
@@ -4162,7 +4162,7 @@ int main(int argc, char *argv[]) {
   struct Card *card_ptr;
   char e_str[8]; // JTLWQNE + '\0' (0x7fffffff)
   struct tm bd_time; // broken-down
-  uint8_t need_sync;
+  int need_sync;
   struct XML *xml;
   dbg_stream = NULL;
   size = sizeof(struct WebMemorySurfer);
@@ -4696,20 +4696,18 @@ int main(int argc, char *argv[]) {
               if (e == 0) {
                 assert(wms->ms.cat_i < wms->ms.cat_a && wms->ms.cat_t[wms->ms.cat_i].cat_used != 0);
                 e = ms_load_card_list(&wms->ms);
-              }
-              else {
+              } else {
                 wms->ms.cat_i = -1;
                 wms->static_header = "Invalid deck";
                 wms->static_btn_main = "OK";
-                wms->todo_main = S_NONE; // S_SELECT_EDIT_CAT S_SELECT_SEARCH_CAT S_SELECT_LEARN_CAT S_DELETE_CARD S_APPEND
+                wms->todo_main = S_NONE; // S_SELECT_EDIT_CAT S_SELECT_SEARCH_CAT S_SELECT_LEARN_CAT S_DELETE_CARD S_APPEND S_SELECT_EDIT_CAT
                 wms->page = P_MSG;
               }
-            }
-            else {
+            } else {
               assert (wms->ms.cat_i == -1);
               wms->static_header = "Please select a category";
               wms->static_btn_main = "OK";
-              wms->todo_main = S_START; // S_NONE S_SELECT_EDIT_CAT S_SELECT_SEARCH_CAT S_SELECT_LEARN_CAT S_DELETE_CARD
+              wms->todo_main = S_START; // S_NONE S_SELECT_EDIT_CAT S_SELECT_SEARCH_CAT S_SELECT_LEARN_CAT S_DELETE_CARD S_SELECT_EDIT_CAT
               wms->page = P_MSG;
             }
             break;
@@ -4946,9 +4944,7 @@ int main(int argc, char *argv[]) {
                 }
                 if (e == 0) {
                   e = imf_put(&wms->ms.imf, wms->ms.passwd.style_sai, wms->ms.style_sa.sa_d, data_size);
-                  if (e == 0) {
-                    need_sync++;
-                  }
+                  need_sync = e == 0;
                 }
               }
             }
@@ -5144,46 +5140,20 @@ int main(int argc, char *argv[]) {
             wms->mode = M_EDIT;
             break;
           case A_EDIT:
-            if (wms->ms.cat_i >= 0)
+            assert (wms->ms.card_i >= -1 && wms->ms.card_a >= 0);
+            if (wms->ms.card_i < 0 && wms->ms.card_a > 0)
             {
-              if ((wms->ms.cat_i < wms->ms.cat_a) && (wms->ms.cat_t[wms->ms.cat_i].cat_used != 0))
-              {
-                if (wms->from_page != P_PREVIEW)
-                  e = ms_load_card_list (&wms->ms);
-                if (e == 0)
-                {
-                  assert (wms->ms.card_i >= -1 && wms->ms.card_a >= 0);
-                  if (wms->ms.card_i < 0 && wms->ms.card_a > 0)
-                  {
-                    wms->ms.card_i = 0;
-                  }
-                  if (wms->ms.card_i >= wms->ms.card_a)
-                  {
-                    wms->ms.card_i = wms->ms.card_a - 1;
-                  }
-                  if (wms->ms.card_i >= 0)
-                  {
-                    e = ms_get_card_sa(&wms->ms);
-                  }
-                  wms->page = P_EDIT;
-                }
-              }
-              else
-              {
-                wms->ms.cat_i = -1;
-                wms->static_header = "Invalid deck";
-                wms->static_btn_main = "OK";
-                wms->todo_main = S_SELECT_EDIT_CAT;
-                wms->page = P_MSG;
-              }
+              wms->ms.card_i = 0;
             }
-            else
+            if (wms->ms.card_i >= wms->ms.card_a)
             {
-              wms->static_header = "Please select a category to edit";
-              wms->static_btn_main = "OK";
-              wms->todo_main = S_SELECT_EDIT_CAT;
-              wms->page = P_MSG;
+              wms->ms.card_i = wms->ms.card_a - 1;
             }
+            if (wms->ms.card_i >= 0)
+            {
+              e = ms_get_card_sa(&wms->ms);
+            }
+            wms->page = P_EDIT;
             break;
           case A_UPDATE_QA:
             if ((wms->from_page != P_PREVIEW && wms->from_page != P_LEARN) || (wms->from_page == P_PREVIEW && wms->ms.is_unlocked > 0) || (wms->from_page == P_LEARN && wms->saved_mode == M_RATE && wms->ms.is_unlocked > 0)) {
@@ -5203,11 +5173,11 @@ int main(int argc, char *argv[]) {
               data_size = wms->ms.card_a * sizeof(struct Card);
               index = wms->ms.cat_t[wms->ms.cat_i].cat_cli;
               e = imf_put(&wms->ms.imf, index, wms->ms.card_l, data_size);
-              need_sync++;
+              need_sync = e == 0;
             }
             break;
           case A_SYNC:
-            if (need_sync > 0) {
+            if (need_sync == 1) {
               assert(mtime_test != -1);
               e = mtime_test != 1;
               if (e == 0) {
@@ -5253,7 +5223,7 @@ int main(int argc, char *argv[]) {
                         wms->ms.card_l[wms->ms.card_i].card_qai = index;
                         wms->ms.card_l[wms->ms.card_i].card_state = STATE_NEW;
                         e = imf_put(&wms->ms.imf, wms->ms.cat_t[wms->ms.cat_i].cat_cli, wms->ms.card_l, data_size);
-                        need_sync++;
+                        need_sync = e == 0;
                         if (e == 0)
                           wms->page = P_EDIT;
                       }
@@ -5288,7 +5258,7 @@ int main(int argc, char *argv[]) {
                         card_ptr->card_state = STATE_NEW;
                         cat_ptr = wms->ms.cat_t + wms->ms.cat_i;
                         e = imf_put(&wms->ms.imf, cat_ptr->cat_cli, wms->ms.card_l, data_size);
-                        need_sync++;
+                        need_sync = e == 0;
                         wms->page = P_EDIT;
                       }
                     }
@@ -5350,8 +5320,7 @@ int main(int argc, char *argv[]) {
                 wms->ms.card_i = 0;
               if (wms->ms.card_i >= wms->ms.card_a)
                 wms->ms.card_i = wms->ms.card_a - 1;
-            }
-            else
+            } else
               wms->ms.card_i = -1;
             if (wms->ms.card_i != -1) {
               e = ms_get_card_sa(&wms->ms);
@@ -5366,8 +5335,7 @@ int main(int argc, char *argv[]) {
                 wms->ms.card_i = 0;
               if (wms->ms.card_i >= wms->ms.card_a)
                 wms->ms.card_i = wms->ms.card_a - 1;
-            }
-            else
+            } else
               wms->ms.card_i = -1;
             if (wms->ms.card_i != -1) {
               e = ms_get_card_sa(&wms->ms);
@@ -5382,7 +5350,7 @@ int main(int argc, char *argv[]) {
               data_size = wms->ms.card_a * sizeof(struct Card);
               index = wms->ms.cat_t[wms->ms.cat_i].cat_cli;
               e = imf_put(&wms->ms.imf, index, wms->ms.card_l, data_size);
-              need_sync++;
+              need_sync = e == 0;
               if (e == 0) {
                 e = ms_get_card_sa(&wms->ms);
                 if (e == 0)
@@ -5599,10 +5567,10 @@ int main(int argc, char *argv[]) {
           case A_RANK:
             assert(wms->ms.rank >= 0 && wms->ms.rank <= 21);
             e = wms->ms.rank < 0;
-            if (!e) {
+            if (e == 0) {
               if (wms->ms.passwd.rank != wms->ms.rank) {
                 wms->ms.passwd.rank = wms->ms.rank;
-                need_sync++;
+                need_sync = 1;
               }
             }
             break;
@@ -5689,8 +5657,7 @@ int main(int argc, char *argv[]) {
             assert((card_ptr->card_state & 0x07) == STATE_SCHEDULED);
             data_size = wms->ms.card_a * sizeof(struct Card);
             e = imf_put(&wms->ms.imf, wms->ms.cat_t[wms->ms.cat_i].cat_cli, wms->ms.card_l, data_size);
-            if (e == 0)
-              need_sync++;
+            need_sync = e == 0;
             break;
           case A_SUSPEND:
             assert((wms->ms.card_l[wms->ms.card_i].card_state & 0x07) == STATE_SCHEDULED || (wms->ms.card_l[wms->ms.card_i].card_state & 0x07) == STATE_NEW);
