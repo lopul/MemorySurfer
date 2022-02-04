@@ -3,7 +3,7 @@
 	Author: Lorenz Pullwitt <memorysurfer@lorenz-pullwitt.de>
 	Copyright 2016-2022
 
-	ms.css (1.0.0.26) is part of MemorySurfer.
+	ms.css (1.0.0.27) is part of MemorySurfer.
 
 	MemorySurfer is free software; you can redistribute it and/or
 	modify it under the terms of the GNU General Public License
@@ -104,7 +104,7 @@ span.msf-space {
 svg.msf {
 	width: 98%;
 	max-width: 50ex;
-	background-color: #c0c0c040;
+	background-color: #eee;
 }
 
 p.msf {

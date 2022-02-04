@@ -2,7 +2,7 @@
 	Author: Lorenz Pullwitt <memorysurfer@lorenz-pullwitt.de>
 	Copyright 2022
 
-	This file (ms.js - v1.0.0.16) is part of MemorySurfer.
+	This file (ms.js - v1.0.0.17) is part of MemorySurfer.
 
 	MemorySurfer is free software; you can redistribute it and/or
 	modify it under the terms of the GNU General Public License
@@ -39,14 +39,16 @@ document.addEventListener('DOMContentLoaded', msfOnDOMContentLoaded);
 
 function msfOnDOMContentLoaded() {
 	if (msfUnlock != null) {
-		document.addEventListener('selectionchange', msfSelChanged);
 		msfForm.addEventListener('submit', msfOnSubmit);
 		msfUnlock.addEventListener('click', msfOnUnlock);
-		msfSurrBtn.addEventListener('click', msfShowSurround);
-		msfUnformatBtn.addEventListener('click', msfOnUnformat);
-		msfBrBtn.addEventListener('click', msfOnBr);
-		msfInlApply.addEventListener('click', msfOnApply);
-		msfInlCancel.addEventListener('click', msfOnCancel);
+		if (msfSurrBtn != null && msfUnformatBtn != null && msfBrBtn != null) {
+			document.addEventListener('selectionchange', msfSelChanged);
+			msfSurrBtn.addEventListener('click', msfShowSurround);
+			msfUnformatBtn.addEventListener('click', msfOnUnformat);
+			msfBrBtn.addEventListener('click', msfOnBr);
+			msfInlApply.addEventListener('click', msfOnApply);
+			msfInlCancel.addEventListener('click', msfOnCancel);
+		}
 	}
 	if (msfDataBtn != null) {
 		msfDataBtn.addEventListener('click', msfShowData);
