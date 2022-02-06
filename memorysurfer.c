@@ -1974,12 +1974,13 @@ static int parse_post(struct WebMemorySurfer *wms) {
   return e;
 }
 
-static char *sa_get(struct StringArray *sa, int16_t sa_i) {
+static char *sa_get(struct StringArray *sa, int16_t sa_i)
+{
   char *ret_str;
   char ch;
   int pos; // get
   int i;
-  assert(sa->sa_c >= 0);
+  assert(sa != NULL && sa->sa_c >= 0);
   ret_str = NULL;
   if (sa_i >= 0 && sa_i < sa->sa_c) {
     pos = 0;
@@ -3277,7 +3278,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         }
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.128</h1>\n"
+        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.129</h1>\n"
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2022</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
@@ -3823,7 +3824,8 @@ static int ms_get_card_sa(struct MemorySurfer *ms) {
   return e;
 }
 
-static int ms_determine_card(struct MemorySurfer *ms) {
+static int ms_determine_card(struct MemorySurfer *ms)
+{
   int e;
   time_t time_diff;
   int32_t card_strength_thr; // threshold
@@ -3848,10 +3850,10 @@ static int ms_determine_card(struct MemorySurfer *ms) {
       for (card_i = 0; card_i < ms->card_a && e == 0; card_i++) {
         time_diff = ms->timestamp - ms->card_l[card_i].card_time;
         retent = exp(-(double)time_diff / ms->card_l[card_i].card_strength);
-        if (retent <= 1 / M_E) {
-          card_state = ms->card_l[card_i].card_state & 0x07;
-          switch (card_state) {
-          case STATE_SCHEDULED:
+        card_state = ms->card_l[card_i].card_state & 0x07;
+        switch (card_state) {
+        case STATE_SCHEDULED:
+          if (retent <= 1 / M_E) {
             ms->cards_nel++;
             if (ms->card_l[card_i].card_strength <= card_strength_thr) {
               if (card_strength_thr > lvl_s[ms->passwd.rank]) {
@@ -3866,18 +3868,18 @@ static int ms_determine_card(struct MemorySurfer *ms) {
                 sel_card[STATE_SCHEDULED] = card_i;
               }
             }
-            break;
-          case STATE_ALARM:
-          case STATE_NEW:
-          case STATE_SUSPENDED:
-            if (retent < reten_state[card_state]) {
-              reten_state[card_state] = retent;
-              sel_card[card_state] = card_i;
-            }
-            break;
-          default:
-            e = 0x0009100c; // MSDCA MemorySurfer ms_determine_card assert (failed)
           }
+          break;
+        case STATE_ALARM:
+        case STATE_NEW:
+        case STATE_SUSPENDED:
+          if (retent < reten_state[card_state]) {
+            reten_state[card_state] = retent;
+            sel_card[card_state] = card_i;
+          }
+          break;
+        default:
+          e = 0x0009100c; // MSDCA MemorySurfer ms_determine_card assert (failed)
         }
       }
       if (e == 0) {
