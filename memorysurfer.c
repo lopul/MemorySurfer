@@ -1608,12 +1608,12 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
         wms->seq = S_SUSPEND;
       } else {
         e = memcmp(mult->post_lp, "Refresh", 7) != 0;
-        if (!e) {
+        if (e == 0) {
           if (wms->from_page == P_HISTOGRAM) {
             wms->seq = S_HISTOGRAM;
           } else {
             e = wms->from_page != P_TABLE;
-            if (!e)
+            if (e == 0)
               wms->seq = S_TABLE_REFRESH;
           }
         }
@@ -3278,7 +3278,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         }
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.129</h1>\n"
+        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.130</h1>\n"
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2022</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
@@ -3425,7 +3425,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
                         "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Suspend\"%s>Suspend</button>\n"
                         "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Resume\"%s>Resume</button></div>\n"
                         "\t\t</form>\n"
-                        "\t\t<code class=\"msf\">%s; nel: %d; html_n: %zu; time_diff: %s</code>\n"
+                        "\t\t<code class=\"msf\">%s; nel: %d; html_n: %zu; time_diff: %s; mctr:&nbsp;%d</code>\n"
                         "\t</body>\n"
                         "</html>\n",
                 (wms->ms.card_l[wms->ms.card_i].card_state & 0x07) != STATE_SUSPENDED ? "" : " disabled",
@@ -3433,7 +3433,8 @@ static int gen_html(struct WebMemorySurfer *wms) {
                 sw_info_str,
                 wms->ms.cards_nel,
                 wms->html_n,
-                time_diff_str);
+                time_diff_str,
+                wms->ms.passwd.mctr);
             e = rv < 0;
           }
         }
@@ -3836,62 +3837,59 @@ static int ms_determine_card(struct MemorySurfer *ms)
   int card_state;
   int card_i;
   if (ms->card_a > 0) {
-    ms->timestamp = time(NULL);
-    e = ms->timestamp == -1;
-    if (e == 0) {
-      card_strength_thr = lvl_s[20];
-      ms->card_i = -1;
-      ms->cards_nel = 0;
-      for (card_state = 0; card_state <= STATE_SUSPENDED; card_state++) {
-        reten_state[card_state] = 1.0;
-        state_time_diff[card_state] = INT32_MAX;
-        sel_card[card_state] = -1;
-      }
-      for (card_i = 0; card_i < ms->card_a && e == 0; card_i++) {
-        time_diff = ms->timestamp - ms->card_l[card_i].card_time;
-        retent = exp(-(double)time_diff / ms->card_l[card_i].card_strength);
-        card_state = ms->card_l[card_i].card_state & 0x07;
-        switch (card_state) {
-        case STATE_SCHEDULED:
-          if (retent <= 1 / M_E) {
-            ms->cards_nel++;
-            if (ms->card_l[card_i].card_strength <= card_strength_thr) {
-              if (card_strength_thr > lvl_s[ms->passwd.rank]) {
-                if (ms->card_l[card_i].card_strength <= lvl_s[ms->passwd.rank]) {
-                  card_strength_thr = lvl_s[ms->passwd.rank];
-                  reten_state[STATE_SCHEDULED] = 1.0;
-                }
-              }
-              if (retent < reten_state[STATE_SCHEDULED] || (retent == reten_state[STATE_SCHEDULED] && time_diff > state_time_diff[STATE_SCHEDULED])) {
-                reten_state[STATE_SCHEDULED] = retent;
-                state_time_diff[STATE_SCHEDULED] = time_diff;
-                sel_card[STATE_SCHEDULED] = card_i;
+    assert(ms->timestamp >= 0);
+    card_strength_thr = lvl_s[20];
+    ms->card_i = -1;
+    ms->cards_nel = 0;
+    for (card_state = 0; card_state <= STATE_SUSPENDED; card_state++) {
+      reten_state[card_state] = 1.0;
+      state_time_diff[card_state] = INT32_MAX;
+      sel_card[card_state] = -1;
+    }
+    for (card_i = 0; card_i < ms->card_a && e == 0; card_i++) {
+      time_diff = ms->timestamp - ms->card_l[card_i].card_time;
+      retent = exp(-(double)time_diff / ms->card_l[card_i].card_strength);
+      card_state = ms->card_l[card_i].card_state & 0x07;
+      switch (card_state) {
+      case STATE_SCHEDULED:
+        if (retent <= 1 / M_E) {
+          ms->cards_nel++;
+          if (ms->card_l[card_i].card_strength <= card_strength_thr) {
+            if (card_strength_thr > lvl_s[ms->passwd.rank]) {
+              if (ms->card_l[card_i].card_strength <= lvl_s[ms->passwd.rank]) {
+                card_strength_thr = lvl_s[ms->passwd.rank];
+                reten_state[STATE_SCHEDULED] = 1.0;
               }
             }
+            if (retent < reten_state[STATE_SCHEDULED] || (retent == reten_state[STATE_SCHEDULED] && time_diff > state_time_diff[STATE_SCHEDULED])) {
+              reten_state[STATE_SCHEDULED] = retent;
+              state_time_diff[STATE_SCHEDULED] = time_diff;
+              sel_card[STATE_SCHEDULED] = card_i;
+            }
           }
-          break;
-        case STATE_ALARM:
-        case STATE_NEW:
-        case STATE_SUSPENDED:
-          if (retent < reten_state[card_state]) {
-            reten_state[card_state] = retent;
-            sel_card[card_state] = card_i;
-          }
-          break;
-        default:
-          e = 0x0009100c; // MSDCA MemorySurfer ms_determine_card assert (failed)
         }
+        break;
+      case STATE_ALARM:
+      case STATE_NEW:
+      case STATE_SUSPENDED:
+        if (retent < reten_state[card_state]) {
+          reten_state[card_state] = retent;
+          sel_card[card_state] = card_i;
+        }
+        break;
+      default:
+        e = 0x0009100c; // MSDCA MemorySurfer ms_determine_card assert (failed)
       }
-      if (e == 0) {
-        if (sel_card[STATE_SCHEDULED] != -1 && card_strength_thr == lvl_s[ms->passwd.rank])
-          ms->card_i = sel_card[STATE_SCHEDULED];
-        else if (sel_card[STATE_NEW] != -1)
-          ms->card_i = sel_card[STATE_NEW];
-        else if (sel_card[STATE_SCHEDULED] != -1)
-          ms->card_i = sel_card[STATE_SCHEDULED];
-        else if (sel_card[STATE_SUSPENDED] != -1)
-          ms->card_i = sel_card[STATE_SUSPENDED];
-      }
+    }
+    if (e == 0) {
+      if (sel_card[STATE_SCHEDULED] != -1 && card_strength_thr == lvl_s[ms->passwd.rank])
+        ms->card_i = sel_card[STATE_SCHEDULED];
+      else if (sel_card[STATE_NEW] != -1)
+        ms->card_i = sel_card[STATE_NEW];
+      else if (sel_card[STATE_SCHEDULED] != -1)
+        ms->card_i = sel_card[STATE_SCHEDULED];
+      else if (sel_card[STATE_SUSPENDED] != -1)
+        ms->card_i = sel_card[STATE_SUSPENDED];
     }
   } else
     assert(ms->card_i == -1);
@@ -3935,7 +3933,8 @@ sa_move (struct StringArray *sa_dest, struct StringArray *sa_src)
   sa_src->sa_n = 0;
 }
 
-static int ms_modify_qa(struct StringArray *sa, struct MemorySurfer *ms, int *need_sync) {
+static int ms_modify_qa(struct StringArray *sa, struct MemorySurfer *ms, int *need_sync)
+{
   int e;
   int eq;
   int32_t data_size;
@@ -5597,7 +5596,7 @@ int main(int argc, char *argv[]) {
             }
             break;
           case A_SHOW:
-            assert(wms->ms.timestamp > 0);
+            assert(wms->ms.timestamp >= 0);
             e = ms_get_card_sa(&wms->ms);
             if (e == 0) {
               wms->page = P_LEARN;
@@ -5650,7 +5649,7 @@ int main(int argc, char *argv[]) {
           case A_PROCEED:
             assert(mtime_test >= 0);
             assert(wms->ms.cat_i >= 0 && wms->ms.cat_i < wms->ms.cat_a && wms->ms.cat_t[wms->ms.cat_i].cat_used != 0);
-            assert(wms->ms.timestamp > 0);
+            assert(wms->ms.timestamp >= 0);
             card_ptr = wms->ms.card_l + wms->ms.card_i;
             if ((card_ptr->card_state & 0x07) == STATE_NEW || (card_ptr->card_state & 0x07) == STATE_SUSPENDED)
               card_ptr->card_state = (card_ptr->card_state & 0x08) | STATE_SCHEDULED;
@@ -5708,23 +5707,21 @@ int main(int argc, char *argv[]) {
             for (i = 0; i < 100; i++)
               wms->hist_bucket[i] = 0;
             if (wms->ms.card_a > 0) {
-              wms->ms.timestamp = time(NULL);
-              e = wms->ms.timestamp == -1;
-              if (e == 0) {
-                for (card_i = 0; card_i < wms->ms.card_a; card_i++)
-                  if ((wms->ms.card_l[card_i].card_state & 0x07) == STATE_SCHEDULED) {
-                    time_diff = wms->ms.timestamp - wms->ms.card_l[card_i].card_time;
-                    retent = exp(-(double)time_diff / wms->ms.card_l[card_i].card_strength);
-                    i = retent * 100;
-                    assert(i >= 0 && i < 100);
-                    wms->hist_bucket[i]++;
-                  }
-                wms->hist_max = 0;
-                for (i = 0; i < 100; i++)
-                  if (wms->hist_bucket[i] > wms->hist_max)
-                    wms->hist_max = wms->hist_bucket[i];
-                wms->page = P_HISTOGRAM;
+              assert(wms->ms.timestamp >= 0);
+              for (card_i = 0; card_i < wms->ms.card_a; card_i++) {
+                if ((wms->ms.card_l[card_i].card_state & 0x07) == STATE_SCHEDULED) {
+                  time_diff = wms->ms.timestamp - wms->ms.card_l[card_i].card_time;
+                  retent = exp(-(double)time_diff / wms->ms.card_l[card_i].card_strength);
+                  i = retent * 100;
+                  assert(i >= 0 && i < 100);
+                  wms->hist_bucket[i]++;
+                }
               }
+              wms->hist_max = 0;
+              for (i = 0; i < 100; i++)
+                if (wms->hist_bucket[i] > wms->hist_max)
+                  wms->hist_max = wms->hist_bucket[i];
+              wms->page = P_HISTOGRAM;
             }
             break;
           case A_TABLE:
