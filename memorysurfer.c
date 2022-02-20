@@ -41,7 +41,7 @@ enum Action { A_END, A_NONE, A_FILE, A_WARN_UPLOAD, A_CREATE, A_NEW, A_OPEN_DLG,
 enum Page { P_UNDEF = -1, P_START, P_FILE, P_PASSWORD, P_NEW, P_OPEN, P_UPLOAD, P_UPLOAD_REPORT, P_EXPORT, P_CAT_NAME, P_STYLE, P_SELECT_ARRANGE, P_SELECT_DEST_DECK, P_SELECT_DECK, P_EDIT, P_PREVIEW, P_SEARCH, P_PREFERENCES, P_ABOUT, P_LEARN, P_MSG, P_HISTOGRAM, P_TABLE };
 enum Block { B_END, B_START_HTML, B_FORM_URLENCODED, B_FORM_MULTIPART, B_OPEN_DIV, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_HIDDEN_MOV_CARD, B_CLOSE_DIV, B_START, B_FILE, B_PASSWORD, B_NEW, B_OPEN, B_UPLOAD, B_UPLOAD_REPORT, B_EXPORT, B_CAT_NAME, B_STYLE, B_SELECT_ARRANGE, B_SELECT_DEST_DECK, B_SELECT_DECK, B_EDIT, B_PREVIEW, B_SEARCH, B_PREFERENCES, B_ABOUT, B_LEARN, B_MSG, B_HISTOGRAM, B_TABLE };
 enum Mode { M_NONE = -1, M_DEFAULT, M_CHANGE_PASSWD, M_ASK, M_RATE, M_EDIT, M_LEARN, M_SEARCH, M_SEND, M_MOVE, M_CARD, M_MOVE_DECK, M_CREATE_DECK, M_START, M_END };
-enum Sequence { S_FILE, S_START_DECKS, S_DECKS_CREATE, S_SELECT_MOVE_ARRANGE, S_CAT_NAME, S_STYLE_GO, S_SELECT_EDIT_CAT, S_SELECT_LEARN_CAT, S_SELECT_SEARCH_CAT, S_PREFERENCES, S_ABOUT, S_APPLY, S_NEW, S_FILELIST, S_WARN_UPLOAD, S_UPLOAD, S_LOGIN, S_ENTER, S_CHANGE, S_START, S_UPLOAD_REPORT, S_EXPORT, S_ASK_REMOVE, S_REMOVE, S_ASK_ERASE, S_ERASE, S_CLOSE, S_NONE, S_CREATE, S_GO_LOGIN, S_GO_CHANGE, S_RENAME_ENTER, S_RENAME_CAT, S_STYLE_APPLY, S_SELECT_DEST_CAT, S_MOVE_CAT, S_CREATE_CAT, S_ASK_DELETE_CAT, S_DELETE_CAT, S_TOGGLE, S_EDIT, S_EDIT_SYNC, S_INSERT, S_APPEND, S_ASK_DELETE_CARD, S_DELETE_CARD, S_PREVIOUS, S_NEXT, S_SCHEDULE, S_SET, S_CARD_ARRANGE, S_MOVE_CARD, S_SELECT_SEND_CAT, S_SEND_CARD, S_SEARCH_SYNCED, S_SEARCH_SYNC_QA, S_PREVIEW_SYNC, S_PREVIEW, S_QUESTION_SYNCED, S_QUESTION_SYNC_QA, S_QUESTION, S_QUESTION_RANK, S_SHOW, S_REVEAL, S_PROCEED_SYNC_QA, S_SUSPEND, S_RESUME, S_SEARCH, S_HISTOGRAM, S_TABLE, S_TABLE_REFRESH, S_END };
+enum Sequence { S_FILE, S_START_DECKS, S_DECKS_CREATE, S_SELECT_MOVE_ARRANGE, S_CAT_NAME, S_STYLE_GO, S_SELECT_EDIT_CAT, S_SELECT_LEARN_CAT, S_SELECT_SEARCH_CAT, S_PREFERENCES, S_ABOUT, S_APPLY, S_NEW, S_FILELIST, S_WARN_UPLOAD, S_UPLOAD, S_LOGIN, S_ENTER, S_CHANGE, S_START, S_UPLOAD_REPORT, S_EXPORT, S_ASK_REMOVE, S_REMOVE, S_ASK_ERASE, S_ERASE, S_CLOSE, S_NONE, S_CREATE, S_GO_LOGIN, S_GO_CHANGE, S_RENAME_ENTER, S_RENAME_CAT, S_STYLE_APPLY, S_SELECT_DEST_CAT, S_MOVE_CAT, S_CREATE_CAT, S_ASK_DELETE_CAT, S_DELETE_CAT, S_TOGGLE, S_EDIT, S_EDIT_SYNC_RANK, S_EDIT_SYNC, S_INSERT, S_APPEND, S_ASK_DELETE_CARD, S_DELETE_CARD, S_PREVIOUS, S_NEXT, S_SCHEDULE, S_SET, S_CARD_ARRANGE, S_MOVE_CARD, S_SELECT_SEND_CAT, S_SEND_CARD, S_SEARCH, S_SEARCH_SYNCED, S_SEARCH_SYNC_QA, S_SEARCH_SYNC_RANK, S_PREVIEW_SYNC, S_PREVIEW, S_QUESTION_SYNCED, S_QUESTION_SYNC_QA, S_QUESTION, S_QUESTION_RANK, S_SHOW, S_REVEAL, S_PROCEED_SYNC_QA, S_SUSPEND, S_RESUME, S_HISTOGRAM, S_TABLE, S_TABLE_REFRESH, S_END };
 enum Stage { T_NULL, T_URLENCODE_EQUALS, T_URLENCODE_AMP, T_BOUNDARY_INIT, T_CONTENT, T_NAME, T_NAME_QUOT, T_VALUE_START, T_VALUE_CRLFMINUSMINUS, T_VALUE_XML, T_BOUNDARY_CHECK, T_EPILOGUE };
 
 static enum Action action_seq[S_END+1][16] = {
@@ -86,6 +86,7 @@ static enum Action action_seq[S_END+1][16] = {
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT, A_DELETE_CAT, A_END }, // S_DELETE_CAT
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_TEST_CAT, A_TOGGLE, A_END }, // S_TOGGLE
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_EDIT, A_END }, // S_EDIT
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_RANK, A_SYNC, A_EDIT, A_END }, // S_EDIT_SYNC_RANK
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_TEST_CARD, A_UPDATE_QA, A_EDIT, A_SYNC, A_END }, // S_EDIT_SYNC
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_UPDATE_QA, A_UPDATE_HTML, A_INSERT, A_SYNC, A_END }, // S_INSERT
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_UPDATE_QA, A_UPDATE_HTML, A_APPEND, A_SYNC, A_END }, // S_APPEND
@@ -99,20 +100,21 @@ static enum Action action_seq[S_END+1][16] = {
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_LOAD_CARDLIST, A_TEST_CARD, A_MOVE_CARD, A_END }, // S_MOVE_CARD
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_UPDATE_QA, A_UPDATE_HTML, A_SELECT_SEND_CAT, A_SYNC, A_END }, // S_SELECT_SEND_CAT
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_LOAD_CARDLIST, A_SEND_CARD, A_END }, // S_SEND_CARD
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_SEARCH, A_END }, // S_SEARCH
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_UPDATE_QA, A_UPDATE_HTML, A_SEARCH, A_SYNC, A_END }, // S_SEARCH_SYNCED
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_UPDATE_QA, A_SYNC, A_SEARCH, A_END }, // S_SEARCH_SYNC_QA
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_RANK, A_SYNC, A_SEARCH, A_END }, // S_SEARCH_SYNC_RANK
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_TEST_CARD, A_UPDATE_QA, A_UPDATE_HTML, A_PREVIEW, A_SYNC, A_READ_STYLE, A_END }, // S_PREVIEW_SYNC
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_TEST_CARD, A_PREVIEW, A_GET_CARD, A_READ_STYLE, A_END }, // S_PREVIEW
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_UPDATE_QA, A_UPDATE_HTML, A_DETERMINE_CARD, A_SYNC, A_READ_STYLE, A_CHECK_RESUME, A_END }, // S_QUESTION_SYNCED
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_UPDATE_QA, A_DETERMINE_CARD, A_SYNC, A_READ_STYLE, A_CHECK_RESUME, A_END }, // S_QUESTION_SYNC_QA
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_LOAD_CARDLIST, A_DETERMINE_CARD, A_READ_STYLE, A_CHECK_RESUME, A_END }, // S_QUESTION
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_LOAD_CARDLIST, A_RANK, A_DETERMINE_CARD, A_SYNC, A_READ_STYLE, A_CHECK_RESUME, A_END }, // S_QUESTION_RANK
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_RANK, A_DETERMINE_CARD, A_SYNC, A_READ_STYLE, A_CHECK_RESUME, A_END }, // S_QUESTION_RANK
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT_SELECTED, A_TEST_CAT_VALID, A_LOAD_CARDLIST, A_TEST_CARD, A_SHOW, A_READ_STYLE, A_CHECK_RESUME, A_END }, // S_SHOW
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT, A_LOAD_CARDLIST, A_TEST_CARD, A_REVEAL, A_READ_STYLE, A_CHECK_RESUME, A_END }, // S_REVEAL
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_TEST_CAT, A_LOAD_CARDLIST, A_TEST_CARD, A_UPDATE_QA, A_PROCEED, A_SYNC, A_DETERMINE_CARD, A_READ_STYLE, A_CHECK_RESUME, A_END }, // S_PROCEED_SYNC_QA
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_LOAD_CARDLIST, A_TEST_CARD, A_SUSPEND, A_DETERMINE_CARD, A_READ_STYLE, A_CHECK_RESUME, A_END }, // S_SUSPEND
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_LOAD_CARDLIST, A_RESUME, A_DETERMINE_CARD, A_READ_STYLE, A_END }, // S_RESUME
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_SEARCH, A_END }, // S_SEARCH
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_HISTOGRAM, A_END }, // S_HISTOGRAM
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_TABLE, A_END }, // S_TABLE
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_RANK, A_TABLE, A_SYNC, A_END }, // S_TABLE_REFRESH
@@ -1379,8 +1381,10 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
         case P_SELECT_DECK:
         case P_SEARCH:
         case P_HISTOGRAM:
-        case P_TABLE:
           wms->seq = S_EDIT;
+          break;
+        case P_TABLE:
+          wms->seq = S_EDIT_SYNC_RANK;
           break;
         case P_LEARN:
         case P_PREVIEW:
@@ -1582,10 +1586,14 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
           wms->seq = S_SEARCH_SYNCED;
         } else if (wms->from_page == P_START) {
           wms->seq = S_SELECT_SEARCH_CAT;
-        } else if (wms->from_page == P_LEARN) {
+        } else if (wms->from_page == P_LEARN || wms->from_page == P_PREVIEW) {
           wms->seq = S_SEARCH_SYNC_QA;
+        } else if (wms->from_page == P_TABLE) {
+          wms->seq = S_SEARCH_SYNC_RANK;
         } else {
-          wms->seq = S_SEARCH;
+          e = wms->from_page != P_HISTOGRAM && wms->from_page != P_SELECT_DECK;
+          if (e == 0)
+            wms->seq = S_SEARCH;
         }
       } else {
         e = memcmp(mult->post_lp, "Import", 6) != 0;
@@ -3082,7 +3090,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
                       "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Delete\"%s>Delete</button>\n"
                       "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Previous\"%s>Previous</button>\n"
                       "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Next\"%s>Next</button></div>\n"
-                      "\t\t\t<div class=\"msf-txtarea\"><textarea class=\"msf\" name=\"q\" rows=\"10\"%s>%s</textarea></div>\n"
+                      "\t\t\t<div class=\"msf-txtarea\"><textarea class=\"msf\" name=\"q\" rows=\"10\" placeholder=\"Type question here...\"%s>%s</textarea></div>\n"
                       "\t\t\t<div class=\"msf-btns\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Schedule\"%s>Schedule</button>\n"
                       "\t\t\t\t<span class=\"msf-space\"></span><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Set\"%s>Set</button>\n"
                       "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Move\"%s>Move</button>\n"
@@ -3101,7 +3109,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           if (e == 0) {
             e = xml_escape(&wms->html_lp, &wms->html_n, a_str, ESC_AMP | ESC_LT);
             if (e == 0) {
-              rv = printf("\t\t\t<div class=\"msf-txtarea\"><textarea class=\"msf\" name=\"a\" rows=\"10\"%s>%s</textarea></div>\n"
+              rv = printf("\t\t\t<div class=\"msf-txtarea\"><textarea class=\"msf\" name=\"a\" rows=\"10\" placeholder=\"Type answer here...\"%s>%s</textarea></div>\n"
                           "\t\t\t<div class=\"msf-btns\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Learn\">Learn</button>\n"
                           "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Search\">Search</button>\n"
                           "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Preview\">Preview</button>\n"
@@ -3281,7 +3289,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         }
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.131</h1>\n"
+        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.132</h1>\n"
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2022</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
