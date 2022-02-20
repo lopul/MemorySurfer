@@ -39,6 +39,8 @@ The setup is described
  - webserver
 
 Every Linux system<sup>*</sup> capable of running a web-server (eg. Apache) should also be capable of running MemorySurfer (tested on
-[Raspbian](https://www.lorenz-pullwitt.de/MemorySurfer/en/raspbian.html "Raspbian"), Fedora, Debian, Ubuntu).
+[Raspbian](https://www.lorenz-pullwitt.de/MemorySurfer/en/raspbian.html "Raspbian"),
+[Fedora](https://www.lorenz-pullwitt.de/MemorySurfer/en/fedora.html "Fedora")
+[Debian](https://www.lorenz-pullwitt.de/MemorySurfer/en/debian.html "Debian"), Ubuntu).
 
 <sup>*</sup> currently only little-endian architecture
