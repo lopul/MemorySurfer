@@ -108,7 +108,7 @@ static enum Action action_seq[S_END+1][16] = {
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_TEST_CARD, A_PREVIEW, A_GET_CARD, A_READ_STYLE, A_END }, // S_PREVIEW
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_UPDATE_QA, A_UPDATE_HTML, A_DETERMINE_CARD, A_SYNC, A_READ_STYLE, A_CHECK_RESUME, A_END }, // S_QUESTION_SYNCED
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_UPDATE_QA, A_DETERMINE_CARD, A_SYNC, A_READ_STYLE, A_CHECK_RESUME, A_END }, // S_QUESTION_SYNC_QA
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_LOAD_CARDLIST, A_DETERMINE_CARD, A_READ_STYLE, A_CHECK_RESUME, A_END }, // S_QUESTION
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_DETERMINE_CARD, A_READ_STYLE, A_CHECK_RESUME, A_END }, // S_QUESTION
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_RANK, A_DETERMINE_CARD, A_SYNC, A_READ_STYLE, A_CHECK_RESUME, A_END }, // S_QUESTION_RANK
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT_SELECTED, A_TEST_CAT_VALID, A_LOAD_CARDLIST, A_TEST_CARD, A_SHOW, A_READ_STYLE, A_CHECK_RESUME, A_END }, // S_SHOW
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT, A_LOAD_CARDLIST, A_TEST_CARD, A_REVEAL, A_READ_STYLE, A_CHECK_RESUME, A_END }, // S_REVEAL
@@ -380,12 +380,12 @@ static int percent2c(char *str, size_t len) {
   return e;
 }
 
-static int sa_set(struct StringArray *sa, int16_t sa_i, char *sa_str) {
+static int sa_set(struct StringArray *sa, int16_t sa_i, char *sa_str)
+{
   int e;
-  assert(sa_str != NULL);
-  assert(sa_i >= 0);
   char *sa_d;
   char ch;
+  size_t len;
   size_t size;
   int pos_s; // size
   int i;
@@ -393,58 +393,68 @@ static int sa_set(struct StringArray *sa, int16_t sa_i, char *sa_str) {
   int pos_r; // read
   int pos_n; // new
   int sa_c;
-  size = strlen(sa_str) + 1;
-  pos_s = 0;
-  for (i = 0; i < sa->sa_c; i++) {
-    if (i != sa_i) {
-      do {
-        size++;
-        ch = sa->sa_d[pos_s++];
-      } while (ch != '\0');
-    } else {
-      do {
-        ch = sa->sa_d[pos_s++];
-      } while (ch != '\0');
-    }
-  }
-  sa_c = sa->sa_c;
-  if (sa_i >= sa->sa_c) {
-    size += sa_i - sa->sa_c;
-    sa_c = sa_i + 1;
-  }
-  sa_d = malloc(size);
-  e = sa_d == NULL;
+  assert(sa_str != NULL && sa_i >= 0);
+  len = strlen(sa_str);
+  e = len >= INT32_MAX;
   if (e == 0) {
-    pos_w = 0;
-    pos_r = 0;
-    pos_n = 0;
-    for (i = 0; i < sa_c; i++) {
+    size = len + 1;
+    pos_s = 0;
+    for (i = 0; i < sa->sa_c && e == 0; i++) {
       if (i != sa_i) {
-        if (i < sa->sa_c) {
-          do {
-            ch = sa->sa_d[pos_r++];
-            sa_d[pos_w++] = ch;
-          } while (ch != '\0');
-        } else {
-          sa_d[pos_w++] = '\0';
-        }
+        do {
+          size++;
+          e = size >= INT32_MAX;
+          ch = sa->sa_d[pos_s++];
+        } while (ch != '\0');
       } else {
         do {
-          ch = sa_str[pos_n++];
-          sa_d[pos_w++] = ch;
+          ch = sa->sa_d[pos_s++];
         } while (ch != '\0');
-        if (i < sa->sa_c) {
-          do {
-            ch = sa->sa_d[pos_r++];
-          } while (ch != '\0');
-        }
       }
     }
-    assert(pos_w == size);
-    free(sa->sa_d);
-    sa->sa_d = sa_d;
-    sa->sa_n = size;
-    sa->sa_c = sa_c;
+    sa_c = sa->sa_c;
+    if (sa_i >= sa->sa_c) {
+      size += sa_i - sa->sa_c;
+      e = size >= INT32_MAX;
+      sa_c = sa_i + 1;
+    }
+    if (e == 0) {
+      sa_d = malloc(size);
+      e = sa_d == NULL;
+      if (e == 0) {
+        pos_w = 0;
+        pos_r = 0;
+        pos_n = 0;
+        for (i = 0; i < sa_c; i++) {
+          if (i != sa_i) {
+            if (i < sa->sa_c) {
+              do {
+                ch = sa->sa_d[pos_r++];
+                sa_d[pos_w++] = ch;
+              } while (ch != '\0');
+            } else {
+              sa_d[pos_w++] = '\0';
+            }
+          } else {
+            while (pos_n < len) {
+              ch = sa_str[pos_n++];
+              sa_d[pos_w++] = ch;
+            }
+            sa_d[pos_w++] = '\0';
+            if (i < sa->sa_c) {
+              do {
+                ch = sa->sa_d[pos_r++];
+              } while (ch != '\0');
+            }
+          }
+        }
+        assert(pos_w == size);
+        free(sa->sa_d);
+        sa->sa_d = sa_d;
+        sa->sa_n = size;
+        sa->sa_c = sa_c;
+      }
+    }
   }
   return e;
 }
@@ -3289,7 +3299,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         }
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.132</h1>\n"
+        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.133</h1>\n"
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2022</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
@@ -3825,7 +3835,8 @@ static int ms_create(struct MemorySurfer *ms, int flags_mask) {
   return e;
 }
 
-static int ms_get_card_sa(struct MemorySurfer *ms) {
+static int ms_get_card_sa(struct MemorySurfer *ms)
+{
   int e;
   assert(ms->card_l != NULL);
   e = 0;
@@ -4076,7 +4087,8 @@ static void e2str(int e, char *e_str) {
   }
 }
 
-size_t utf8_char_len(const char *s) {
+static size_t utf8_char_len(const char *s)
+{
   size_t len;
   const uint8_t *b;
   b = (const uint8_t *)s;
@@ -4093,7 +4105,8 @@ size_t utf8_char_len(const char *s) {
   return len;
 }
 
-size_t utf8_strcspn(const char *s, const char *reject, size_t *n) {
+static int utf8_strcspn(const char *s, const char *reject, size_t *n)
+{
   int e;
   size_t len;
   int i;
@@ -5626,7 +5639,7 @@ int main(int argc, char *argv[]) {
                 if (e == 0) {
                   assert(wms->saved_reveal_pos < 0 || wms->saved_reveal_pos <= len);
                   i = wms->saved_reveal_pos < 0 ? 0 : wms->saved_reveal_pos;
-                  e = utf8_strcspn(qa_str + i, " ,·.-‧", &n);
+                  e = utf8_strcspn(qa_str + i, " ,·.-‧_", &n);
                   if (e == 0) {
                     wms->reveal_pos = i + n;
                     if (wms->reveal_pos < len) {
@@ -5634,13 +5647,13 @@ int main(int argc, char *argv[]) {
                       e = len == 0;
                       if (e == 0) {
                         wms->reveal_pos += len;
-                        size = wms->reveal_pos + 10 + 1; // "---more---" + '\0'
+                        size = wms->reveal_pos + 8 + 1; // "--more--" + '\0'
                         str = malloc(size);
                         e = str == NULL;
                         if (e == 0) {
                           strncpy(str, qa_str, wms->reveal_pos);
                           str[wms->reveal_pos] = '\0';
-                          strcat(str, "---more---");
+                          strcat(str, "--more--");
                           e = sa_set(&wms->ms.card_sa, 1, str);
                           free(str);
                           wms->page = P_LEARN;
