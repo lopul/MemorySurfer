@@ -153,7 +153,7 @@ static const char *ARRANGE[] = { "Before", "Below", "Behind" };
 struct StringArray {
   int sa_c; // count
   char *sa_d; // data
-  size_t sa_n;
+  int32_t sa_n;
 };
 
 #pragma pack(push)
@@ -380,13 +380,28 @@ static int percent2c(char *str, size_t len) {
   return e;
 }
 
+static int checked_i32add(size_t augend, size_t addend, int32_t *total)
+{
+  int e;
+  e = augend > INT32_MAX;
+  if (e == 0) {
+    e = addend > INT32_MAX;
+    if (e == 0) {
+      e = INT32_MAX - augend < addend;
+      if (e == 0)
+        *total = augend + addend;
+    }
+  }
+  return e;
+}
+
 static int sa_set(struct StringArray *sa, int16_t sa_i, char *sa_str)
 {
   int e;
   char *sa_d;
   char ch;
   size_t len;
-  size_t size;
+  int32_t sa_n;
   int pos_s; // size
   int i;
   int pos_w; // write
@@ -395,31 +410,30 @@ static int sa_set(struct StringArray *sa, int16_t sa_i, char *sa_str)
   int sa_c;
   assert(sa_str != NULL && sa_i >= 0);
   len = strlen(sa_str);
-  e = len >= INT32_MAX;
+  e = checked_i32add(len, 1, &sa_n);
   if (e == 0) {
-    size = len + 1;
     pos_s = 0;
     for (i = 0; i < sa->sa_c && e == 0; i++) {
       if (i != sa_i) {
         do {
-          size++;
-          e = size >= INT32_MAX;
+          e = checked_i32add(sa_n, 1, &sa_n);
           ch = sa->sa_d[pos_s++];
-        } while (ch != '\0');
+        } while (ch != '\0' && e == 0);
       } else {
         do {
           ch = sa->sa_d[pos_s++];
         } while (ch != '\0');
       }
     }
-    sa_c = sa->sa_c;
-    if (sa_i >= sa->sa_c) {
-      size += sa_i - sa->sa_c;
-      e = size >= INT32_MAX;
-      sa_c = sa_i + 1;
+    if (e == 0) {
+      sa_c = sa->sa_c;
+      if (sa_i >= sa->sa_c) {
+        e = checked_i32add(sa_n, sa_i - sa->sa_c, &sa_n);
+        sa_c = sa_i + 1;
+      }
     }
     if (e == 0) {
-      sa_d = malloc(size);
+      sa_d = malloc(sa_n);
       e = sa_d == NULL;
       if (e == 0) {
         pos_w = 0;
@@ -448,10 +462,10 @@ static int sa_set(struct StringArray *sa, int16_t sa_i, char *sa_str)
             }
           }
         }
-        assert(pos_w == size);
+        assert(pos_w == sa_n);
         free(sa->sa_d);
         sa->sa_d = sa_d;
-        sa->sa_n = size;
+        sa->sa_n = sa_n;
         sa->sa_c = sa_c;
       }
     }
@@ -3299,7 +3313,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         }
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.133</h1>\n"
+        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.134</h1>\n"
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2022</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
@@ -4140,7 +4154,8 @@ static int utf8_strcspn(const char *s, const char *reject, size_t *n)
   return e;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
   int e; // error
   int saved_e;
   struct WebMemorySurfer *wms;
