@@ -493,7 +493,7 @@ static int multi_delim(struct Multi *mult)
   mult->post_wp = 0;
   mult->post_fp = -1;
   do {
-    if (mult->post_wp + 1 >= mult->post_n) {
+    if ((size_t)mult->post_wp + 1 >= mult->post_n) {
       post_n = mult->post_wp + 128;
       e = post_n >= INT_MAX;
       if (e == 0) {
@@ -3114,7 +3114,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
                       "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Delete\"%s>Delete</button>\n"
                       "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Previous\"%s>Previous</button>\n"
                       "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Next\"%s>Next</button></div>\n"
-                      "\t\t\t<div class=\"msf-txtarea\"><textarea class=\"msf\" name=\"q\" rows=\"10\" placeholder=\"Type question here...\"%s>%s</textarea></div>\n"
+                      "\t\t\t<div class=\"msf-txtarea\"><textarea class=\"msf\" name=\"q\" rows=\"10\"%s%s>%s</textarea></div>\n"
                       "\t\t\t<div class=\"msf-btns\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Schedule\"%s>Schedule</button>\n"
                       "\t\t\t\t<span class=\"msf-space\"></span><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Set\"%s>Set</button>\n"
                       "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Move\"%s>Move</button>\n"
@@ -3123,6 +3123,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
               wms->ms.card_a > 0 ? "" : " disabled",
               wms->ms.card_a > 0 && wms->ms.card_i > 0 ? "" : " disabled",
               wms->ms.card_a > 0 && wms->ms.card_i + 1 < wms->ms.card_a ? "" : " disabled",
+              q_str != NULL && q_str[0] == '\0' ? " placeholder=\"Type question here...\"" : "",
               q_str != NULL ? "" : " disabled",
               wms->html_lp,
               wms->ms.card_i >= 0 && wms->ms.card_a > 0 && wms->ms.card_i < wms->ms.card_a && (wms->ms.card_l[wms->ms.card_i].card_state & 0x07) >= STATE_NEW ? "" : " disabled",
@@ -3133,12 +3134,13 @@ static int gen_html(struct WebMemorySurfer *wms) {
           if (e == 0) {
             e = xml_escape(&wms->html_lp, &wms->html_n, a_str, ESC_AMP | ESC_LT);
             if (e == 0) {
-              rv = printf("\t\t\t<div class=\"msf-txtarea\"><textarea class=\"msf\" name=\"a\" rows=\"10\" placeholder=\"Type answer here...\"%s>%s</textarea></div>\n"
+              rv = printf("\t\t\t<div class=\"msf-txtarea\"><textarea class=\"msf\" name=\"a\" rows=\"10\"%s%s>%s</textarea></div>\n"
                           "\t\t\t<div class=\"msf-btns\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Learn\">Learn</button>\n"
                           "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Search\">Search</button>\n"
                           "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Preview\">Preview</button>\n"
                           "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Stop\">Stop</button>\n"
                           "\t\t\t\t<label class=\"msf-div\"><input type=\"checkbox\" name=\"is-html\"%s>HTML</label></div>\n",
+                  a_str != NULL && a_str[0] == '\0' ? " placeholder=\"Type answer here...\"" : "",
                   a_str != NULL ? "" : " disabled",
                   wms->html_lp,
                   wms->ms.card_i >= 0 && wms->ms.card_a > 0 && wms->ms.card_i < wms->ms.card_a && (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? " checked" : "");
@@ -3313,7 +3315,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         }
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.134</h1>\n"
+        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.135</h1>\n"
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2022</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
@@ -5654,7 +5656,7 @@ int main(int argc, char *argv[])
                 if (e == 0) {
                   assert(wms->saved_reveal_pos < 0 || wms->saved_reveal_pos <= len);
                   i = wms->saved_reveal_pos < 0 ? 0 : wms->saved_reveal_pos;
-                  e = utf8_strcspn(qa_str + i, " ,·.-‧_", &n);
+                  e = utf8_strcspn(qa_str + i, ",·.-‧_", &n);
                   if (e == 0) {
                     wms->reveal_pos = i + n;
                     if (wms->reveal_pos < len) {
