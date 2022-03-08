@@ -572,7 +572,8 @@ enum {
   STATE_ALARM = 0,
   STATE_SCHEDULED,
   STATE_NEW,
-  STATE_SUSPENDED
+  STATE_SUSPENDED,
+  STATE_HTML = 0x08
 };
 
 static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag, int parent_cat_i) {
@@ -3322,7 +3323,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         }
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.136</h1>\n"
+        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.137</h1>\n"
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2022</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
@@ -5271,7 +5272,7 @@ int main(int argc, char *argv[])
                       if (e == 0) {
                         wms->ms.card_l[wms->ms.card_i].card_strength = 60;
                         wms->ms.card_l[wms->ms.card_i].card_qai = index;
-                        wms->ms.card_l[wms->ms.card_i].card_state = STATE_NEW;
+                        wms->ms.card_l[wms->ms.card_i].card_state = STATE_NEW | STATE_HTML;
                         e = imf_put(&wms->ms.imf, wms->ms.cat_t[wms->ms.cat_i].cat_cli, wms->ms.card_l, data_size);
                         need_sync = e == 0;
                         if (e == 0)
@@ -5305,7 +5306,7 @@ int main(int argc, char *argv[])
                       if (e == 0) {
                         card_ptr->card_strength = 60;
                         card_ptr->card_qai = index;
-                        card_ptr->card_state = STATE_NEW;
+                        card_ptr->card_state = STATE_NEW | STATE_HTML;
                         cat_ptr = wms->ms.cat_t + wms->ms.cat_i;
                         e = imf_put(&wms->ms.imf, cat_ptr->cat_cli, wms->ms.card_l, data_size);
                         need_sync = e == 0;
