@@ -1121,20 +1121,23 @@ static int determine_field(struct Multi *mult, struct Parse *parse) {
   return e;
 }
 
-static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct Parse *parse) {
+static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct Parse *parse)
+{
   int e;
   int a_n; // assignments
   int consumed_n;
   e = 0;
   switch (parse->field) {
   case F_FILE_TITLE:
-    assert(wms->file_title_str == NULL);
-    wms->file_title_str = malloc(mult->post_wp);
-    e = wms->file_title_str == NULL;
+    e = wms->file_title_str != NULL;
     if (e == 0) {
-      assert(mult->post_lp[mult->post_fp] == '\0');
-      memcpy(wms->file_title_str, mult->post_lp, mult->post_wp);
-      e = percent2c(wms->file_title_str, mult->post_fp);
+      wms->file_title_str = malloc(mult->post_wp);
+      e = wms->file_title_str == NULL;
+      if (e == 0) {
+        assert(mult->post_lp[mult->post_fp] == '\0');
+        memcpy(wms->file_title_str, mult->post_lp, mult->post_wp);
+        e = percent2c(wms->file_title_str, mult->post_fp);
+      }
     }
     break;
   case F_FILE_ACTION:
@@ -1142,13 +1145,6 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
       wms->seq = S_ENTER;
     } else if (strncmp(mult->post_lp, "Login", 5) == 0) {
       wms->seq = S_LOGIN;
-    } else if (strncmp(mult->post_lp, "Create", 6) == 0) {
-      wms->seq = S_CREATE;
-    } else if (strncmp(mult->post_lp, "Stop", 4) == 0) {
-      wms->seq = S_FILE;
-      if ((wms->from_page == P_PASSWORD && wms->saved_mode == M_DEFAULT) || wms->from_page == P_NEW) {
-        wms->seq = S_CLOSE;
-      }
     } else {
       e = strncmp(mult->post_lp, "Change", 6) != 0;
       if (e == 0) {
@@ -1393,6 +1389,18 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
           wms->seq = S_START_DECKS;
         } else if (wms->from_page == P_STYLE) {
           wms->seq = S_PREVIEW;
+        } else if (wms->from_page == P_NEW) {
+          wms->seq = S_CLOSE;
+        } else if (wms->from_page == P_UPLOAD) {
+           wms->seq = S_FILE;
+        } else if (wms->from_page == P_PASSWORD) {
+          if (wms->saved_mode == M_DEFAULT)
+            wms->seq = S_CLOSE;
+          else {
+            e = wms->saved_mode != M_CHANGE_PASSWD;
+            if (e == 0)
+              wms->seq = S_FILE;
+          }
         } else {
           e = wms->from_page != P_PREVIEW && wms->from_page != P_EDIT;
           if (e == 0) {
@@ -1527,6 +1535,8 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
       } else if (memcmp(mult->post_lp, "Create", 6) == 0) {
         if (wms->from_page == P_SELECT_DECK) {
           wms->seq = S_DECKS_CREATE;
+        } else if (wms->from_page == P_NEW) {
+          wms->seq = S_CREATE;
         } else {
           e = wms->from_page != P_CAT_NAME;
           if (e == 0) {
@@ -2770,7 +2780,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         if (notice_str[1] != NULL) printf("\t\t\t<p class=\"msf\">%s</p>\n", notice_str[1]);
         if (y != 0) printf("\t\t\t<div class=\"msf-btns\"><input type=\"text\" name=\"new-password\" value=\"\" size=25></div>\n");
         rv = printf("\t\t\t<div class=\"msf-btns\"><button class=\"msf\" type=\"submit\" name=\"file_action\" value=\"%s\">%s</button>\n"
-                    "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"file_action\" value=\"Stop\">Stop</button></div>\n"
+                    "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Stop\">Stop</button></div>\n"
                     "\t\t</form>\n"
                     "\t</body>\n"
                     "</html>\n",
@@ -2805,8 +2815,8 @@ static int gen_html(struct WebMemorySurfer *wms) {
             *ext_str = '\0';
             rv = printf("\t\t\t<h1 class=\"msf\">Create a New file</h1>\n"
                         "\t\t\t<div class=\"msf-btns\"><input type=\"text\" name=\"file-title\" value=\"%s\" size=25>.imsf</div>\n"
-                        "\t\t\t<div class=\"msf-btns\"><button class=\"msf\" type=\"submit\" name=\"file_action\" value=\"Create\">Create</button>\n"
-                        "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"file_action\" value=\"Stop\">Stop</button></div>\n"
+                        "\t\t\t<div class=\"msf-btns\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Create\">Create</button>\n"
+                        "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Stop\">Stop</button></div>\n"
                         "\t\t</form>\n"
                         "\t\t<code class=\"msf\">%s</code>\n"
                         "\t</body>\n"
@@ -2851,7 +2861,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
                     "\t\t\t<p class=\"msf\">Choose a (previously exported .XML) File to upload (which will be used for the Import)</p>\n"
                     "\t\t\t<div class=\"msf-btns\"><input type=\"file\" name=\"upload\"></div>\n"
                     "\t\t\t<div class=\"msf-btns\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Upload\">Upload</button>\n"
-                    "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"file_action\" value=\"Stop\">Stop</button></div>\n"
+                    "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Stop\">Stop</button></div>\n"
                     "\t\t</form>\n"
                     "\t</body>\n"
                     "</html>\n");
@@ -3323,7 +3333,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         }
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.137</h1>\n"
+        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.138</h1>\n"
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2022</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
@@ -5664,7 +5674,7 @@ int main(int argc, char *argv[])
                 if (e == 0) {
                   assert(wms->saved_reveal_pos < 0 || wms->saved_reveal_pos <= len);
                   i = wms->saved_reveal_pos < 0 ? 0 : wms->saved_reveal_pos;
-                  e = utf8_strcspn(qa_str + i, ",·.-‧_", &n);
+                  e = utf8_strcspn(qa_str + i, " ,·.-‧_", &n);
                   if (e == 0) {
                     wms->reveal_pos = i + n;
                     if (wms->reveal_pos < len) {
