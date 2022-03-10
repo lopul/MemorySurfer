@@ -66,8 +66,8 @@ static enum Action action_seq[S_END+1][16] = {
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_PASSWD, A_CHANGE_PASSWD, A_WRITE_PASSWD, A_GEN_TOK, A_NONE, A_END }, // S_CHANGE
   { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_NONE, A_END }, // S_START
   { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_RANK, A_SYNC, A_NONE, A_END }, // S_START_SYNC_RANK
-  { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_UPLOAD_REPORT, A_END }, // S_UPLOAD_REPORT
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_EXPORT, A_END }, // S_EXPORT
+  { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_UPLOAD_REPORT, A_SYNC, A_END }, // S_UPLOAD_REPORT
+  { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_READ_STYLE, A_EXPORT, A_END }, // S_EXPORT
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_ASK_REMOVE, A_END }, // S_ASK_REMOVE
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_REMOVE, A_FILELIST, A_CLOSE, A_END }, // S_REMOVE
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_ASK_ERASE, A_END }, // S_ASK_ERASE
@@ -528,7 +528,7 @@ static int multi_delim(struct Multi *mult)
   return e;
 }
 
-enum Tag { TAG_ROOT, TAG_MEMORYSURFER, TAG_DECK, TAG_NAME, TAG_CARD, TAG_TIME, TAG_STRENGTH, TAG_STATE, TAG_TYPE, TAG_QUESTION, TAG_ANSWER };
+enum Tag { TAG_ROOT, TAG_MEMORYSURFER, TAG_DECK, TAG_NAME, TAG_STYLE, TAG_CARD, TAG_TIME, TAG_STRENGTH, TAG_STATE, TAG_TYPE, TAG_QUESTION, TAG_ANSWER };
 
 static int sa_length(struct StringArray *sa) {
   int pos_l; // length
@@ -649,7 +649,18 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
         case TAG_NAME:
           str = xml->p_lineptr;
           str[nread - 1] = '\0';
-          e = sa_set(&wms->ms.cat_sa, parent_cat_i, str);
+          e = xml_unescape(str);
+          if (e == 0) {
+            e = sa_set(&wms->ms.cat_sa, parent_cat_i, str);
+          }
+          break;
+        case TAG_STYLE:
+          str = xml->p_lineptr;
+          str[nread - 1] = '\0';
+          e = xml_unescape(str);
+          if (e == 0) {
+            e = sa_set(&wms->ms.style_sa, parent_cat_i, str);
+          }
           break;
         case TAG_CARD:
           assert(parent_cat_i >= 0 && xml->cardlist_l[parent_cat_i].card_a >= 0);
@@ -785,8 +796,7 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
             }
             break;
           case 5:
-            e = memcmp(str, "state", 5) != 0;
-            if (e == 0) {
+            if (memcmp(str, "state", 5) == 0) {
               if (slash_f == 0) {
                 e = tag != TAG_CARD;
                 if (e == 0) {
@@ -794,6 +804,18 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
                 }
               } else {
                 e = tag != TAG_STATE;
+              }
+            } else {
+              e = memcmp(str, "style", 5) != 0;
+              if (e == 0) {
+                if (slash_f == 0) {
+                  e = tag != TAG_DECK;
+                  if (e == 0) {
+                    e = parse_xml(xml, wms, TAG_STYLE, cat_i);
+                  }
+                } else {
+                  e = tag != TAG_STYLE;
+                }
               }
             }
             break;
@@ -2350,6 +2372,16 @@ static int gen_xml_category(int16_t cat_i, struct XmlGenerator *xg, struct Memor
           rv = fprintf(xg->w_stream, "\n%s<name>%s</name>", inds->str, xg->w_lineptr);
           e = rv < 0;
           if (e == 0) {
+            str = sa_get(&ms->style_sa, cat_i);
+            if (str != NULL && str[0] != '\0') {
+              e = xml_escape(&xg->w_lineptr, &xg->w_n, str, ESC_AMP | ESC_LT);
+              if (e == 0) {
+                rv = fprintf(xg->w_stream, "\n%s<style>%s</style>", inds->str, xg->w_lineptr);
+                e = rv < 0;
+              }
+            }
+          }
+          if (e == 0) {
             data_size = imf_get_size(&ms->imf, cat_ptr->cat_cli);
             card_l = malloc(data_size);
             e = card_l == NULL;
@@ -3333,7 +3365,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         }
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.138</h1>\n"
+        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.139</h1>\n"
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2022</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
@@ -4738,9 +4770,14 @@ int main(int argc, char *argv[])
                 data_size = sizeof(struct Category) * wms->ms.cat_a;
                 e = imf_put(&wms->ms.imf, C_INDEX, wms->ms.cat_t, data_size);
                 if (e == 0) {
-                  e = imf_sync(&wms->ms.imf);
+                  assert(wms->ms.passwd.style_sai == -1);
+                  e = imf_seek_unused(&wms->ms.imf, &wms->ms.passwd.style_sai);
                   if (e == 0) {
-                    wms->page = P_UPLOAD_REPORT;
+                    data_size = sa_length(&wms->ms.style_sa);
+                    e = imf_put(&wms->ms.imf, wms->ms.passwd.style_sai, wms->ms.style_sa.sa_d, data_size);
+                    need_sync = e == 0;
+                    if (e == 0)
+                      wms->page = P_UPLOAD_REPORT;
                   }
                 }
               }
@@ -5243,8 +5280,8 @@ int main(int argc, char *argv[])
               e = mtime_test != 1;
               if (e == 0) {
                 wms->ms.passwd.mctr++;
-                size = sizeof(struct Password);
-                e = imf_put(&wms->ms.imf, PW_INDEX, &wms->ms.passwd, size);
+                data_size = sizeof(struct Password);
+                e = imf_put(&wms->ms.imf, PW_INDEX, &wms->ms.passwd, data_size);
                 if (e == 0) {
                   e = imf_sync(&wms->ms.imf);
                 }
