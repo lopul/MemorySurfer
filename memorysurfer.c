@@ -109,7 +109,7 @@ static enum Action action_seq[S_END+1][16] = {
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_TEST_CARD, A_PREVIEW, A_GET_CARD, A_READ_STYLE, A_END }, // S_PREVIEW
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_UPDATE_QA, A_UPDATE_HTML, A_DETERMINE_CARD, A_SYNC, A_READ_STYLE, A_CHECK_RESUME, A_END }, // S_QUESTION_SYNCED
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_UPDATE_QA, A_DETERMINE_CARD, A_SYNC, A_READ_STYLE, A_CHECK_RESUME, A_END }, // S_QUESTION_SYNC_QA
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_DETERMINE_CARD, A_READ_STYLE, A_CHECK_RESUME, A_END }, // S_QUESTION
+  { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_DETERMINE_CARD, A_READ_STYLE, A_CHECK_RESUME, A_END }, // S_QUESTION
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_RANK, A_DETERMINE_CARD, A_SYNC, A_READ_STYLE, A_CHECK_RESUME, A_END }, // S_QUESTION_RANK
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT_SELECTED, A_TEST_CAT_VALID, A_LOAD_CARDLIST, A_TEST_CARD, A_SHOW, A_READ_STYLE, A_CHECK_RESUME, A_END }, // S_SHOW
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT, A_LOAD_CARDLIST, A_TEST_CARD, A_REVEAL, A_READ_STYLE, A_CHECK_RESUME, A_END }, // S_REVEAL
@@ -117,7 +117,7 @@ static enum Action action_seq[S_END+1][16] = {
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_LOAD_CARDLIST, A_TEST_CARD, A_SUSPEND, A_DETERMINE_CARD, A_READ_STYLE, A_CHECK_RESUME, A_END }, // S_SUSPEND
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_LOAD_CARDLIST, A_RESUME, A_DETERMINE_CARD, A_READ_STYLE, A_END }, // S_RESUME
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_HISTOGRAM, A_END }, // S_HISTOGRAM
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_TABLE, A_END }, // S_TABLE
+  { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_TABLE, A_END }, // S_TABLE
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST, A_RANK, A_TABLE, A_SYNC, A_END }, // S_TABLE_REFRESH
   { A_END } // S_END
 };
@@ -286,6 +286,7 @@ struct WebMemorySurfer {
   int hist_bucket[100]; // histogram
   int hist_max;
   int lvl_bucket[2][21]; // 0 = total, 1 = eligible
+  int count_bucket[4];
   uint8_t tok_digest[SHA1_HASH_SIZE];
   char tok_str[41];
   struct IndentStr *inds;
@@ -1073,7 +1074,7 @@ static int determine_field(struct Multi *mult, struct Parse *parse) {
         parse->field = F_IS_HTML;
       } else if (memcmp(mult->post_lp, "arrange", 7) == 0) {
         parse->field = F_ARRANGE;
-      } else if (memcmp(mult->post_lp, "mov-cat", 7) == 0) {
+      } else if (memcmp(mult->post_lp, "mov-deck", 7) == 0) {
         parse->field = F_MOVED_CAT;
       } else {
         e = memcmp(mult->post_lp, "timeout", 7) != 0;
@@ -1151,7 +1152,7 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
   e = 0;
   switch (parse->field) {
   case F_FILE_TITLE:
-    e = wms->file_title_str != NULL;
+    e = wms->file_title_str != NULL ? 0x1165e5a0 : 0; // RPOFIT - repeated parse of file title
     if (e == 0) {
       wms->file_title_str = malloc(mult->post_wp);
       e = wms->file_title_str == NULL;
@@ -2520,6 +2521,8 @@ static time_t lvl_s[21] = { // level strength
   630720000 // 20Y (20)
 };
 
+static const char *state_str[] = { "Alarm", "Scheduled", "New", "Suspended" };
+
 static int gen_html(struct WebMemorySurfer *wms) {
   int e;
   int rv;
@@ -2672,7 +2675,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
           e = rv < 0;
         }
         if (e == 0 && wms->ms.mov_cat_i >= 0 && (wms->page == P_SELECT_DEST_DECK || (wms->page == P_SELECT_ARRANGE && wms->mode == M_MOVE_DECK))) {
-          rv = printf("\t\t\t\t<input type=\"hidden\" name=\"mov-cat\" value=\"%d\">\n", wms->ms.mov_cat_i);
+          rv = printf("\t\t\t\t<input type=\"hidden\" name=\"mov-deck\" value=\"%d\">\n", wms->ms.mov_cat_i);
           e = rv < 0;
         }
         break;
@@ -3365,7 +3368,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         }
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.139</h1>\n"
+        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.140</h1>\n"
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2022</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
@@ -3694,11 +3697,21 @@ static int gen_html(struct WebMemorySurfer *wms) {
                       "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Refresh\">Refresh</button>\n"
                       "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Done\">Done</button></div>\n"
                       "\t\t</form>\n"
-                      "\t\t<code class=\"msf\">%s</code>\n"
-                      "\t</body>\n"
-                      "</html>\n",
+                      "\t\t<code class=\"msf\">%s; ",
               sw_info_str);
           e = rv < 0;
+          if (e == 0) {
+            for (i = 0; i < 4 && e == 0; i++) {
+              rv = printf("%s: %d%s", state_str[i], wms->count_bucket[i], i < 3 ? ", " : "");
+              e = rv < 0;
+            }
+            if (e == 0) {
+              rv = printf("</code>\n"
+                          "\t</body>\n"
+                          "</html>\n");
+              e = rv < 0;
+            }
+          }
         }
         break;
       default:
@@ -5825,8 +5838,11 @@ int main(int argc, char *argv[])
             for (i = 0; i < 21; i++)
               for (j = 0; j < 2; j++)
                 wms->lvl_bucket[j][i] = 0;
+            for (i = 0; i < 4; i++)
+              wms->count_bucket[i] = 0;
             if (wms->ms.card_a > 0) {
               for (card_i = 0; card_i < wms->ms.card_a; card_i++) {
+                wms->count_bucket[wms->ms.card_l[card_i].card_state & 0x03]++;
                 if ((wms->ms.card_l[card_i].card_state & 0x07) == STATE_SCHEDULED) {
                   for (i = 0; i < 21; i++)
                     if (lvl_s[i] >= wms->ms.card_l[card_i].card_strength)
