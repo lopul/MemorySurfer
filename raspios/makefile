@@ -33,4 +33,4 @@ sha1.o : ../imf/sha1.c ../imf/sha1.h
 	gcc -Wall -g -O0 -c ../imf/sha1.c
 
 clean :
-        rm sha1.o indexedmemoryfile.o memorysurfer.o memorysurfer.cgi
+	rm sha1.o indexedmemoryfile.o memorysurfer.o memorysurfer.cgi
