@@ -1030,17 +1030,15 @@ static int determine_field(struct Multi *mult, struct Parse *parse) {
       }
       break;
     case 3:
-      if (memcmp(mult->post_lp, "cat", 3) == 0) {
-        parse->field = F_CAT;
-      } else {
-        e = memcmp(mult->post_lp, "lvl", 3) != 0;
-        if (e == 0) {
-          parse->field = F_LVL;
-        }
+      e = memcmp(mult->post_lp, "lvl", 3) != 0;
+      if (e == 0) {
+        parse->field = F_LVL;
       }
       break;
     case 4:
-      if (memcmp(mult->post_lp, "page", 4) == 0) {
+      if (memcmp(mult->post_lp, "deck", 4) == 0) {
+        parse->field = F_CAT;
+      } else if (memcmp(mult->post_lp, "page", 4) == 0) {
         parse->field = F_PAGE;
       } else if (memcmp(mult->post_lp, "card", 4) == 0) {
         parse->field = F_CARD;
@@ -2202,10 +2200,10 @@ static int gen_html_cat(int16_t n_create, enum HIERARCHY hierarchy, struct WebMe
       if (e == 0) {
         e = xml_escape(&wms->html_lp, &wms->html_n, c_str, ESC_AMP | ESC_LT);
         if (e == 0) {
-          rv = printf("%s\t<li><label class=\"msf-td\"><input type=\"radio\" name=\"cat\" value=\"%d\"%s%s>%s</label>%s\n",
+          rv = printf("%s\t<li><label class=\"msf-td\"><input type=\"radio\" name=\"deck\" value=\"%d\"%s%s>%s</label>%s\n",
               wms->inds->str,
               n_create,
-              n_create == wms->ms.cat_i ? " checked" : "",
+              n_create == wms->ms.cat_i ? " checked autofocus" : "",
               n_create == wms->ms.mov_cat_i ? " disabled" : "",
               wms->html_lp,
               wms->ms.cat_t[n_create].cat_n_child == -1 ? "</li>" : "");
@@ -2230,7 +2228,7 @@ static int gen_html_cat(int16_t n_create, enum HIERARCHY hierarchy, struct WebMe
             }
             if (e == 0) {
               if (wms->ms.cat_t[n_create].cat_n_sibling != -1)
-                  e = gen_html_cat(wms->ms.cat_t[n_create].cat_n_sibling, H_SIBLING, wms);
+                e = gen_html_cat(wms->ms.cat_t[n_create].cat_n_sibling, H_SIBLING, wms);
               if (e == 0) {
                 if (hierarchy == H_CHILD) {
                   rv = printf("%s</ul>\n", wms->inds->str);
@@ -2527,13 +2525,13 @@ static time_t lvl_s[21] = { // level strength
   630720000 // 20Y (20)
 };
 
-static const char *state_str[] = { "Alarm", "Scheduled", "New", "Suspended" };
-
-static int gen_html(struct WebMemorySurfer *wms) {
+static int gen_html(struct WebMemorySurfer *wms)
+{
   int e;
   int rv;
   int i;
   int j;
+  int k;
   int lvl; // level
   int lvl_sel; // select
   char *q_str;
@@ -2565,6 +2563,8 @@ static int gen_html(struct WebMemorySurfer *wms) {
   size_t size;
   size_t len;
   enum Block bl;
+  static const char *state_str[] = { "Alarm", "Scheduled", "New", "Suspended" };
+  static const char *event_str[] = { "Edit", "Learn", "Search" };
   char el_str[5]; // "100%"
   int bl_i; // block index
   e = 0;
@@ -2687,7 +2687,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         break;
       case B_HIDDEN_CAT:
         if (wms->ms.cat_i >= 0) {
-          rv = printf("\t\t\t\t<input type=\"hidden\" name=\"cat\" value=\"%d\">\n", wms->ms.cat_i);
+          rv = printf("\t\t\t\t<input type=\"hidden\" name=\"deck\" value=\"%d\">\n", wms->ms.cat_i);
           e = rv < 0;
         }
         break;
@@ -3103,15 +3103,18 @@ static int gen_html(struct WebMemorySurfer *wms) {
       case B_SELECT_DECK:
         e = wms->file_title_str == NULL || strlen(wms->tok_str) != 40;
         if (e == 0) {
+          j = 0;
           switch (wms->mode) {
           case M_EDIT:
             header_str = "Select a category to edit";
             break;
           case M_LEARN:
             header_str = "Select a category to learn";
+            j = 1;
             break;
           case M_SEARCH:
             header_str = "Select a category to search";
+            j = 2;
             break;
           case M_START:
             header_str = "Select a deck (if possible) and / or a action";
@@ -3143,19 +3146,26 @@ static int gen_html(struct WebMemorySurfer *wms) {
                   e = gen_html_cat(wms->ms.n_first, H_CHILD, wms);
               }
               if (e == 0) {
-                rv = printf("\t\t\t<div class=\"msf-btns\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Edit\"%s>Edit</button>\n"
-                            "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Learn\"%s>Learn</button>\n"
-                            "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Search\"%s>Search</button>\n"
-                            "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Cancel\">Cancel</button></div>\n"
-                            "\t\t</form>\n"
-                            "\t\t<code class=\"msf\">%s</code>\n"
-                            "\t</body>\n"
-                            "</html>\n",
-                    dis_str,
-                    dis_str,
-                    dis_str,
-                    sw_info_str);
+                rv = printf("\t\t\t<div class=\"msf-btns\">");
                 e = rv < 0;
+                for (i = 0; i < 3 && e == 0; i++) {
+                  k = (i + j) % 3;
+                  rv = printf("%s<button class=\"msf\" type=\"submit\" name=\"event\" value=\"%s\"%s>%s</button>\n",
+                      i > 0 ? "\t\t\t\t" : "",
+                      event_str[k],
+                      dis_str,
+                      event_str[k]);
+                  e = rv < 0;
+                }
+                if (e == 0) {
+                  rv = printf("\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Cancel\">Cancel</button></div>\n"
+                              "\t\t</form>\n"
+                              "\t\t<code class=\"msf\">%s</code>\n"
+                              "\t</body>\n"
+                              "</html>\n",
+                      sw_info_str);
+                  e = rv < 0;
+                }
               }
             }
           }
@@ -3374,7 +3384,7 @@ static int gen_html(struct WebMemorySurfer *wms) {
         }
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.141</h1>\n"
+        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.142</h1>\n"
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2022</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
