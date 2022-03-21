@@ -1,7 +1,7 @@
 
 #
 # Author: Lorenz Pullwitt <memorysurfer@lorenz-pullwitt.de>
-# Copyright 2020-2022
+# Copyright 2022
 #
 # This file is part of MemorySurfer.
 #
