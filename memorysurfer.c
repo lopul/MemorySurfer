@@ -1267,18 +1267,15 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
     e = a_n != 1;
     break;
   case F_CAT_NAME:
-    e = wms->ms.cat_name != NULL;
+    e = wms->ms.cat_name != NULL ? 0x01a0eada : 0; // PFDKXA
     if (e == 0) {
       wms->ms.cat_name = malloc(mult->post_wp);
-      e = wms->ms.cat_name == NULL;
+      e = wms->ms.cat_name == NULL ? 0x027bdd45 : 0; // PFDKXB
       if (e == 0) {
         assert(mult->post_lp[mult->post_fp] == '\0');
         memcpy(wms->ms.cat_name, mult->post_lp, mult->post_wp);
-        e = percent2c(wms->ms.cat_name, mult->post_fp);
+        e = percent2c(wms->ms.cat_name, mult->post_fp) ? 0x0356cfb0 : 0; // PFDKXC
       }
-    }
-    if (e != 0) {
-      e = 0x00729d2e; // WPPCN Web(MemorySurfer) parse_post (of) cat-name (failed)
     }
     break;
   case F_STYLE_TXT:
@@ -1600,9 +1597,13 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
       } else if (memcmp(mult->post_lp, "Decks", 5) == 0) {
         wms->seq = S_START_DECKS;
       } else if (memcmp(mult->post_lp, "Table", 5) == 0) {
-        e = wms->from_page != P_LEARN;
-        if (e == 0)
+        if (wms->from_page == P_LEARN)
           wms->seq = S_TABLE_SYNC_QA;
+        else {
+          e = wms->from_page != P_MSG;
+          if (e == 0)
+            wms->seq = S_TABLE;
+        }
       } else if (memcmp(mult->post_lp, "Style", 5) == 0) {
         wms->seq = S_STYLE_GO;
       } else if (memcmp(mult->post_lp, "Apply", 5) == 0) {
@@ -3468,7 +3469,7 @@ static int gen_html(struct WebMemorySurfer *wms)
         }
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.143</h1>\n"
+        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.144</h1>\n"
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2022</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
