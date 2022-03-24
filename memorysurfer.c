@@ -205,7 +205,7 @@ struct MemorySurfer {
   int cat_i;
   int mov_cat_i; // moved
   int arrange;
-  char *cat_name;
+  char *deck_name;
   char *style_txt;
   struct Card *card_l;
   int card_a;
@@ -1267,14 +1267,14 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
     e = a_n != 1;
     break;
   case F_CAT_NAME:
-    e = wms->ms.cat_name != NULL ? 0x01a0eada : 0; // PFDKXA
+    e = wms->ms.deck_name != NULL ? 0x01a0eada : 0; // PFDKXA
     if (e == 0) {
-      wms->ms.cat_name = malloc(mult->post_wp);
-      e = wms->ms.cat_name == NULL ? 0x027bdd45 : 0; // PFDKXB
+      wms->ms.deck_name = malloc(mult->post_wp);
+      e = wms->ms.deck_name == NULL ? 0x027bdd45 : 0; // PFDKXB
       if (e == 0) {
         assert(mult->post_lp[mult->post_fp] == '\0');
-        memcpy(wms->ms.cat_name, mult->post_lp, mult->post_wp);
-        e = percent2c(wms->ms.cat_name, mult->post_fp) ? 0x0356cfb0 : 0; // PFDKXC
+        memcpy(wms->ms.deck_name, mult->post_lp, mult->post_wp);
+        e = percent2c(wms->ms.deck_name, mult->post_fp) ? 0x0356cfb0 : 0; // PFDKXC
       }
     }
     break;
@@ -2784,8 +2784,8 @@ static int gen_html(struct WebMemorySurfer *wms)
         }
         break;
       case B_HIDDEN_CAT_NAME:
-        if (wms->ms.cat_name != NULL) {
-          e = xml_escape(&wms->html_lp, &wms->html_n, wms->ms.cat_name, ESC_AMP | ESC_QUOT);
+        if (wms->ms.deck_name != NULL) {
+          e = xml_escape(&wms->html_lp, &wms->html_n, wms->ms.deck_name, ESC_AMP | ESC_QUOT);
           if (e == 0) {
             rv = printf("\t\t\t\t<input type=\"hidden\" name=\"deck-name\" value=\"%s\">\n", wms->html_lp);
             e = rv < 0;
@@ -3098,7 +3098,7 @@ static int gen_html(struct WebMemorySurfer *wms)
         assert(wms->file_title_str != NULL && strlen(wms->tok_str) == 40);
         if (wms->seq == S_CAT_NAME || wms->seq == S_DECKS_CREATE) {
           header_str = "Enter the name of the deck to create.";
-          text_str = wms->ms.cat_name != NULL ? wms->ms.cat_name : "new deck name";
+          text_str = wms->ms.deck_name != NULL ? wms->ms.deck_name : "new deck name";
           submit_str = "Create";
         } else {
           assert(wms->seq == S_RENAME_ENTER && wms->ms.cat_i >= 0 && wms->ms.cat_i < wms->ms.cat_a);
@@ -3290,14 +3290,16 @@ static int gen_html(struct WebMemorySurfer *wms)
             e = xml_escape(&wms->html_lp, &wms->html_n, a_str, ESC_AMP | ESC_LT);
             if (e == 0) {
               rv = printf("\t\t\t<div class=\"msf-txtarea\"><textarea class=\"msf\" name=\"a\" rows=\"10\"%s%s>%s</textarea></div>\n"
-                          "\t\t\t<div class=\"msf-btns\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Learn\">Learn</button>\n"
-                          "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Search\">Search</button>\n"
+                          "\t\t\t<div class=\"msf-btns\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Learn\"%s>Learn</button>\n"
+                          "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Search\"%s>Search</button>\n"
                           "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Preview\">Preview</button>\n"
                           "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Stop\">Stop</button>\n"
                           "\t\t\t\t<label class=\"msf-div\"><input type=\"checkbox\" name=\"is-html\"%s>HTML</label></div>\n",
                   a_str != NULL && a_str[0] == '\0' ? " placeholder=\"Type answer here...\"" : "",
                   a_str != NULL ? "" : " disabled",
                   wms->html_lp,
+                  wms->ms.card_a > 0 ? "" : " disabled",
+                  wms->ms.card_a > 0 ? "" : " disabled",
                   wms->ms.card_i >= 0 && wms->ms.card_a > 0 && wms->ms.card_i < wms->ms.card_a && (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? " checked" : "");
               e = rv < 0;
               if (e == 0) {
@@ -3469,7 +3471,7 @@ static int gen_html(struct WebMemorySurfer *wms)
         }
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.144</h1>\n"
+        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.145</h1>\n"
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2022</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
@@ -3757,7 +3759,7 @@ static int gen_html(struct WebMemorySurfer *wms)
         rv = printf("\t\t\t<h1 class=\"msf\">Table</h1>\n"
                     "\t\t\t<table>\n"
                     "\t\t\t\t<thead>\n"
-                    "\t\t\t\t\t<tr><td>Level</td><td>Strength</td><td>Cards</td><td>Elegible</td><td>Threshold</td></tr>\n"
+                    "\t\t\t\t\t<tr><td>Level</td><td>Strength</td><td>Cards</td><td>Eligible</td><td>Threshold</td></tr>\n"
                     "\t\t\t\t</thead>\n"
                     "\t\t\t\t<tbody>\n");
         e = rv < 0;
@@ -3822,7 +3824,8 @@ static int gen_html(struct WebMemorySurfer *wms)
   return e;
 }
 
-static int ms_init(struct MemorySurfer *ms) {
+static int ms_init(struct MemorySurfer *ms)
+{
   int e;
   size_t size;
   imf_init(&ms->imf);
@@ -3836,7 +3839,7 @@ static int ms_init(struct MemorySurfer *ms) {
   ms->cat_i = -1;
   ms->mov_cat_i = -1;
   ms->arrange = -1;
-  ms->cat_name = NULL;
+  ms->deck_name = NULL;
   ms->style_txt = NULL;
   ms->card_l = NULL;
   ms->card_a = 0;
@@ -3928,7 +3931,8 @@ static int wms_init(struct WebMemorySurfer *wms) {
   return e;
 }
 
-static void ms_free(struct MemorySurfer *ms) {
+static void ms_free(struct MemorySurfer *ms)
+{
   free(ms->imf_filename);
   sa_free(&ms->style_sa);
   sa_free(&ms->cat_sa);
@@ -3937,8 +3941,8 @@ static void ms_free(struct MemorySurfer *ms) {
   ms->cat_a = 0;
   free(ms->style_txt);
   ms->style_txt = NULL;
-  free(ms->cat_name);
-  ms->cat_name = NULL;
+  free(ms->deck_name);
+  ms->deck_name = NULL;
   free(ms->card_l);
   ms->card_l = NULL;
   ms->card_a = 0;
@@ -4772,9 +4776,9 @@ int main(int argc, char *argv[])
               }
               break;
             case A_TEST_NAME:
-              e = wms->ms.cat_name == NULL;
+              e = wms->ms.deck_name == NULL;
               if (e == 0) {
-                len = strlen(wms->ms.cat_name);
+                len = strlen(wms->ms.deck_name);
                 e = len == 0;
               }
               if (e) {
@@ -5051,7 +5055,7 @@ int main(int argc, char *argv[])
                     e = imf_put(&wms->ms.imf, index, "", 0);
                     if (e == 0) {
                       wms->ms.cat_t[cat_i].cat_cli = index;
-                      e = sa_set(&wms->ms.cat_sa, cat_i, wms->ms.cat_name);
+                      e = sa_set(&wms->ms.cat_sa, cat_i, wms->ms.deck_name);
                       if (e == 0) {
                         wms->ms.cat_t[cat_i].cat_x = 1;
                         switch (wms->ms.arrange) {
@@ -5128,7 +5132,7 @@ int main(int argc, char *argv[])
               break;
             case A_RENAME_CAT:
               assert(wms->ms.cat_i >= 0 && wms->ms.cat_i < wms->ms.cat_a && wms->ms.cat_t[wms->ms.cat_i].cat_used != 0);
-              e = sa_set(&wms->ms.cat_sa, wms->ms.cat_i, wms->ms.cat_name);
+              e = sa_set(&wms->ms.cat_sa, wms->ms.cat_i, wms->ms.deck_name);
               if (e == 0) {
                 data_size = sa_length(&wms->ms.cat_sa);
                 e = imf_put(&wms->ms.imf, SA_INDEX, wms->ms.cat_sa.sa_d, data_size);
