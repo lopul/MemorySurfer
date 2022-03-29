@@ -1,7 +1,7 @@
 
 #
 # Author: Lorenz Pullwitt <memorysurfer@lorenz-pullwitt.de>
-# Copyright 2020
+# Copyright 2020-2022
 #
 # This file is part of MemorySurfer.
 #
@@ -12,7 +12,7 @@
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
@@ -21,7 +21,7 @@
 #
 
 memorysurfer.cgi : memorysurfer.o indexedmemoryfile.o sha1.o
-	gcc -Wall -g -O0 -o memorysurfer.cgi memorysurfer.o indexedmemoryfile.o sha1.o -lm
+	gcc -o memorysurfer.cgi memorysurfer.o indexedmemoryfile.o sha1.o -lm
 
 memorysurfer.o : ../memorysurfer.c ../imf/indexedmemoryfile.h
 	gcc -Wall -g -O0 -c ../memorysurfer.c
