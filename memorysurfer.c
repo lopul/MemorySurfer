@@ -26,7 +26,7 @@
 #include <fcgi_stdio.h>
 #define MACRO_TO_CALL_FCGI_ACCEPT FCGI_Accept()
 #else
-#define MACRO_TO_CALL_FCGI_ACCEPT -1
+#define MACRO_TO_CALL_FCGI_ACCEPT 0
 #endif
 #include <stdio.h>
 #include <malloc.h>
@@ -3474,7 +3474,7 @@ static int gen_html(struct WebMemorySurfer *wms)
         }
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.147</h1>\n"
+        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.148</h1>\n"
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2022</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
@@ -4328,6 +4328,7 @@ static int utf8_strcspn(const char *s, const char *reject, size_t *n)
 int main(int argc, char *argv[])
 {
   int e; // error
+  int terminate_proc;
   int saved_e;
   struct WebMemorySurfer *wms;
   char *dbg_filename;
@@ -4377,7 +4378,9 @@ int main(int argc, char *argv[])
   int need_sync;
   struct XML *xml;
   e = 0;
-  while (MACRO_TO_CALL_FCGI_ACCEPT >= 0 && e == 0) {
+  terminate_proc = 0;
+  while (MACRO_TO_CALL_FCGI_ACCEPT >= 0 && e == 0 && terminate_proc == 0) {
+    terminate_proc = 1;
     freopen("/var/www/memorysurfer/error.txt", "a", stderr);
     dbg_stream = NULL;
     size = sizeof(struct WebMemorySurfer);
