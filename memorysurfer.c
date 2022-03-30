@@ -24,6 +24,9 @@
 #include "imf/sha1.h"
 #ifdef NGINX_FCGI
 #include <fcgi_stdio.h>
+#define MACRO_TO_CALL_FCGI_ACCEPT FCGI_Accept()
+#else
+#define MACRO_TO_CALL_FCGI_ACCEPT -1
 #endif
 #include <stdio.h>
 #include <malloc.h>
@@ -3471,7 +3474,7 @@ static int gen_html(struct WebMemorySurfer *wms)
         }
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.146</h1>\n"
+        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.147</h1>\n"
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2022</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
@@ -4373,11 +4376,9 @@ int main(int argc, char *argv[])
   struct tm bd_time; // broken-down
   int need_sync;
   struct XML *xml;
-#ifdef NGINX_FCGI
   e = 0;
-  while (FCGI_Accept() >= 0 && e == 0) {
+  while (MACRO_TO_CALL_FCGI_ACCEPT >= 0 && e == 0) {
     freopen("/var/www/memorysurfer/error.txt", "a", stderr);
-#endif
     dbg_stream = NULL;
     size = sizeof(struct WebMemorySurfer);
     wms = malloc(size);
@@ -6016,8 +6017,6 @@ int main(int argc, char *argv[])
       e2str(e, e_str);
       fprintf(stderr, "unreported error: %s\n", e_str);
     }
-#ifdef NGINX_FCGI
   }
-#endif
   return e;
 }
