@@ -1078,7 +1078,8 @@ static int ms_open(struct MemorySurfer *ms) {
   return e;
 }
 
-static int scan_hex(uint8_t *data, char *str, size_t len) {
+static int scan_hex(uint8_t *data, char *str, size_t len)
+{
   int e;
   int i;
   char ch;
@@ -1104,7 +1105,8 @@ struct Parse {
   enum Field field;
 };
 
-static int determine_field(struct Multi *mult, struct Parse *parse) {
+static int determine_field(struct Multi *mult, struct Parse *parse)
+{
   int e;
   e = mult->post_fp <= 0;
   if (e == 0) {
@@ -2711,7 +2713,6 @@ static int gen_html(struct WebMemorySurfer *wms)
           e = rv < 0;
         }
         if (e == 0 && (wms->page == P_LEARN || wms->page == P_PREVIEW)) {
-          assert(wms->ms.passwd.style_sai < 0 || wms->ms.style_sa.sa_n > 0);
           str = sa_get(&wms->ms.style_sa, wms->ms.cat_i);
           if (str != NULL) {
             rv = printf("\t\t<style>%s</style>\n", str);
@@ -3297,12 +3298,13 @@ static int gen_html(struct WebMemorySurfer *wms)
               rv = printf("\t\t\t<div class=\"msf-txtarea\"><textarea class=\"msf\" name=\"a\" rows=\"10\"%s%s>%s</textarea></div>\n"
                           "\t\t\t<div class=\"msf-btns\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Learn\"%s>Learn</button>\n"
                           "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Search\"%s>Search</button>\n"
-                          "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Preview\">Preview</button>\n"
+                          "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Preview\"%s>Preview</button>\n"
                           "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Stop\">Stop</button>\n"
                           "\t\t\t\t<label class=\"msf-div\"><input type=\"checkbox\" name=\"is-html\"%s>HTML</label></div>\n",
                   a_str != NULL && a_str[0] == '\0' ? " placeholder=\"Type answer here...\"" : "",
                   a_str != NULL ? "" : " disabled",
                   wms->html_lp,
+                  wms->ms.card_a > 0 ? "" : " disabled",
                   wms->ms.card_a > 0 ? "" : " disabled",
                   wms->ms.card_a > 0 ? "" : " disabled",
                   wms->ms.card_i >= 0 && wms->ms.card_a > 0 && wms->ms.card_i < wms->ms.card_a && (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? " checked" : "");
@@ -3476,7 +3478,7 @@ static int gen_html(struct WebMemorySurfer *wms)
         }
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.148</h1>\n"
+        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.151</h1>\n"
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2022</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
