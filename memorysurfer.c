@@ -2713,6 +2713,7 @@ static int gen_html(struct WebMemorySurfer *wms)
           e = rv < 0;
         }
         if (e == 0 && (wms->page == P_LEARN || wms->page == P_PREVIEW)) {
+          assert(wms->ms.passwd.style_sai < 0 || wms->ms.style_sa.sa_n > 0);
           str = sa_get(&wms->ms.style_sa, wms->ms.cat_i);
           if (str != NULL) {
             rv = printf("\t\t<style>%s</style>\n", str);
@@ -3478,7 +3479,7 @@ static int gen_html(struct WebMemorySurfer *wms)
         }
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.151</h1>\n"
+        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.152</h1>\n"
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2022</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
@@ -4898,14 +4899,16 @@ int main(int argc, char *argv[])
                     e = imf_put(&wms->ms.imf, C_INDEX, wms->ms.cat_t, data_size);
                     if (e == 0) {
                       assert(wms->ms.passwd.style_sai == -1);
-                      e = imf_seek_unused(&wms->ms.imf, &wms->ms.passwd.style_sai);
-                      if (e == 0) {
-                        data_size = sa_length(&wms->ms.style_sa);
-                        e = imf_put(&wms->ms.imf, wms->ms.passwd.style_sai, wms->ms.style_sa.sa_d, data_size);
-                        need_sync = e == 0;
-                        if (e == 0)
-                          wms->page = P_UPLOAD_REPORT;
+                      data_size = sa_length(&wms->ms.style_sa);
+                      if (data_size > 0) {
+                        e = imf_seek_unused(&wms->ms.imf, &wms->ms.passwd.style_sai);
+                        if (e == 0) {
+                          e = imf_put(&wms->ms.imf, wms->ms.passwd.style_sai, wms->ms.style_sa.sa_d, data_size);
+                        }
                       }
+                      need_sync = e == 0;
+                      if (e == 0)
+                        wms->page = P_UPLOAD_REPORT;
                     }
                   }
                 }
