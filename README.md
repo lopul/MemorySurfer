@@ -39,7 +39,7 @@ The setup is described
  - webserver
 
 Every Linux system<sup>*</sup> capable of running a web-server (eg. Apache) should be capable of running MemorySurfer (tested on
-[RaspPiOS](https://www.lorenz-pullwitt.de/MemorySurfer/en/raspberry-pi-os.html "RasPiOS"),
+[RaspPiOS](https://www.lorenz-pullwitt.de/MemorySurfer/en/raspberry-pi-os.html "Raspberry Pi OS"),
 [Fedora](https://www.lorenz-pullwitt.de/MemorySurfer/en/fedora.html "Fedora"),
 [Debian](https://www.lorenz-pullwitt.de/MemorySurfer/en/debian.html "Debian"), Ubuntu).
 
