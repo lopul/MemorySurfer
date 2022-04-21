@@ -123,7 +123,7 @@ static enum Action action_seq[S_END+1][17] = {
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT, A_LOAD_CARDLIST, A_TEST_CARD, A_REVEAL, A_READ_STYLE, A_CHECK_RESUME, A_END }, // S_REVEAL
   { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_TEST_CAT, A_LOAD_CARDLIST, A_TEST_CARD, A_UPDATE_QA, A_PROCEED, A_SYNC, A_DETERMINE_CARD, A_READ_STYLE, A_CHECK_RESUME, A_END }, // S_PROCEED_SYNC_QA
   { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_TEST_CAT, A_LOAD_CARDLIST, A_TEST_CARD, A_UPDATE_QA, A_SUSPEND, A_SYNC, A_DETERMINE_CARD, A_READ_STYLE, A_CHECK_RESUME, A_END }, // S_SUSPEND
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_LOAD_CARDLIST, A_RESUME, A_DETERMINE_CARD, A_READ_STYLE, A_END }, // S_RESUME
+  { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_TEST_CAT, A_LOAD_CARDLIST, A_TEST_CARD, A_UPDATE_QA, A_RESUME, A_SYNC, A_DETERMINE_CARD, A_READ_STYLE, A_END }, // S_RESUME
   { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_HISTOGRAM, A_END }, // S_HISTOGRAM
   { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_TEST_CAT, A_LOAD_CARDLIST, A_TEST_CARD, A_UPDATE_QA, A_SYNC, A_HISTOGRAM, A_END }, // S_HISTOGRAM_SYNC_QA
   { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_TABLE, A_END }, // S_TABLE
@@ -328,7 +328,8 @@ static int append_part(struct WebMemorySurfer *wms, struct Multi *mult) {
   return e;
 }
 
-static int percent2c(char *str, size_t len) {
+static int percent2c(char *str, size_t len)
+{
   int e;
   int rp; // read pos
   int wp; // write pos
@@ -1045,11 +1046,13 @@ static int ms_open(struct MemorySurfer *ms) {
       e = sa_load(&ms->cat_sa, &ms->imf, SA_INDEX);
       if (e == 0) {
         data_size = imf_get_size(&ms->imf, C_INDEX);
+        assert(ms->cat_t == NULL);
         if (data_size > 0) {
           ms->cat_t = malloc(data_size);
           e = ms->cat_t == NULL;
         }
         if (e == 0) {
+          assert(ms->cat_a == 0);
           ms->cat_a = data_size / sizeof(struct Category);
           e = imf_get(&ms->imf, C_INDEX, ms->cat_t);
           if (e == 0) {
@@ -3479,7 +3482,7 @@ static int gen_html(struct WebMemorySurfer *wms)
         }
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.152</h1>\n"
+        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.154</h1>\n"
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2022</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
@@ -4171,19 +4174,16 @@ static int ms_load_card_list(struct MemorySurfer *ms)
   struct Category *cat_ptr;
   int32_t data_size;
   cat_ptr = ms->cat_t + ms->cat_i;
-  assert (cat_ptr->cat_used != 0);
-  data_size = imf_get_size (&ms->imf, cat_ptr->cat_cli);
-  assert (data_size >= 0);
-  assert (ms->card_l == NULL);
-  ms->card_l = malloc (data_size);
+  assert(cat_ptr->cat_used != 0);
+  data_size = imf_get_size(&ms->imf, cat_ptr->cat_cli);
+  assert(data_size >= 0 && ms->card_l == NULL);
+  ms->card_l = malloc(data_size);
   e = ms->card_l == NULL;
-  if (e == 0)
-  {
-    e = imf_get (&ms->imf, cat_ptr->cat_cli, ms->card_l);
-    if (e == 0)
-    {
-      assert (ms->card_a == 0);
-      ms->card_a = data_size / sizeof (struct Card);
+  if (e == 0) {
+    e = imf_get(&ms->imf, cat_ptr->cat_cli, ms->card_l);
+    if (e == 0) {
+      assert(ms->card_a == 0);
+      ms->card_a = data_size / sizeof(struct Card);
     }
   }
   return e;
@@ -5909,9 +5909,7 @@ int main(int argc, char *argv[])
                     data_size = wms->ms.card_a * sizeof(struct Card);
                     index = wms->ms.cat_t[wms->ms.cat_i].cat_cli;
                     e = imf_put(&wms->ms.imf, index, wms->ms.card_l, data_size);
-                    if (e == 0) {
-                      e = imf_sync(&wms->ms.imf);
-                    }
+                    need_sync = e == 0;
                   }
                 }
                 break;
