@@ -1169,8 +1169,6 @@ static int determine_field(struct Multi *mult, struct Parse *parse)
         parse->field = F_IS_HTML;
       } else if (memcmp(mult->post_lp, "arrange", 7) == 0) {
         parse->field = F_ARRANGE;
-      } else if (memcmp(mult->post_lp, "mov-deck", 7) == 0) {
-        parse->field = F_MOVED_CAT;
       } else {
         e = memcmp(mult->post_lp, "timeout", 7) != 0;
         if (e == 0) {
@@ -1181,6 +1179,8 @@ static int determine_field(struct Multi *mult, struct Parse *parse)
     case 8:
       if (memcmp(mult->post_lp, "mov-card", 8) == 0) {
         parse->field = F_MOV_CARD;
+      } else if (memcmp(mult->post_lp, "mov-deck", 8) == 0) {
+        parse->field = F_MOVED_CAT;
       } else if (memcmp(mult->post_lp, "todo_alt", 8) == 0) {
         parse->field = F_TODO_ALT;
       } else {
@@ -3482,7 +3482,7 @@ static int gen_html(struct WebMemorySurfer *wms)
         }
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.154</h1>\n"
+        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.155</h1>\n"
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2022</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
@@ -5896,7 +5896,7 @@ int main(int argc, char *argv[])
                 need_sync = e == 0;
                 break;
               case A_RESUME:
-                e = wms->ms.card_a <= 0;
+                e = wms->ms.card_a <= 0 ? 0 : 0x60fb4468; // EMPTYCRD
                 if (e == 0) {
                   n = 0;
                   for (card_i = 0; card_i < wms->ms.card_a; card_i++)
@@ -5904,7 +5904,7 @@ int main(int argc, char *argv[])
                       wms->ms.card_l[card_i].card_state = (wms->ms.card_l[card_i].card_state & 0x08) | STATE_SCHEDULED;
                       n++;
                     }
-                  e = n == 0;
+                  e = n == 0 ? 0 : 0x55ac93b4; // NOCRDSC
                   if (e == 0) {
                     data_size = wms->ms.card_a * sizeof(struct Card);
                     index = wms->ms.cat_t[wms->ms.cat_i].cat_cli;
