@@ -1006,7 +1006,8 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
   return e;
 }
 
-static int sa_load(struct StringArray *sa, struct IndexedMemoryFile *imf, int32_t index) {
+static int sa_load(struct StringArray *sa, struct IndexedMemoryFile *imf, int32_t index)
+{
   int e;
   int32_t data_size;
   int pos_c; // count
@@ -2441,7 +2442,8 @@ static void sa_free(struct StringArray *sa) {
   sa->sa_n = 0;
 }
 
-static int gen_xml_category(int16_t cat_i, struct XmlGenerator *xg, struct MemorySurfer *ms, struct IndentStr *inds) {
+static int gen_xml_category(int16_t cat_i, struct XmlGenerator *xg, struct MemorySurfer *ms, struct IndentStr *inds)
+{
   int e;
   int rv;
   struct Category *cat_ptr;
@@ -2854,10 +2856,8 @@ static int gen_html(struct WebMemorySurfer *wms)
       case B_FILE:
         if (wms->file_title_str != NULL) {
           dis_str = "";
-          attr_str = " disabled";
         } else {
           dis_str = " disabled";
-          attr_str = "";
         }
         rv = printf("\t\t\t<h1 class=\"msf\">File</h1>\n"
                     "\t\t\t<div class=\"msf-btns\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"New\"%s>New</button></div>\n"
@@ -2873,13 +2873,13 @@ static int gen_html(struct WebMemorySurfer *wms)
                     "\t\t<code class=\"msf\" >%s</code>\n"
                     "\t</body>\n"
                     "</html>\n",
-            attr_str,
-            wms->fl_c > 0 ? attr_str : " disabled",
+            wms->file_title_str == NULL ? "" : " disabled",
+            wms->file_title_str == NULL && wms->fl_c > 0 ? "" : " disabled",
             dis_str,
             dis_str,
+            wms->file_title_str != NULL && wms->ms.n_first != -1 ? "" : " disabled", 
             dis_str,
-            dis_str,
-            wms->ms.n_first != -1 ? dis_str : " disabled",
+            wms->file_title_str != NULL && wms->ms.n_first != -1 ? "" : " disabled", 
             dis_str,
             sw_info_str);
         e = rv < 0;
@@ -3047,7 +3047,8 @@ static int gen_html(struct WebMemorySurfer *wms)
                     if (e == 0) {
                       xg.w_lineptr = NULL;
                       xg.w_n = 0;
-                      e = gen_xml_category(wms->ms.n_first, &xg, &wms->ms, wms->inds);
+                      if (wms->ms.n_first != -1)
+                        e = gen_xml_category(wms->ms.n_first, &xg, &wms->ms, wms->inds);
                       if (e == 0) {
                         rv = fputs("</memorysurfer>", xg.w_stream);
                         e = rv == EOF;
@@ -3281,7 +3282,8 @@ static int gen_html(struct WebMemorySurfer *wms)
                       "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Next\"%s>Next</button></div>\n"
                       "\t\t\t<div class=\"msf-txtarea\"><textarea class=\"msf\" name=\"q\" rows=\"10\"%s%s>%s</textarea></div>\n"
                       "\t\t\t<div class=\"msf-btns\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Schedule\"%s>Schedule</button>\n"
-                      "\t\t\t\t<span class=\"msf-space\"></span><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Set\"%s>Set</button>\n"
+                      "\t\t\t\t<span class=\"msf-space\"></span>\n"
+                      "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Set\"%s>Set</button>\n"
                       "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Move\"%s>Move</button>\n"
                       "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Send\"%s>Send</button></div>\n",
               wms->ms.card_a > 0 ? "" : " disabled",
@@ -3482,7 +3484,7 @@ static int gen_html(struct WebMemorySurfer *wms)
         }
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.155</h1>\n"
+        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.156</h1>\n"
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2022</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
@@ -3522,13 +3524,15 @@ static int gen_html(struct WebMemorySurfer *wms)
                         "\t\t\t<div class=\"msf-btns msf-anchor\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Proceed\"%s>Proceed</button>\n"
                         "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Show\"%s>Show</button>\n"
                         "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Reveal\"%s>Reveal</button>\n"
-                        "\t\t\t\t<span class=\"msf-space\"></span><label class=\"msf-div\"><input id=\"msf-unlock\" type=\"checkbox\" name=\"is-unlocked\"%s>Unlock</label>\n"
+                        "\t\t\t\t<span class=\"msf-space\"></span>\n"
+                        "\t\t\t\t<label class=\"msf-div\"><input id=\"msf-unlock\" type=\"checkbox\" name=\"is-unlocked\"%s>Unlock</label>\n"
                         "\t\t\t\t<button id=\"msf-menu\" class=\"msf\" type=\"button\">☰</button>\n"
                         "\t\t\t\t<div id=\"msf-data\" class=\"msf-dlg\">\n"
                         "\t\t\t\t\t<h1 class=\"msf\">Data Views</h1>\n"
                         "\t\t\t\t\t<div class=\"msf-btns\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Histogram\">Histogram</button>\n"
                         "\t\t\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Table\">Table</button>\n"
-                        "\t\t\t\t\t\t<span class=\"msf-space\"></span><button id=\"msf-data-close\" class=\"msf\" type=\"button\">Close</button></div>\n"
+                        "\t\t\t\t\t\t<span class=\"msf-space\"></span>\n"
+                        "\t\t\t\t\t\t<button id=\"msf-data-close\" class=\"msf\" type=\"button\">Close</button></div>\n"
                         "\t\t\t\t</div>\n"
                         "\t\t\t</div>\n",
                 header_str,
@@ -3623,11 +3627,12 @@ static int gen_html(struct WebMemorySurfer *wms)
           if (e == 0) {
             time_diff = wms->ms.timestamp - wms->ms.card_l[wms->ms.card_i].card_time;
             set_time_str(time_diff_str, time_diff);
-            rv = printf("\t\t\t<div class=\"msf-btns\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Edit\">Edit</button>\n"
+            rv = printf("\t\t\t<div class=\"msf-btns\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Suspend\"%s>Suspend</button>\n"
+                        "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Resume\"%s>Resume</button>\n"
+                        "\t\t\t\t<span class=\"msf-space\"></span>\n"
+                        "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Edit\">Edit</button>\n"
                         "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Search\">Search</button>\n"
-                        "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Stop\">Stop</button>\n"
-                        "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Suspend\"%s>Suspend</button>\n"
-                        "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Resume\"%s>Resume</button></div>\n"
+                        "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Stop\">Stop</button></div>\n"
                         "\t\t</form>\n"
                         "\t\t<code class=\"msf\">%s; nel: %d; time_diff: %s; mctr:&nbsp;%d</code>\n"
                         "\t</body>\n"
