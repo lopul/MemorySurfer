@@ -552,7 +552,8 @@ static int sa_length(struct StringArray *sa) {
   return pos_l;
 }
 
-static int xml_unescape(char *xml_str) {
+static int xml_unescape(char *xml_str)
+{
   int e;
   int rp;
   int wp;
@@ -2630,7 +2631,7 @@ static int gen_html(struct WebMemorySurfer *wms)
   const char *dis_str; // disabled
   const char *attr_str; // attribute
   const char *header_str;
-  const char *notice_str[2];
+  const char *notice_str;
   const char *submit_str;
   char *text_str;
   char *ext_str;
@@ -2875,8 +2876,7 @@ static int gen_html(struct WebMemorySurfer *wms)
       case B_PASSWORD:
         assert(wms->ms.passwd.pw_flag >= 0);
         header_str = NULL;
-        notice_str[0] = NULL;
-        notice_str[1] = NULL;
+        notice_str = NULL;
         x = 0;
         y = 0;
         if (wms->ms.passwd.pw_flag > 0) {
@@ -2887,31 +2887,36 @@ static int gen_html(struct WebMemorySurfer *wms)
           } else {
             assert(wms->seq == S_GO_CHANGE);
             header_str = "Change password";
-            notice_str[0] = "Enter the current password";
-            notice_str[1] = "Enter a new password";
+            notice_str = "Enter the current password";
             submit_str = "Change";
             y = 1;
           }
         } else {
           assert(wms->ms.passwd.pw_flag == 0);
-          header_str = "Define a (initial) password (for this file) (may be empty)";
+          header_str = "Define password";
+          notice_str = "Define a (initial) password (for this file) (may be empty)";
           submit_str = "Enter";
           y = 1;
         }
         assert(wms->mode != M_NONE && header_str != NULL);
         printf("\t\t\t<h1 class=\"msf\">%s</h1>\n", header_str);
-        if (notice_str[0] != NULL) printf("\t\t\t<p class=\"msf\">%s</p>\n", notice_str[0]);
+        if (notice_str != NULL) printf("\t\t\t<p class=\"msf\">%s</p>\n", notice_str);
         if (x != 0) printf("\t\t\t<div class=\"msf-btns\"><input type=\"text\" name=\"password\" value=\"\" size=25></div>\n");
-        if (notice_str[1] != NULL) printf("\t\t\t<p class=\"msf\">%s</p>\n", notice_str[1]);
+        if (wms->mode == M_CHANGE_PASSWD && e == 0) {
+          rv = printf("\t\t\t<p class=\"msf\">Enter a new password</p>\n");
+          e = rv < 0;
+        }
         if (y != 0) printf("\t\t\t<div class=\"msf-btns\"><input type=\"text\" name=\"new-password\" value=\"\" size=25></div>\n");
-        rv = printf("\t\t\t<div class=\"msf-btns\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"%s\">%s</button>\n"
-                    "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Stop\">Stop</button></div>\n"
-                    "\t\t</form>\n"
-                    "\t</body>\n"
-                    "</html>\n",
-            submit_str,
-            submit_str);
-        e = rv < 0;
+        if (e == 0) {
+          rv = printf("\t\t\t<div class=\"msf-btns\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"%s\">%s</button>\n"
+                      "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Stop\">Stop</button></div>\n"
+                      "\t\t</form>\n"
+                      "\t</body>\n"
+                      "</html>\n",
+              submit_str,
+              submit_str);
+          e = rv < 0;
+        }
         break;
       case B_NEW:
         assert(wms->seq == S_NEW);
@@ -3150,11 +3155,11 @@ static int gen_html(struct WebMemorySurfer *wms)
         assert(wms->ms.mov_cat_i >= 0);
         switch (wms->mode) {
         case M_SEND:
-          notice_str[0] = "to move the card to";
+          notice_str = "to move the card to";
           submit_str = "Send";
           break;
         case M_MOVE:
-          notice_str[0] = "where to move";
+          notice_str = "where to move";
           submit_str = "Select";
           break;
         default:
@@ -3163,7 +3168,7 @@ static int gen_html(struct WebMemorySurfer *wms)
         }
         if (e == 0) {
           assert(strlen(mtime_str) == 16);
-          rv = printf("\t\t\t<h1 class=\"msf\">Select the category %s</h1>\n", notice_str[0]);
+          rv = printf("\t\t\t<h1 class=\"msf\">Select the category %s</h1>\n", notice_str);
           e = rv < 0;
           if (e == 0) {
             e = inds_set(wms->inds, 3, 0);
@@ -3472,7 +3477,7 @@ static int gen_html(struct WebMemorySurfer *wms)
         }
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.158</h1>\n"
+        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.159</h1>\n"
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2022</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
