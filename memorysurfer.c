@@ -3477,7 +3477,7 @@ static int gen_html(struct WebMemorySurfer *wms)
         }
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.159</h1>\n"
+        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.160</h1>\n"
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2022</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
@@ -5894,7 +5894,7 @@ int main(int argc, char *argv[])
                 need_sync = e == 0;
                 break;
               case A_RESUME:
-                e = wms->ms.card_a <= 0 ? 0 : 0x60fb4468; // EMPTYCRD
+                e = wms->ms.card_a > 0 ? 0 : 0x60fb4468; // EMPTYCRD
                 if (e == 0) {
                   n = 0;
                   for (card_i = 0; card_i < wms->ms.card_a; card_i++)
