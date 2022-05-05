@@ -3477,7 +3477,7 @@ static int gen_html(struct WebMemorySurfer *wms)
         }
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.160</h1>\n"
+        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.161</h1>\n"
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2022</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
@@ -5902,7 +5902,7 @@ int main(int argc, char *argv[])
                       wms->ms.card_l[card_i].card_state = (wms->ms.card_l[card_i].card_state & 0x08) | STATE_SCHEDULED;
                       n++;
                     }
-                  e = n == 0 ? 0 : 0x55ac93b4; // NOCRDSC
+                  e = n > 0 ? 0 : 0x55ac93b4; // NOCRDSC
                   if (e == 0) {
                     data_size = wms->ms.card_a * sizeof(struct Card);
                     index = wms->ms.cat_t[wms->ms.cat_i].cat_cli;
