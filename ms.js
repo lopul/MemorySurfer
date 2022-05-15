@@ -2,7 +2,7 @@
 	Author: Lorenz Pullwitt <memorysurfer@lorenz-pullwitt.de>
 	Copyright 2022
 
-	This file (ms.js - v1.0.0.17) is part of MemorySurfer.
+	This file (ms.js - v1.0.0.18) is part of MemorySurfer.
 
 	MemorySurfer is free software; you can redistribute it and/or
 	modify it under the terms of the GNU General Public License
@@ -32,6 +32,8 @@ const msfInlApply = document.getElementById("msf-inl-apply");
 const msfInlCancel = document.getElementById("msf-inl-cancel");
 const msfDataDlg = document.getElementById("msf-data");
 const msfDataBtn = document.getElementById("msf-menu");
+const msfTools =  document.getElementById("msf-tools");
+const msfToolsCheck = document.getElementById("msf-tools-cbox");
 const msfCancelDataBtn = document.getElementById("msf-data-close");
 const msfQA = document.querySelectorAll(".qa-html");
 
@@ -52,6 +54,7 @@ function msfOnDOMContentLoaded() {
 	}
 	if (msfDataBtn != null) {
 		msfDataBtn.addEventListener('click', msfShowData);
+		msfToolsCheck.addEventListener('click', msfToggleTools);
 		msfCancelDataBtn.addEventListener('click', msfCloseData);
 	}
 }
@@ -250,6 +253,14 @@ function msfOnCancel() {
 
 function msfShowData() {
 	msfDataDlg.style.visibility = 'visible';
+}
+
+function msfToggleTools() {
+	if (msfTools.style.display === "none") {
+		msfTools.style.display = "flex";
+	} else {
+		msfTools.style.display = "none";
+	}
 }
 
 function msfCloseData() {

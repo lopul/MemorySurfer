@@ -1354,7 +1354,7 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
     if (e == 0) {
       e = wms->ms.lvl < 0 || wms->ms.lvl >= 21;
       if (e != 0) {
-        e =  0x21e1b31e; // WMSPPLA (Web)MemorySurfer parse_post lvl assert (failed)
+        e = 0x21e1b31e; // WMSPPLA (Web)MemorySurfer parse_post lvl assert (failed)
       }
     }
     break;
@@ -3477,7 +3477,7 @@ static int gen_html(struct WebMemorySurfer *wms)
         }
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.161</h1>\n"
+        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.162</h1>\n"
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2022</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
@@ -3524,8 +3524,33 @@ static int gen_html(struct WebMemorySurfer *wms)
                         "\t\t\t\t\t<h1 class=\"msf\">Data Views</h1>\n"
                         "\t\t\t\t\t<div class=\"msf-btns\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Histogram\">Histogram</button>\n"
                         "\t\t\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Table\">Table</button>\n"
+                        "\t\t\t\t\t\t<label class=\"msf-div\"><input id=\"msf-tools-cbox\" type=\"checkbox\">Tools</label>\n"
                         "\t\t\t\t\t\t<span class=\"msf-space\"></span>\n"
                         "\t\t\t\t\t\t<button id=\"msf-data-close\" class=\"msf\" type=\"button\">Close</button></div>\n"
+                        "\t\t\t\t</div>\n"
+                        "\t\t\t</div>\n"
+                        "\t\t\t<div id=\"msf-tools\" class=\"msf-btns\" style=\"display: none;\"><button id=\"msf-surround\" class=\"msf\" type=\"button\" disabled>Surround</button>\n"
+                        "\t\t\t\t<button id=\"msf-unformat-btn\" class=\"msf\" type=\"button\" disabled>Unformat</button>\n"
+                        "\t\t\t\t<button id=\"msf-br\" class=\"msf\" type=\"button\" disabled>&lt;br&gt;</button>\n"
+                        "\t\t\t\t<div id=\"msf-inl-dlg\" class=\"msf-dlg\">\n"
+                        "\t\t\t\t\t<h1 class=\"msf\">Surround Node</h1>\n"
+                        "\t\t\t\t\t<select id=\"msf-format-inline\">\n"
+                        "\t\t\t\t\t\t<option value=\"DIV\">&lt;div&gt;</option>\n"
+                        "\t\t\t\t\t\t<option value=\"P\">&lt;p&gt;</option>\n"
+                        "\t\t\t\t\t\t<option value=\"PRE\">&lt;pre&gt;</option>\n"
+                        "\t\t\t\t\t\t<option value=\"BLOCKQUOTE\">&lt;blockquote&gt;</option>\n"
+                        "\t\t\t\t\t\t<option value=\"SPAN\">&lt;span&gt;</option>\n"
+                        "\t\t\t\t\t\t<option value=\"CODE\">&lt;code&gt;</option>\n"
+                        "\t\t\t\t\t\t<option value=\"EM\">&lt;em&gt;</option>\n"
+                        "\t\t\t\t\t\t<option value=\"MARK\">&lt;mark&gt;</option>\n"
+                        "\t\t\t\t\t\t<option value=\"STRONG\">&lt;strong&gt;</option>\n"
+                        "\t\t\t\t\t\t<option value=\"CITE\">&lt;cite&gt;</option>\n"
+                        "\t\t\t\t\t\t<option value=\"I\">&lt;i&gt;</option>\n"
+                        "\t\t\t\t\t\t<option value=\"B\">&lt;b&gt;</option>\n"
+                        "\t\t\t\t\t\t<option value=\"U\">&lt;u&gt;</option>\n"
+                        "\t\t\t\t\t</select>\n"
+                        "\t\t\t\t\t<div class=\"msf-btns\"><button id=\"msf-inl-apply\" class=\"msf\" type=\"button\">Apply</button>\n"
+                        "\t\t\t\t\t\t<button id=\"msf-inl-cancel\" class=\"msf\" type=\"button\">Cancel</button></div>\n"
                         "\t\t\t\t</div>\n"
                         "\t\t\t</div>\n",
                 header_str,
@@ -5894,7 +5919,7 @@ int main(int argc, char *argv[])
                 need_sync = e == 0;
                 break;
               case A_RESUME:
-                e = wms->ms.card_a > 0 ? 0 : 0x60fb4468; // EMPTYCRD
+                e = wms->ms.card_a > 0 ? 0 : 0x6be36100; // EMTYCRD
                 if (e == 0) {
                   n = 0;
                   for (card_i = 0; card_i < wms->ms.card_a; card_i++)
