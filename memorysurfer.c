@@ -3477,7 +3477,7 @@ static int gen_html(struct WebMemorySurfer *wms)
         }
         break;
       case B_ABOUT:
-        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.163</h1>\n"
+        rv = printf("\t\t\t<h1 class=\"msf\">About <a href=\"https://www.lorenz-pullwitt.de/MemorySurfer/\">MemorySurfer</a> v1.0.1.164</h1>\n"
                     "\t\t\t<p class=\"msf\">Author: Lorenz Pullwitt</p>\n"
                     "\t\t\t<p class=\"msf\">Copyright 2016-2022</p>\n"
                     "\t\t\t<p class=\"msf\">Send bugs and suggestions to\n"
@@ -3645,7 +3645,7 @@ static int gen_html(struct WebMemorySurfer *wms)
           if (e == 0) {
             time_diff = wms->ms.timestamp - wms->ms.card_l[wms->ms.card_i].card_time;
             set_time_str(time_diff_str, time_diff);
-            rv = printf("\t\t\t<div class=\"msf-btns\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Suspend\"%s>Suspend</button>\n"
+            rv = printf("\t\t\t<div class=\"msf-btns\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Suspend\">Suspend</button>\n"
                         "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Resume\"%s>Resume</button>\n"
                         "\t\t\t\t<span class=\"msf-space\"></span>\n"
                         "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Edit\">Edit</button>\n"
@@ -3655,7 +3655,6 @@ static int gen_html(struct WebMemorySurfer *wms)
                         "\t\t<code class=\"msf\">%s; nel: %d; time_diff: %s; mctr:&nbsp;%d</code>\n"
                         "\t</body>\n"
                         "</html>\n",
-                (wms->ms.card_l[wms->ms.card_i].card_state & 0x07) != STATE_SUSPENDED ? "" : " disabled",
                 wms->ms.can_resume != 0 ? "" : " disabled",
                 sw_info_str,
                 wms->ms.cards_nel,
@@ -5915,7 +5914,7 @@ int main(int argc, char *argv[])
                   need_sync = e == 0;
                   break;
                 case A_SUSPEND:
-                  assert((wms->ms.card_l[wms->ms.card_i].card_state & 0x07) == STATE_SCHEDULED || (wms->ms.card_l[wms->ms.card_i].card_state & 0x07) == STATE_NEW);
+                  wms->ms.card_l[wms->ms.card_i].card_time = wms->ms.timestamp;
                   wms->ms.card_l[wms->ms.card_i].card_state = (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) | STATE_SUSPENDED;
                   data_size = wms->ms.card_a * sizeof(struct Card);
                   index = wms->ms.cat_t[wms->ms.cat_i].cat_cli;
