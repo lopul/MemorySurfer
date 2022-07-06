@@ -1,7 +1,8 @@
 
 //
 // Author: Lorenz Pullwitt <memorysurfer@lorenz-pullwitt.de>
-// Copyright 2016-2020
+// Copyright 2016-2022
+// version: 1.0.6
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -10,7 +11,7 @@
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
@@ -403,7 +404,7 @@ int imf_seek_unused (struct IndexedMemoryFile *imf, int32_t *index)
 int32_t imf_get_size (struct IndexedMemoryFile *imf, int32_t index)
 {
   int32_t data_size;
-  assert (index >= 0 && index < imf->chunk_count && imf->chunks[index].chunk_size > 0);
+  assert(index >= 0 && index < imf->chunk_count && imf->chunks[index].chunk_size >= SHA1_HASH_SIZE);
   data_size = imf->chunks[index].chunk_size - SHA1_HASH_SIZE;
   return data_size;
 }
