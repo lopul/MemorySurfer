@@ -44,7 +44,7 @@
 #include <fcntl.h> // O_TRUNC / O_EXCL
 #include <errno.h>
 
-static const int32_t MS_VERSION = 0x010001a7;
+static const int32_t MS_VERSION = 0x010001a8;
 
 enum Field { F_UNKNOWN, F_FILE_TITLE, F_UPLOAD, F_ARRANGE, F_CAT_NAME, F_STYLE_TXT, F_MOVED_CAT, F_SEARCH_TXT, F_MATCH_CASE, F_IS_HTML, F_IS_UNLOCKED, F_CAT, F_CARD, F_MOV_CARD, F_LVL, F_RANK, F_Q, F_A, F_REVEAL_POS, F_TODO_MAIN, F_TODO_ALT, F_MTIME, F_PASSWORD, F_NEW_PASSWORD, F_TOKEN, F_EVENT, F_PAGE, F_MODE, F_TIMEOUT };
 enum Action { A_END, A_NONE, A_FILE, A_WARN_UPLOAD, A_CREATE, A_NEW, A_OPEN_DLG, A_FILELIST, A_OPEN, A_CHANGE_PASSWD, A_WRITE_PASSWD, A_READ_PASSWD, A_CHECK_PASSWORD, A_AUTH_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_GET_CARD, A_CHECK_RESUME, A_SLASH, A_VOID, A_FILE_EXTENSION, A_GATHER, A_UPLOAD, A_UPLOAD_REPORT, A_EXPORT, A_ASK_REMOVE, A_REMOVE, A_ASK_ERASE, A_ERASE, A_SET_FILE, A_CLOSE, A_START_DECKS, A_DECKS_CREATE, A_SELECT_DEST_DECK, A_SELECT_SEND_CAT, A_SELECT_ARRANGE, A_CAT_NAME, A_STYLE_GO, A_CREATE_CAT, A_RENAME_CAT, A_READ_STYLE, A_STYLE_APPLY, A_ASK_DELETE_DECK, A_DELETE_CAT, A_TOGGLE, A_MOVE_CAT, A_SELECT_EDIT_CAT, A_EDIT, A_UPDATE_QA, A_UPDATE_HTML, A_SYNC, A_INSERT, A_APPEND, A_ASK_DELETE_CARD, A_DELETE_CARD, A_PREVIOUS, A_NEXT, A_SCHEDULE, A_SET, A_CARD_ARRANGE, A_MOVE_CARD, A_SEND_CARD, A_SELECT_LEARN_CAT, A_SELECT_SEARCH_CAT, A_PREFERENCES, A_ABOUT, A_APPLY, A_SEARCH, A_PREVIEW, A_RANK, A_DETERMINE_CARD, A_SHOW, A_REVEAL, A_PROCEED, A_ASK_SUSPEND, A_SUSPEND, A_ASK_RESUME, A_RESUME, A_CHECK_FILE, A_LOGIN, A_HISTOGRAM, A_TABLE, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CARD, A_TEST_CAT_SELECTED, A_TEST_CAT_VALID, A_TEST_CAT, A_TEST_ARRANGE, A_TEST_NAME };
@@ -3175,10 +3175,12 @@ static int gen_html(struct WebMemorySurfer *wms)
         assert(wms->ms.mov_cat_i >= 0);
         switch (wms->mode) {
         case M_SEND:
+          header_str = "Sending";
           notice_str = "to move the card to";
           submit_str = "Send";
           break;
         case M_MOVE:
+          header_str = "Moving";
           notice_str = "where to move";
           submit_str = "Select";
           break;
@@ -3188,8 +3190,12 @@ static int gen_html(struct WebMemorySurfer *wms)
         }
         if (e == 0) {
           assert(strlen(mtime_str) == 16);
-          rv = printf("\t\t\t<h1 class=\"msf\">Select the category %s</h1>\n", notice_str);
+          rv = printf("\t\t\t<h1 class=\"msf\">%s</h1>\n", header_str);
           e = rv < 0;
+          if (e == 0) {
+            rv = printf("\t\t\t<p class=\"msf\">Select the deck %s</p>\n", notice_str);
+            e = rv < 0;
+          }
           if (e == 0) {
             e = inds_set(wms->inds, 3, 0);
             if (e == 0) {
@@ -5944,7 +5950,6 @@ int main(int argc, char *argv[])
                   wms->mode = M_MSG_SUSPEND;
                   break;
                 case A_SUSPEND:
-                  wms->ms.card_l[wms->ms.card_i].card_time = wms->ms.timestamp;
                   wms->ms.card_l[wms->ms.card_i].card_state = (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) | STATE_SUSPENDED;
                   data_size = wms->ms.card_a * sizeof(struct Card);
                   index = wms->ms.cat_t[wms->ms.cat_i].cat_cli;
