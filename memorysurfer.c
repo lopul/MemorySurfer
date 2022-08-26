@@ -44,13 +44,13 @@
 #include <fcntl.h> // O_TRUNC / O_EXCL
 #include <errno.h>
 
-static const int32_t MSF_VERSION = 0x010001ad;
+static const int32_t MSF_VERSION = 0x010001ae;
 
 enum Field { F_UNKNOWN, F_FILE_TITLE, F_UPLOAD, F_ARRANGE, F_CAT_NAME, F_STYLE_TXT, F_MOVED_CAT, F_SEARCH_TXT, F_MATCH_CASE, F_IS_HTML, F_IS_UNLOCKED, F_CAT, F_CARD, F_MOV_CARD, F_LVL, F_RANK, F_Q, F_A, F_REVEAL_POS, F_TODO_MAIN, F_TODO_ALT, F_MTIME, F_PASSWORD, F_NEW_PASSWORD, F_TOKEN, F_EVENT, F_PAGE, F_MODE, F_TIMEOUT };
 enum Action { A_END, A_NONE, A_FILE, A_WARN_UPLOAD, A_CREATE, A_NEW, A_OPEN_DLG, A_FILELIST, A_OPEN, A_CHANGE_PASSWD, A_WRITE_PASSWD, A_READ_PASSWD, A_CHECK_PASSWORD, A_AUTH_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_LOAD_CARDLIST_OLD, A_GET_CARD, A_CHECK_RESUME, A_SLASH, A_VOID, A_FILE_EXTENSION, A_GATHER, A_UPLOAD, A_UPLOAD_REPORT, A_EXPORT, A_ASK_REMOVE, A_REMOVE, A_ASK_ERASE, A_ERASE, A_CLOSE, A_START_DECKS, A_DECKS_CREATE, A_SELECT_DEST_DECK, A_SELECT_SEND_CAT, A_SELECT_ARRANGE, A_CAT_NAME, A_STYLE_GO, A_CREATE_CAT, A_RENAME_CAT, A_READ_STYLE, A_STYLE_APPLY, A_ASK_DELETE_DECK, A_DELETE_CAT, A_TOGGLE, A_MOVE_CAT, A_SELECT_EDIT_CAT, A_EDIT, A_UPDATE_QA, A_UPDATE_HTML, A_SYNC, A_INSERT, A_APPEND, A_ASK_DELETE_CARD, A_DELETE_CARD, A_PREVIOUS, A_NEXT, A_SCHEDULE, A_SET, A_CARD_ARRANGE, A_MOVE_CARD, A_SEND_CARD, A_SELECT_LEARN_CAT, A_SELECT_SEARCH_CAT, A_PREFERENCES, A_ABOUT, A_APPLY, A_SEARCH, A_PREVIEW, A_RANK, A_DETERMINE_CARD, A_SHOW, A_REVEAL, A_PROCEED, A_ASK_SUSPEND, A_SUSPEND, A_ASK_RESUME, A_RESUME, A_CHECK_FILE, A_LOGIN, A_HISTOGRAM, A_TABLE, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CARD, A_TEST_CAT_SELECTED, A_TEST_CAT_VALID, A_TEST_CAT, A_TEST_DECK, A_TEST_ARRANGE, A_TEST_NAME };
 enum Page { P_UNDEF = -1, P_START, P_FILE, P_PASSWORD, P_NEW, P_OPEN, P_UPLOAD, P_UPLOAD_REPORT, P_EXPORT, P_CAT_NAME, P_STYLE, P_SELECT_ARRANGE, P_SELECT_DEST_DECK, P_SELECT_DECK, P_EDIT, P_PREVIEW, P_SEARCH, P_PREFERENCES, P_ABOUT, P_LEARN, P_MSG, P_HISTOGRAM, P_TABLE };
 enum Block { B_END, B_START_HTML, B_FORM_URLENCODED, B_FORM_MULTIPART, B_OPEN_DIV, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_HIDDEN_MOV_CARD, B_CLOSE_DIV, B_START, B_FILE, B_PASSWORD, B_NEW, B_OPEN, B_UPLOAD, B_UPLOAD_REPORT, B_EXPORT, B_CAT_NAME, B_STYLE, B_SELECT_ARRANGE, B_SELECT_DEST_DECK, B_SELECT_DECK, B_EDIT, B_PREVIEW, B_SEARCH, B_PREFERENCES, B_ABOUT, B_LEARN, B_MSG, B_HISTOGRAM, B_TABLE };
-enum Mode { M_NONE = -1, M_DEFAULT, M_MSG_CARD, M_MSG_DECK, M_MSG_SUSPEND, M_MSG_RESUME, M_CHANGE_PASSWD, M_ASK, M_RATE, M_EDIT, M_LEARN, M_SEARCH, M_SEND, M_MOVE, M_CARD, M_MOVE_DECK, M_CREATE_DECK, M_START, M_END };
+enum Mode { M_NONE = -1, M_DEFAULT, M_MSG_ESCAPE, M_MSG_CARD, M_MSG_DECK, M_MSG_SUSPEND, M_MSG_RESUME, M_CHANGE_PASSWD, M_ASK, M_RATE, M_EDIT, M_LEARN, M_SEARCH, M_SEND, M_MOVE, M_CARD, M_MOVE_DECK, M_CREATE_DECK, M_START, M_END };
 enum Sequence { S_FILE, S_START_DECKS, S_DECKS_CREATE, S_SELECT_MOVE_ARRANGE, S_CAT_NAME, S_STYLE_GO, S_SELECT_EDIT_CAT, S_SELECT_LEARN_CAT, S_SELECT_SEARCH_CAT, S_PREFERENCES, S_ABOUT, S_APPLY, S_NEW, S_FILELIST, S_WARN_UPLOAD, S_UPLOAD, S_LOGIN, S_ENTER, S_CHANGE, S_START, S_START_SYNC_RANK, S_UPLOAD_REPORT, S_EXPORT, S_ASK_REMOVE, S_REMOVE, S_ASK_ERASE, S_ERASE, S_CLOSE, S_NONE, S_CREATE, S_GO_LOGIN, S_GO_CHANGE, S_RENAME_ENTER, S_RENAME_CAT, S_STYLE_APPLY, S_SELECT_DEST_CAT, S_MOVE_CAT, S_CREATE_CAT, S_ASK_DELETE_DECK, S_DELETE_CAT, S_TOGGLE, S_EDIT, S_EDIT_SYNC_RANK, S_EDIT_SYNC, S_INSERT, S_APPEND, S_ASK_DELETE_CARD, S_DELETE_CARD, S_PREVIOUS, S_NEXT, S_SCHEDULE, S_SET, S_CARD_ARRANGE, S_MOVE_CARD, S_SELECT_SEND_CAT, S_SEND_CARD, S_SEARCH, S_SEARCH_SYNCED, S_SEARCH_SYNC_QA, S_SEARCH_SYNC_RANK, S_PREVIEW_SYNC, S_PREVIEW, S_QUESTION_SYNCED, S_QUESTION_SYNC_QA, S_QUESTION, S_QUESTION_RANK, S_SHOW, S_REVEAL, S_PROCEED_SYNC_QA, S_ASK_SUSPEND, S_SUSPEND, S_ASK_RESUME, S_RESUME, S_HISTOGRAM, S_HISTOGRAM_SYNC_QA, S_TABLE, S_TABLE_SYNC_QA, S_TABLE_REFRESH, S_END };
 enum Stage { T_NULL, T_URLENCODE_EQUALS, T_URLENCODE_AMP, T_BOUNDARY_INIT, T_CONTENT, T_NAME, T_NAME_QUOT, T_VALUE_START, T_VALUE_CRLFMINUSMINUS, T_VALUE_XML, T_BOUNDARY_CHECK, T_EPILOGUE };
 
@@ -1837,10 +1837,11 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
         e = strncmp(mult->post_lp, "OK", 2) != 0;
         if (e == 0) {
           if (wms->from_page == P_ABOUT) {
-            if (wms->file_title_str != NULL)
+            if (wms->file_title_str != NULL) {
               wms->seq = S_START;
-            else
+            } else {
               wms->seq = S_NONE;
+            }
           } else if (wms->from_page == P_UPLOAD_REPORT) {
             wms->seq = S_START;
           } else {
@@ -1848,13 +1849,18 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
             if (e == 0) {
               if (wms->saved_mode == M_NONE) {
                 e = wms->todo_main == -1;
-                if (e == 0)
+                if (e == 0) {
                   wms->seq = wms->todo_main;
-              } else if (wms->saved_mode == M_MSG_CARD) {
+                }
+              } else if (wms->saved_mode == M_MSG_ESCAPE) {
                 wms->seq = S_NONE;
+              } else if (wms->saved_mode == M_MSG_CARD) {
+                wms->seq = S_EDIT;
               } else {
                 e = wms->saved_mode != M_MSG_DECK;
-                if (e == 0) wms->seq = S_START_DECKS;
+                if (e == 0) {
+                  wms->seq = S_START_DECKS;
+                }
               }
             }
           }
@@ -4779,7 +4785,8 @@ int main(int argc, char *argv[])
                   if (e == 0) {
                     e = mtime_test == 0;
                     if (e != 0) {
-                      wms->static_header = "Error: Invalid mtime value";
+                      wms->static_header = "Invalid mtime value";
+                      wms->static_msg = "The file has been modified elsewhere";
                       wms->static_btn_main = "OK";
                       wms->todo_main = S_START;
                       wms->page = P_MSG;
@@ -4793,7 +4800,7 @@ int main(int argc, char *argv[])
                     wms->static_msg = "Invalid card";
                     wms->static_btn_main = "OK";
                     wms->page = P_MSG;
-                    wms->mode = M_MSG_CARD;
+                    wms->mode = M_MSG_ESCAPE;
                   }
                   break;
                 case A_TEST_CAT_SELECTED:
@@ -4856,9 +4863,15 @@ int main(int argc, char *argv[])
                       }
                     }
                   } else {
-                    if (wms->from_page == P_SELECT_DECK && wms->seq == S_ASK_DELETE_DECK) {
+                    if (wms->from_page == P_SELECT_DECK) {
                       wms->static_header = "No deck selected";
-                      wms->static_msg = "Please select a deck to delete";
+                      if (wms->seq == S_ASK_DELETE_DECK) {
+                        wms->static_msg = "Please select a deck to delete";
+                      } else if (wms->seq == S_QUESTION) {
+                        wms->static_msg = "Please select a deck to learn";
+                      } else {
+                        e = 0x0a681989; // UNHNDL
+                      }
                       wms->static_btn_main = "OK";
                       wms->page = P_MSG;
                       wms->mode = M_MSG_DECK;
@@ -4866,15 +4879,17 @@ int main(int argc, char *argv[])
                   }
                   break;
                 case A_TEST_ARRANGE:
-                  if (wms->ms.arrange >= 0)
+                  if (wms->ms.arrange >= 0) {
                     e = wms->ms.arrange > 2;
-                  else
+                  } else {
                     e = wms->ms.arrange != -1 || wms->ms.n_first != -1;
-                  if (e) {
-                    wms->static_header = "Please select how to arrange the deck";
+                  }
+                  if (e != 0) {
+                    wms->static_header = "No arrange";
+                    wms->static_msg = "Please select how to arrange the deck";
                     wms->static_btn_main = "OK";
-                    wms->todo_main = S_START_DECKS;
                     wms->page = P_MSG;
+                    wms->mode = M_MSG_DECK;
                   }
                   break;
                 case A_TEST_NAME:
@@ -5817,10 +5832,11 @@ int main(int argc, char *argv[])
                       }
                     }
                   } else {
-                    wms->static_header = "Error: Src == Dest";
+                    wms->static_header = "Same deck";
+                    wms->static_msg = "The destination deck must be different from the current deck of the card";
                     wms->static_btn_main = "OK";
-                    wms->todo_main = S_EDIT;
                     wms->page = P_MSG;
+                    wms->mode = M_MSG_CARD;
                   }
                   break;
                 case A_SELECT_LEARN_CAT:
