@@ -44,7 +44,7 @@
 #include <fcntl.h> // O_TRUNC / O_EXCL
 #include <errno.h>
 
-static const int32_t MSF_VERSION = 0x010001af;
+static const int32_t MSF_VERSION = 0x010001b0;
 
 enum Field { F_UNKNOWN, F_FILE_TITLE, F_UPLOAD, F_ARRANGE, F_CAT_NAME, F_STYLE_TXT, F_MOVED_CAT, F_SEARCH_TXT, F_MATCH_CASE, F_IS_HTML, F_IS_UNLOCKED, F_CAT, F_CARD, F_MOV_CARD, F_LVL, F_RANK, F_Q, F_A, F_REVEAL_POS, F_TODO_MAIN, F_TODO_ALT, F_MTIME, F_PASSWORD, F_NEW_PASSWORD, F_TOKEN, F_EVENT, F_PAGE, F_MODE, F_TIMEOUT };
 enum Action { A_END, A_NONE, A_FILE, A_WARN_UPLOAD, A_CREATE, A_NEW, A_OPEN_DLG, A_FILELIST, A_OPEN, A_CHANGE_PASSWD, A_WRITE_PASSWD, A_READ_PASSWD, A_CHECK_PASSWORD, A_AUTH_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_LOAD_CARDLIST_OLD, A_GET_CARD, A_CHECK_RESUME, A_SLASH, A_VOID, A_FILE_EXTENSION, A_GATHER, A_UPLOAD, A_UPLOAD_REPORT, A_EXPORT, A_ASK_REMOVE, A_REMOVE, A_ASK_ERASE, A_ERASE, A_CLOSE, A_START_DECKS, A_DECKS_CREATE, A_SELECT_DEST_DECK, A_SELECT_SEND_CAT, A_SELECT_ARRANGE, A_CAT_NAME, A_STYLE_GO, A_CREATE_CAT, A_RENAME_CAT, A_READ_STYLE, A_STYLE_APPLY, A_ASK_DELETE_DECK, A_DELETE_CAT, A_TOGGLE, A_MOVE_CAT, A_SELECT_EDIT_CAT, A_EDIT, A_UPDATE_QA, A_UPDATE_HTML, A_SYNC, A_INSERT, A_APPEND, A_ASK_DELETE_CARD, A_DELETE_CARD, A_PREVIOUS, A_NEXT, A_SCHEDULE, A_SET, A_CARD_ARRANGE, A_MOVE_CARD, A_SEND_CARD, A_SELECT_LEARN_CAT, A_SELECT_SEARCH_CAT, A_PREFERENCES, A_ABOUT, A_APPLY, A_SEARCH, A_PREVIEW, A_RANK, A_DETERMINE_CARD, A_SHOW, A_REVEAL, A_PROCEED, A_ASK_SUSPEND, A_SUSPEND, A_ASK_RESUME, A_RESUME, A_CHECK_FILE, A_LOGIN, A_HISTOGRAM, A_TABLE, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CARD, A_TEST_CAT_SELECTED, A_TEST_CAT_VALID, A_TEST_CAT, A_TEST_DECK, A_TEST_ARRANGE, A_TEST_NAME };
@@ -96,9 +96,9 @@ static enum Action action_seq[S_END+1][17] = {
   { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_DECK, A_LOAD_CARDLIST, A_ASK_DELETE_DECK, A_END }, // S_ASK_DELETE_DECK
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT, A_DELETE_CAT, A_END }, // S_DELETE_CAT
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_TEST_CAT, A_TOGGLE, A_END }, // S_TOGGLE
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST_OLD, A_EDIT, A_END }, // S_EDIT
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST_OLD, A_RANK, A_SYNC, A_EDIT, A_END }, // S_EDIT_SYNC_RANK
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST_OLD, A_TEST_CARD, A_UPDATE_QA, A_EDIT, A_SYNC, A_END }, // S_EDIT_SYNC
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST_OLD, A_EDIT, A_GET_CARD, A_END }, // S_EDIT
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST_OLD, A_RANK, A_SYNC, A_EDIT, A_GET_CARD, A_END }, // S_EDIT_SYNC_RANK
+  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST_OLD, A_TEST_CARD, A_UPDATE_QA, A_EDIT, A_GET_CARD, A_SYNC, A_END }, // S_EDIT_SYNC
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST_OLD, A_UPDATE_QA, A_UPDATE_HTML, A_INSERT, A_SYNC, A_END }, // S_INSERT
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST_OLD, A_UPDATE_QA, A_UPDATE_HTML, A_APPEND, A_SYNC, A_END }, // S_APPEND
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST_OLD, A_TEST_CARD, A_UPDATE_QA, A_UPDATE_HTML, A_SYNC, A_ASK_DELETE_CARD, A_END }, // S_ASK_DELETE_CARD
@@ -2463,14 +2463,16 @@ struct XmlGenerator {
   size_t w_n;
 };
 
-static void sa_init(struct StringArray *sa) {
+static void sa_init(struct StringArray *sa)
+{
   sa->sa_c = 0;
   sa->sa_d = NULL;
   sa->sa_n = 0;
   assert(sizeof(char) == 1);
 }
 
-static void sa_free(struct StringArray *sa) {
+static void sa_free(struct StringArray *sa)
+{
   sa->sa_c = 0;
   free(sa->sa_d);
   sa->sa_d = NULL;
@@ -4109,11 +4111,12 @@ static int ms_create(struct MemorySurfer *ms, int flags_mask) {
 static int ms_get_card_sa(struct MemorySurfer *ms)
 {
   int e;
-  assert(ms->card_l != NULL);
-  e = 0;
-  if (ms->card_i != -1) {
-    assert(ms->card_i >= 0 && ms->card_i < ms->card_a);
-    e = sa_load(&ms->card_sa, &ms->imf, ms->card_l[ms->card_i].card_qai);
+  e = ms->card_l != NULL ? 0 : 0x0005a29f; // EPTR
+  if (e == 0 && ms->card_i != -1) {
+    e = ms->card_i >= 0 && ms->card_i < ms->card_a ? 0 : 0x49ca6cb7; // ERANGEC
+    if (e == 0) {
+      e = sa_load(&ms->card_sa, &ms->imf, ms->card_l[ms->card_i].card_qai);
+    }
   }
   return e;
 }
@@ -4424,8 +4427,8 @@ int main(int argc, char *argv[])
   int cat_i;
   int i;
   int j;
-  int qa_err;
-  char *qa_str;
+  char *q_str;
+  char *a_str;
   int search_card_i;
   char *lwr_search_txt; // lower case
   struct stat file_stat;
@@ -4854,7 +4857,7 @@ int main(int argc, char *argv[])
                 case A_TEST_DECK:
                   e = wms->ms.cat_i < 0 ? 0x09824be2 : 0; // NODECK
                   if (e == 0) {
-                    e = wms->ms.cat_i >= wms->ms.cat_a || wms->ms.cat_t[wms->ms.cat_i].cat_used == 0 ? 0x49ae6cc2 : 0; // INVADEC
+                    e = wms->ms.cat_i >= wms->ms.cat_a || wms->ms.cat_t[wms->ms.cat_i].cat_used == 0 ? 0x09823221 : 0; // INVDCK
                     if (e != 0) {
                       if (wms->from_page == P_SELECT_DECK) {
                         wms->static_header = "Invalid deck";
@@ -5508,26 +5511,22 @@ int main(int argc, char *argv[])
                   wms->mode = M_EDIT;
                   break;
                 case A_EDIT:
-                  assert (wms->ms.card_i >= -1 && wms->ms.card_a >= 0);
-                  if (wms->ms.card_i < 0 && wms->ms.card_a > 0)
-                  {
-                    wms->ms.card_i = 0;
+                  e = wms->ms.card_i >= -1 && wms->ms.card_a >= 0 ? 0 : 0x1b9b4a25; // ERANGEA
+                  if (e == 0) {
+                    if (wms->ms.card_i < 0 && wms->ms.card_a > 0) {
+                      wms->ms.card_i = 0;
+                    }
+                    e = wms->ms.card_i >= wms->ms.card_a ? 0x32b2db6e : 0; // ERANGEB
+                    if (e == 0) {
+                      wms->page = P_EDIT;
+                    }
                   }
-                  if (wms->ms.card_i >= wms->ms.card_a)
-                  {
-                    wms->ms.card_i = wms->ms.card_a - 1;
-                  }
-                  if (wms->ms.card_i >= 0)
-                  {
-                    e = ms_get_card_sa(&wms->ms);
-                  }
-                  wms->page = P_EDIT;
                   break;
                 case A_UPDATE_QA:
                   if ((wms->from_page == P_EDIT) || (wms->ms.is_unlocked > 0 && (wms->from_page == P_PREVIEW || (wms->from_page == P_LEARN && wms->saved_mode == M_RATE)))) {
-                    qa_err = sa_get(&wms->qa_sa, 0) == NULL;
-                    qa_err |= sa_get(&wms->qa_sa, 1) == NULL;
-                    if (qa_err == 0) {
+                    q_str = sa_get(&wms->qa_sa, 0);
+                    a_str = sa_get(&wms->qa_sa, 1);
+                    if (q_str != NULL && a_str != NULL) {
                       e = ms_get_card_sa(&wms->ms);
                       if (e == 0) {
                         e = ms_modify_qa(&wms->qa_sa, &wms->ms, &need_sync);
@@ -5901,19 +5900,21 @@ int main(int argc, char *argv[])
                           assert(wms->ms.card_i >= 0 && wms->ms.card_i < wms->ms.card_a);
                           e = ms_get_card_sa(&wms->ms);
                           if (e == 0) {
-                            qa_str = sa_get(&wms->ms.card_sa, 0);
-                            e = qa_str == NULL;
+                            q_str = sa_get(&wms->ms.card_sa, 0);
+                            e = q_str == NULL;
                             if (e == 0) {
-                              if (wms->ms.match_case < 0)
-                                str_tolower(qa_str);
-                              wms->found_str = strstr(qa_str, lwr_search_txt);
+                              if (wms->ms.match_case < 0) {
+                                str_tolower(q_str);
+                              }
+                              wms->found_str = strstr(q_str, lwr_search_txt);
                               if (wms->found_str == NULL) {
-                                qa_str = sa_get(&wms->ms.card_sa, 1);
-                                e = qa_str == NULL;
+                                a_str = sa_get(&wms->ms.card_sa, 1);
+                                e = a_str == NULL;
                                 if (e == 0) {
-                                  if (wms->ms.match_case < 0)
-                                    str_tolower(qa_str);
-                                  wms->found_str = strstr(qa_str, lwr_search_txt);
+                                  if (wms->ms.match_case < 0) {
+                                    str_tolower(a_str);
+                                  }
+                                  wms->found_str = strstr(a_str, lwr_search_txt);
                                 }
                               }
                             }
@@ -5970,19 +5971,19 @@ int main(int argc, char *argv[])
                 case A_REVEAL:
                   e = ms_get_card_sa(&wms->ms);
                   if (e == 0) {
-                    qa_str = sa_get(&wms->ms.card_sa, 1);
-                    e = qa_str == NULL;
+                    a_str = sa_get(&wms->ms.card_sa, 1);
+                    e = a_str == NULL;
                     if (e == 0) {
-                      len = strlen(qa_str);
+                      len = strlen(a_str);
                       e = len > INT32_MAX;
                       if (e == 0) {
                         assert(wms->saved_reveal_pos < 0 || wms->saved_reveal_pos <= len);
                         i = wms->saved_reveal_pos < 0 ? 0 : wms->saved_reveal_pos;
-                        e = utf8_strcspn(qa_str + i, " ,·.-‧_", &n);
+                        e = utf8_strcspn(a_str + i, " ,·.-‧_", &n);
                         if (e == 0) {
                           wms->reveal_pos = i + n;
                           if (wms->reveal_pos < len) {
-                            len = utf8_char_len(qa_str + wms->reveal_pos);
+                            len = utf8_char_len(a_str + wms->reveal_pos);
                             e = len == 0;
                             if (e == 0) {
                               wms->reveal_pos += len;
@@ -5990,7 +5991,7 @@ int main(int argc, char *argv[])
                               str = malloc(size);
                               e = str == NULL;
                               if (e == 0) {
-                                strncpy(str, qa_str, wms->reveal_pos);
+                                strncpy(str, a_str, wms->reveal_pos);
                                 str[wms->reveal_pos] = '\0';
                                 strcat(str, "--more--");
                                 e = sa_set(&wms->ms.card_sa, 1, str);
