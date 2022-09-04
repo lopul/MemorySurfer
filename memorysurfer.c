@@ -44,10 +44,10 @@
 #include <fcntl.h> // O_TRUNC / O_EXCL
 #include <errno.h>
 
-static const int32_t MSF_VERSION = 0x010001b2;
+static const int32_t MSF_VERSION = 0x010001b3;
 
 enum Field { F_UNKNOWN, F_FILE_TITLE, F_UPLOAD, F_ARRANGE, F_CAT_NAME, F_STYLE_TXT, F_MOVED_CAT, F_SEARCH_TXT, F_MATCH_CASE, F_IS_HTML, F_IS_UNLOCKED, F_CAT, F_CARD, F_MOV_CARD, F_LVL, F_RANK, F_Q, F_A, F_REVEAL_POS, F_TODO_MAIN, F_TODO_ALT, F_MTIME, F_PASSWORD, F_NEW_PASSWORD, F_TOKEN, F_EVENT, F_PAGE, F_MODE, F_TIMEOUT };
-enum Action { A_END, A_NONE, A_FILE, A_WARN_UPLOAD, A_CREATE, A_NEW, A_OPEN_DLG, A_FILELIST, A_OPEN, A_CHANGE_PASSWD, A_WRITE_PASSWD, A_READ_PASSWD, A_CHECK_PASSWORD, A_AUTH_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_LOAD_CARDLIST_OLD, A_GET_CARD, A_CHECK_RESUME, A_SLASH, A_VOID, A_FILE_EXTENSION, A_GATHER, A_UPLOAD, A_UPLOAD_REPORT, A_EXPORT, A_ASK_REMOVE, A_REMOVE, A_ASK_ERASE, A_ERASE, A_CLOSE, A_START_DECKS, A_DECKS_CREATE, A_SELECT_DEST_DECK, A_SELECT_SEND_CAT, A_SELECT_ARRANGE, A_CAT_NAME, A_STYLE_GO, A_CREATE_CAT, A_RENAME_CAT, A_READ_STYLE, A_STYLE_APPLY, A_ASK_DELETE_DECK, A_DELETE_CAT, A_TOGGLE, A_MOVE_CAT, A_SELECT_EDIT_CAT, A_EDIT, A_EDIT_OLD, A_UPDATE_QA, A_UPDATE_QA_OLD, A_UPDATE_HTML, A_SYNC, A_INSERT, A_APPEND, A_ASK_DELETE_CARD, A_DELETE_CARD, A_PREVIOUS, A_NEXT, A_SCHEDULE, A_SET, A_CARD_ARRANGE, A_MOVE_CARD, A_SEND_CARD, A_SELECT_LEARN_CAT, A_SELECT_SEARCH_CAT, A_PREFERENCES, A_ABOUT, A_APPLY, A_SEARCH, A_PREVIEW, A_RANK, A_DETERMINE_CARD, A_SHOW, A_REVEAL, A_PROCEED, A_ASK_SUSPEND, A_SUSPEND, A_ASK_RESUME, A_RESUME, A_CHECK_FILE, A_LOGIN, A_HISTOGRAM, A_TABLE, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CARD, A_TEST_CAT_SELECTED, A_TEST_CAT_VALID, A_TEST_CAT, A_TEST_DECK, A_TEST_ARRANGE, A_TEST_NAME };
+enum Action { A_END, A_NONE, A_FILE, A_WARN_UPLOAD, A_CREATE, A_NEW, A_OPEN_DLG, A_FILELIST, A_OPEN, A_CHANGE_PASSWD, A_WRITE_PASSWD, A_READ_PASSWD, A_CHECK_PASSWORD, A_AUTH_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_LOAD_CARDLIST_OLD, A_GET_CARD, A_CHECK_RESUME, A_SLASH, A_VOID, A_FILE_EXTENSION, A_GATHER, A_UPLOAD, A_UPLOAD_REPORT, A_EXPORT, A_ASK_REMOVE, A_REMOVE, A_ASK_ERASE, A_ERASE, A_CLOSE, A_START_DECKS, A_DECKS_CREATE, A_SELECT_DEST_DECK, A_SELECT_SEND_CAT, A_SELECT_ARRANGE, A_CAT_NAME, A_STYLE_GO, A_CREATE_CAT, A_RENAME_CAT, A_READ_STYLE, A_STYLE_APPLY, A_ASK_DELETE_DECK, A_DELETE_CAT, A_TOGGLE, A_MOVE_CAT, A_SELECT_EDIT_CAT, A_EDIT, A_UPDATE_QA, A_UPDATE_QA_OLD, A_UPDATE_HTML, A_SYNC, A_INSERT, A_APPEND, A_ASK_DELETE_CARD, A_DELETE_CARD, A_PREVIOUS, A_NEXT, A_SCHEDULE, A_SET, A_CARD_ARRANGE, A_MOVE_CARD, A_SEND_CARD, A_SELECT_LEARN_CAT, A_SELECT_SEARCH_CAT, A_PREFERENCES, A_ABOUT, A_APPLY, A_SEARCH, A_PREVIEW, A_RANK, A_DETERMINE_CARD, A_SHOW, A_REVEAL, A_PROCEED, A_ASK_SUSPEND, A_SUSPEND, A_ASK_RESUME, A_RESUME, A_CHECK_FILE, A_LOGIN, A_HISTOGRAM, A_TABLE, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CARD, A_TEST_CAT_SELECTED, A_TEST_CAT_VALID, A_TEST_CAT, A_TEST_DECK, A_TEST_ARRANGE, A_TEST_NAME };
 enum Page { P_UNDEF = -1, P_START, P_FILE, P_PASSWORD, P_NEW, P_OPEN, P_UPLOAD, P_UPLOAD_REPORT, P_EXPORT, P_CAT_NAME, P_STYLE, P_SELECT_ARRANGE, P_SELECT_DEST_DECK, P_SELECT_DECK, P_EDIT, P_PREVIEW, P_SEARCH, P_PREFERENCES, P_ABOUT, P_LEARN, P_MSG, P_HISTOGRAM, P_TABLE };
 enum Block { B_END, B_START_HTML, B_FORM_URLENCODED, B_FORM_MULTIPART, B_OPEN_DIV, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_HIDDEN_MOV_CARD, B_CLOSE_DIV, B_START, B_FILE, B_PASSWORD, B_NEW, B_OPEN, B_UPLOAD, B_UPLOAD_REPORT, B_EXPORT, B_CAT_NAME, B_STYLE, B_SELECT_ARRANGE, B_SELECT_DEST_DECK, B_SELECT_DECK, B_EDIT, B_PREVIEW, B_SEARCH, B_PREFERENCES, B_ABOUT, B_LEARN, B_MSG, B_HISTOGRAM, B_TABLE };
 enum Mode { M_NONE = -1, M_DEFAULT, M_MSG_ESCAPE, M_MSG_CARD, M_MSG_DECK, M_MSG_SELECT, M_MSG_SUSPEND, M_MSG_RESUME, M_CHANGE_PASSWD, M_ASK, M_RATE, M_EDIT, M_LEARN, M_SEARCH, M_SEND, M_MOVE, M_CARD, M_MOVE_DECK, M_CREATE_DECK, M_START, M_END };
@@ -96,8 +96,8 @@ static enum Action action_seq[S_END+1][17] = {
   { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_DECK, A_LOAD_CARDLIST, A_ASK_DELETE_DECK, A_END }, // S_ASK_DELETE_DECK
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT, A_DELETE_CAT, A_END }, // S_DELETE_CAT
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_TEST_CAT, A_TOGGLE, A_END }, // S_TOGGLE
-  { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST_OLD, A_EDIT_OLD, A_GET_CARD, A_END }, // S_EDIT
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST_OLD, A_RANK, A_SYNC, A_EDIT_OLD, A_GET_CARD, A_END }, // S_EDIT_SYNC_RANK
+  { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST_OLD, A_TEST_CARD, A_GET_CARD, A_EDIT, A_END }, // S_EDIT
+  { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST_OLD, A_RANK, A_SYNC, A_TEST_CARD, A_GET_CARD, A_EDIT, A_END }, // S_EDIT_SYNC_RANK
   { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST_OLD, A_TEST_CARD, A_GET_CARD, A_UPDATE_QA, A_EDIT, A_SYNC, A_END }, // S_EDIT_SYNC
   { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST_OLD, A_TEST_CARD, A_GET_CARD, A_UPDATE_QA, A_UPDATE_HTML, A_INSERT, A_SYNC, A_END }, // S_INSERT
   { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST_OLD, A_TEST_CARD, A_GET_CARD, A_UPDATE_QA, A_UPDATE_HTML, A_APPEND, A_SYNC, A_END }, // S_APPEND
@@ -4800,6 +4800,9 @@ int main(int argc, char *argv[])
                   e = wms->ms.card_a < 0 ? 0x60e1fe00 : 0; // ERANGED
                   if (e == 0) {
                     if (wms->ms.card_a > 0) {
+                      if (wms->seq == S_EDIT && wms->ms.card_i == -1) {
+                        wms->ms.card_i = 0;
+                      }
                       e = wms->ms.card_i < 0 || wms->ms.card_i >= wms->ms.card_a || wms->ms.card_l == NULL ? 0x2169ce96 : 0; // EINVALA
                       if (e != 0) {
                         wms->static_header = "Warning";
@@ -4810,12 +4813,12 @@ int main(int argc, char *argv[])
                       }
                     } else {
                       assert(wms->ms.card_a == 0);
-                      e = wms->seq != S_APPEND ? 0x38815fdf : 0; // EINVALB
+                      e = wms->seq != S_APPEND && wms->seq != S_EDIT ? 0x38815fdf : 0; // EINVALB
                       if (e == 0) {
                         e = wms->ms.card_i == -1 ? 0 : 0x77f98f49; // ERANGEE
                       } else {
                         wms->static_header = "Empty deck";
-                        wms->static_msg = "No card to insert the new card given.";
+                        wms->static_msg = "No card to insert the new card before was given.";
                         wms->static_btn_main = "OK";
                         wms->page = P_MSG;
                         wms->mode = M_MSG_ESCAPE;
@@ -5538,18 +5541,6 @@ int main(int argc, char *argv[])
                     wms->page = P_EDIT;
                   }
                   break;
-                case A_EDIT_OLD:
-                  e = wms->ms.card_i >= -1 && wms->ms.card_a >= 0 ? 0 : 0x1b9b4a25; // ERANGEA
-                  if (e == 0) {
-                    if (wms->ms.card_i < 0 && wms->ms.card_a > 0) {
-                      wms->ms.card_i = 0;
-                    }
-                    e = wms->ms.card_i >= wms->ms.card_a ? 0x32b2db6e : 0; // ERANGEB
-                    if (e == 0) {
-                      wms->page = P_EDIT;
-                    }
-                  }
-                  break;
                 case A_UPDATE_QA:
                   if ((wms->from_page == P_EDIT) || (wms->ms.is_unlocked > 0 && (wms->from_page == P_PREVIEW || (wms->from_page == P_LEARN && wms->saved_mode == M_RATE)))) {
                     q_str = sa_get(&wms->qa_sa, 0);
@@ -5577,7 +5568,7 @@ int main(int argc, char *argv[])
                     data_size = wms->ms.card_a * sizeof(struct Card);
                     index = wms->ms.cat_t[wms->ms.cat_i].cat_cli;
                     e = imf_put(&wms->ms.imf, index, wms->ms.card_l, data_size);
-                    need_sync = e == 0;
+                    need_sync = 1;
                   }
                   break;
                 case A_SYNC:
