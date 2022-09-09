@@ -44,20 +44,20 @@
 #include <fcntl.h> // O_TRUNC / O_EXCL
 #include <errno.h>
 
-static const int32_t MSF_VERSION = 0x010001b4;
+static const int32_t MSF_VERSION = 0x010001b5;
 
 enum Field { F_UNKNOWN, F_FILE_TITLE, F_UPLOAD, F_ARRANGE, F_CAT_NAME, F_STYLE_TXT, F_MOVED_CAT, F_SEARCH_TXT, F_MATCH_CASE, F_IS_HTML, F_IS_UNLOCKED, F_CAT, F_CARD, F_MOV_CARD, F_LVL, F_RANK, F_Q, F_A, F_REVEAL_POS, F_TODO_MAIN, F_TODO_ALT, F_MTIME, F_PASSWORD, F_NEW_PASSWORD, F_TOKEN, F_EVENT, F_PAGE, F_MODE, F_TIMEOUT };
-enum Action { A_END, A_NONE, A_FILE, A_WARN_UPLOAD, A_CREATE, A_NEW, A_OPEN_DLG, A_FILELIST, A_OPEN, A_CHANGE_PASSWD, A_WRITE_PASSWD, A_READ_PASSWD, A_CHECK_PASSWORD, A_AUTH_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_LOAD_CARDLIST_OLD, A_GET_CARD, A_CHECK_RESUME, A_SLASH, A_VOID, A_FILE_EXTENSION, A_GATHER, A_UPLOAD, A_UPLOAD_REPORT, A_EXPORT, A_ASK_REMOVE, A_REMOVE, A_ASK_ERASE, A_ERASE, A_CLOSE, A_START_DECKS, A_DECKS_CREATE, A_SELECT_DEST_DECK, A_SELECT_SEND_CAT, A_SELECT_ARRANGE, A_CAT_NAME, A_STYLE_GO, A_CREATE_CAT, A_RENAME_CAT, A_READ_STYLE, A_STYLE_APPLY, A_ASK_DELETE_DECK, A_DELETE_CAT, A_TOGGLE, A_MOVE_CAT, A_SELECT_EDIT_CAT, A_EDIT, A_UPDATE_QA, A_UPDATE_QA_OLD, A_UPDATE_HTML, A_SYNC, A_INSERT, A_APPEND, A_ASK_DELETE_CARD, A_DELETE_CARD, A_PREVIOUS, A_NEXT, A_SCHEDULE, A_SET, A_CARD_ARRANGE, A_MOVE_CARD, A_SEND_CARD, A_SELECT_LEARN_CAT, A_SELECT_SEARCH_CAT, A_PREFERENCES, A_ABOUT, A_APPLY, A_SEARCH, A_PREVIEW, A_RANK, A_DETERMINE_CARD, A_SHOW, A_REVEAL, A_PROCEED, A_ASK_SUSPEND, A_SUSPEND, A_ASK_RESUME, A_RESUME, A_CHECK_FILE, A_LOGIN, A_HISTOGRAM, A_TABLE, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CARD, A_TEST_CAT_SELECTED, A_TEST_CAT_VALID, A_TEST_CAT, A_TEST_DECK, A_TEST_ARRANGE, A_TEST_NAME };
+enum Action { A_END, A_NONE, A_FILE, A_WARN_UPLOAD, A_CREATE, A_NEW, A_OPEN_DLG, A_FILELIST, A_OPEN, A_CHANGE_PASSWD, A_WRITE_PASSWD, A_READ_PASSWD, A_CHECK_PASSWORD, A_AUTH_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_LOAD_CARDLIST_OLD, A_GET_CARD, A_CHECK_RESUME, A_SLASH, A_VOID, A_FILE_EXTENSION, A_GATHER, A_UPLOAD, A_UPLOAD_REPORT, A_EXPORT, A_ASK_REMOVE, A_REMOVE, A_ASK_ERASE, A_ERASE, A_CLOSE, A_START_DECKS, A_DECKS_CREATE, A_SELECT_DEST_DECK, A_SELECT_SEND_CAT, A_SELECT_ARRANGE, A_CAT_NAME, A_STYLE_GO, A_CREATE_DECK, A_RENAME_CAT, A_READ_STYLE, A_STYLE_APPLY, A_ASK_DELETE_DECK, A_DELETE_CAT, A_TOGGLE, A_MOVE_CAT, A_SELECT_EDIT_CAT, A_EDIT, A_UPDATE_QA, A_UPDATE_QA_OLD, A_UPDATE_HTML, A_SYNC, A_INSERT, A_APPEND, A_ASK_DELETE_CARD, A_DELETE_CARD, A_PREVIOUS, A_NEXT, A_SCHEDULE, A_SET, A_CARD_ARRANGE, A_MOVE_CARD, A_SEND_CARD, A_SELECT_LEARN_CAT, A_SELECT_SEARCH_CAT, A_PREFERENCES, A_ABOUT, A_APPLY, A_SEARCH, A_PREVIEW, A_RANK, A_DETERMINE_CARD, A_SHOW, A_REVEAL, A_PROCEED, A_ASK_SUSPEND, A_SUSPEND, A_ASK_RESUME, A_RESUME, A_CHECK_FILE, A_LOGIN, A_HISTOGRAM, A_TABLE, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CARD, A_TEST_CAT_SELECTED, A_TEST_CAT_VALID, A_TEST_CAT, A_TEST_DECK, A_TEST_ARRANGE, A_TEST_NAME };
 enum Page { P_UNDEF = -1, P_START, P_FILE, P_PASSWORD, P_NEW, P_OPEN, P_UPLOAD, P_UPLOAD_REPORT, P_EXPORT, P_CAT_NAME, P_STYLE, P_SELECT_ARRANGE, P_SELECT_DEST_DECK, P_SELECT_DECK, P_EDIT, P_PREVIEW, P_SEARCH, P_PREFERENCES, P_ABOUT, P_LEARN, P_MSG, P_HISTOGRAM, P_TABLE };
 enum Block { B_END, B_START_HTML, B_FORM_URLENCODED, B_FORM_MULTIPART, B_OPEN_DIV, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_HIDDEN_MOV_CARD, B_CLOSE_DIV, B_START, B_FILE, B_PASSWORD, B_NEW, B_OPEN, B_UPLOAD, B_UPLOAD_REPORT, B_EXPORT, B_CAT_NAME, B_STYLE, B_SELECT_ARRANGE, B_SELECT_DEST_DECK, B_SELECT_DECK, B_EDIT, B_PREVIEW, B_SEARCH, B_PREFERENCES, B_ABOUT, B_LEARN, B_MSG, B_HISTOGRAM, B_TABLE };
 enum Mode { M_NONE = -1, M_DEFAULT, M_MSG_START, M_MSG_CARD, M_MSG_DECK, M_MSG_SELECT_EDIT, M_MSG_SELECT, M_MSG_SUSPEND, M_MSG_RESUME, M_CHANGE_PASSWD, M_ASK, M_RATE, M_EDIT, M_LEARN, M_SEARCH, M_SEND, M_MOVE, M_CARD, M_MOVE_DECK, M_CREATE_DECK, M_START, M_END };
-enum Sequence { S_FILE, S_START_DECKS, S_DECKS_CREATE, S_SELECT_MOVE_ARRANGE, S_CAT_NAME, S_STYLE_GO, S_SELECT_EDIT_CAT, S_SELECT_LEARN_CAT, S_SELECT_SEARCH_CAT, S_PREFERENCES, S_ABOUT, S_APPLY, S_NEW, S_FILELIST, S_WARN_UPLOAD, S_UPLOAD, S_LOGIN, S_ENTER, S_CHANGE, S_START, S_START_SYNC_RANK, S_UPLOAD_REPORT, S_EXPORT, S_ASK_REMOVE, S_REMOVE, S_ASK_ERASE, S_ERASE, S_CLOSE, S_NONE, S_CREATE, S_GO_LOGIN, S_GO_CHANGE, S_RENAME_ENTER, S_RENAME_CAT, S_STYLE_APPLY, S_SELECT_DEST_CAT, S_MOVE_CAT, S_CREATE_CAT, S_ASK_DELETE_DECK, S_DELETE_CAT, S_TOGGLE, S_EDIT, S_EDIT_SYNC_RANK, S_EDIT_SYNC, S_INSERT, S_APPEND, S_ASK_DELETE_CARD, S_DELETE_CARD, S_PREVIOUS, S_NEXT, S_SCHEDULE, S_SET, S_CARD_ARRANGE, S_MOVE_CARD, S_SELECT_SEND_CAT, S_SEND_CARD, S_SEARCH, S_SEARCH_SYNCED, S_SEARCH_SYNC_QA, S_SEARCH_SYNC_RANK, S_PREVIEW_SYNC, S_PREVIEW, S_QUESTION_SYNCED, S_QUESTION_SYNC_QA, S_QUESTION, S_QUESTION_RANK, S_SHOW, S_REVEAL, S_PROCEED_SYNC_QA, S_ASK_SUSPEND, S_SUSPEND, S_ASK_RESUME, S_RESUME, S_HISTOGRAM, S_HISTOGRAM_SYNC_QA, S_TABLE, S_TABLE_SYNC_QA, S_TABLE_REFRESH, S_END };
+enum Sequence { S_FILE, S_START_DECKS, S_DECKS_CREATE, S_SELECT_MOVE_ARRANGE, S_CAT_NAME, S_STYLE_GO, S_SELECT_EDIT_CAT, S_SELECT_LEARN_CAT, S_SELECT_SEARCH_CAT, S_PREFERENCES, S_ABOUT, S_APPLY, S_NEW, S_FILELIST, S_WARN_UPLOAD, S_UPLOAD, S_LOGIN, S_ENTER, S_CHANGE, S_START, S_START_SYNC_RANK, S_UPLOAD_REPORT, S_EXPORT, S_ASK_REMOVE, S_REMOVE, S_ASK_ERASE, S_ERASE, S_CLOSE, S_NONE, S_CREATE, S_GO_LOGIN, S_GO_CHANGE, S_RENAME_ENTER, S_RENAME_CAT, S_STYLE_APPLY, S_SELECT_DEST_CAT, S_MOVE_CAT, S_CREATE_DECK, S_ASK_DELETE_DECK, S_DELETE_CAT, S_TOGGLE, S_EDIT, S_EDIT_SYNC_RANK, S_EDIT_SYNC, S_INSERT, S_APPEND, S_ASK_DELETE_CARD, S_DELETE_CARD, S_PREVIOUS, S_NEXT, S_SCHEDULE, S_SET, S_CARD_ARRANGE, S_MOVE_CARD, S_SELECT_SEND_CAT, S_SEND_CARD, S_SEARCH, S_SEARCH_SYNCED, S_SEARCH_SYNC_QA, S_SEARCH_SYNC_RANK, S_PREVIEW_SYNC, S_PREVIEW, S_QUESTION_SYNCED, S_QUESTION_SYNC_QA, S_QUESTION, S_QUESTION_RANK, S_SHOW, S_REVEAL, S_PROCEED_SYNC_QA, S_ASK_SUSPEND, S_SUSPEND, S_ASK_RESUME, S_RESUME, S_HISTOGRAM, S_HISTOGRAM_SYNC_QA, S_TABLE, S_TABLE_SYNC_QA, S_TABLE_REFRESH, S_END };
 enum Stage { T_NULL, T_URLENCODE_EQUALS, T_URLENCODE_AMP, T_BOUNDARY_INIT, T_CONTENT, T_NAME, T_NAME_QUOT, T_VALUE_START, T_VALUE_CRLFMINUSMINUS, T_VALUE_XML, T_BOUNDARY_CHECK, T_EPILOGUE };
 
 static enum Action action_seq[S_END+1][17] = {
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_FILELIST, A_FILE, A_END }, // S_FILE
   { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_START_DECKS, A_END }, // S_START_DECKS
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT, A_DECKS_CREATE, A_END }, // S_DECKS_CREATE
+  { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_DECK, A_DECKS_CREATE, A_END }, // S_DECKS_CREATE
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT_SELECTED, A_SELECT_ARRANGE, A_END }, // S_SELECT_MOVE_ARRANGE
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT, A_TEST_ARRANGE, A_CAT_NAME, A_END }, // S_CAT_NAME
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_TEST_CAT, A_LOAD_CARDLIST_OLD, A_TEST_CARD, A_UPDATE_QA_OLD, A_READ_STYLE, A_STYLE_GO, A_SYNC, A_END }, // S_STYLE_GO
@@ -92,7 +92,7 @@ static enum Action action_seq[S_END+1][17] = {
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST_OLD, A_TEST_CAT, A_READ_STYLE, A_STYLE_APPLY, A_GET_CARD, A_SYNC, A_END }, // S_STYLE_APPLY
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT, A_SELECT_DEST_DECK, A_END }, // S_SELECT_DEST_CAT
   { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT, A_TEST_ARRANGE, A_MOVE_CAT, A_END }, // S_MOVE_CAT
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT, A_TEST_ARRANGE, A_TEST_NAME, A_CREATE_CAT, A_END }, // S_CREATE_CAT
+  { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_DECK, A_TEST_ARRANGE, A_TEST_NAME, A_CREATE_DECK, A_END }, // S_CREATE_DECK
   { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_DECK, A_LOAD_CARDLIST, A_ASK_DELETE_DECK, A_END }, // S_ASK_DELETE_DECK
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CAT, A_DELETE_CAT, A_END }, // S_DELETE_CAT
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_TEST_CAT, A_TOGGLE, A_END }, // S_TOGGLE
@@ -211,7 +211,7 @@ struct MemorySurfer {
   struct Category *cat_t; // tree
   int cat_a; // allocated
   int16_t n_first;
-  int cat_i;
+  int deck_i;
   int mov_cat_i; // moved
   int arrange;
   char *deck_name;
@@ -679,7 +679,7 @@ static ssize_t dummy_getdelim(char **lineptr, size_t *n, int delimiter, FILE *fp
 static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag, int parent_cat_i) {
   int e;
   ssize_t nread;
-  int cat_i;
+  int deck_i;
   int card_i;
   char *str;
   int len;
@@ -694,7 +694,7 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
   char do_flag;
   char slash_f; // flag
   do_flag = 1;
-  cat_i = -1;
+  deck_i = -1;
   do {
     nread = dummy_getdelim(&xml->p_lineptr, &xml->n, '<', xml->xml_stream);
     e = nread <= 0;
@@ -706,11 +706,11 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
         case TAG_MEMORYSURFER:
           break;
         case TAG_DECK:
-          cat_i = 0;
-          while (cat_i < wms->ms.cat_a && wms->ms.cat_t[cat_i].cat_used != 0)
-            cat_i++;
-          assert(cat_i <= INT16_MAX);
-          if (cat_i == wms->ms.cat_a) {
+          deck_i = 0;
+          while (deck_i < wms->ms.cat_a && wms->ms.cat_t[deck_i].cat_used != 0)
+            deck_i++;
+          assert(deck_i <= INT16_MAX);
+          if (deck_i == wms->ms.cat_a) {
             cat_a = wms->ms.cat_a + 7;
             size = sizeof(struct Category) * cat_a;
             wms->ms.cat_t = realloc(wms->ms.cat_t, size);
@@ -731,18 +731,18 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
           }
           if (e == 0) {
             if (xml->prev_cat_i != -1) {
-              wms->ms.cat_t[xml->prev_cat_i].cat_n_sibling = cat_i;
+              wms->ms.cat_t[xml->prev_cat_i].cat_n_sibling = deck_i;
             } else if (parent_cat_i != -1) {
-              wms->ms.cat_t[parent_cat_i].cat_n_child = cat_i;
+              wms->ms.cat_t[parent_cat_i].cat_n_child = deck_i;
             }
             xml->prev_cat_i = -1;
             if (e == 0) {
-              wms->ms.cat_t[cat_i].cat_cli = -1;
-              wms->ms.cat_t[cat_i].cat_x = 1;
-              wms->ms.cat_t[cat_i].cat_n_sibling = -1;
-              wms->ms.cat_t[cat_i].cat_n_child = -1;
-              wms->ms.cat_t[cat_i].cat_used = 1;
-              wms->ms.cat_t[cat_i].cat_on = 1;
+              wms->ms.cat_t[deck_i].cat_cli = -1;
+              wms->ms.cat_t[deck_i].cat_x = 1;
+              wms->ms.cat_t[deck_i].cat_n_sibling = -1;
+              wms->ms.cat_t[deck_i].cat_n_child = -1;
+              wms->ms.cat_t[deck_i].cat_used = 1;
+              wms->ms.cat_t[deck_i].cat_on = 1;
             }
           }
           break;
@@ -911,7 +911,7 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
                 if (slash_f == 0) {
                   e = tag != TAG_DECK;
                   if (e == 0) {
-                    e = parse_xml(xml, wms, TAG_STYLE, cat_i);
+                    e = parse_xml(xml, wms, TAG_STYLE, deck_i);
                   }
                 } else {
                   e = tag != TAG_STYLE;
@@ -924,7 +924,7 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
               if (slash_f == 0) {
                 e = tag != TAG_DECK;
                 if (e == 0)
-                  e = parse_xml(xml, wms, TAG_CARD, cat_i);
+                  e = parse_xml(xml, wms, TAG_CARD, deck_i);
               } else {
                 e = tag != TAG_CARD;
                 if (e == 0) {
@@ -962,7 +962,7 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
               if (slash_f == 0) {
                 e = tag != TAG_DECK;
                 if (e == 0)
-                  e = parse_xml(xml, wms, TAG_NAME, cat_i);
+                  e = parse_xml(xml, wms, TAG_NAME, deck_i);
               } else
                 e = tag != TAG_NAME;
             } else {
@@ -971,26 +971,26 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
                 if (slash_f == 0) {
                   e = tag != TAG_MEMORYSURFER && tag != TAG_DECK;
                   if (e == 0)
-                    e = parse_xml(xml, wms, TAG_DECK, cat_i);
+                    e = parse_xml(xml, wms, TAG_DECK, deck_i);
                 } else {
                   e = tag != TAG_DECK;
                   if (e == 0) {
-                    assert(cat_i >= 0);
+                    assert(deck_i >= 0);
                     e = imf_seek_unused(&wms->ms.imf, &index);
                     if (e == 0) {
-                      assert(xml->cardlist_l[cat_i].card_a >= 0);
-                      data_size = xml->cardlist_l[cat_i].card_a * sizeof(struct Card);
-                      assert(xml->cardlist_l[cat_i].card_l != NULL || xml->cardlist_l[cat_i].card_a == 0);
-                      e = imf_put(&wms->ms.imf, index, xml->cardlist_l[cat_i].card_l, data_size);
+                      assert(xml->cardlist_l[deck_i].card_a >= 0);
+                      data_size = xml->cardlist_l[deck_i].card_a * sizeof(struct Card);
+                      assert(xml->cardlist_l[deck_i].card_l != NULL || xml->cardlist_l[deck_i].card_a == 0);
+                      e = imf_put(&wms->ms.imf, index, xml->cardlist_l[deck_i].card_l, data_size);
                       if (e == 0) {
-                        wms->ms.cat_t[cat_i].cat_cli = index;
-                        free(xml->cardlist_l[cat_i].card_l);
-                        xml->cardlist_l[cat_i].card_l = NULL;
-                        xml->cardlist_l[cat_i].card_a = 0;
+                        wms->ms.cat_t[deck_i].cat_cli = index;
+                        free(xml->cardlist_l[deck_i].card_l);
+                        xml->cardlist_l[deck_i].card_l = NULL;
+                        xml->cardlist_l[deck_i].card_a = 0;
                         wms->deck_n++;
                       }
                     }
-                    xml->prev_cat_i = cat_i;
+                    xml->prev_cat_i = deck_i;
                   }
                 }
               }
@@ -1336,9 +1336,9 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
     }
     break;
   case F_CAT:
-    e = wms->ms.cat_i != -1;
+    e = wms->ms.deck_i != -1;
     if (e == 0) {
-      a_n = sscanf(mult->post_lp, "%d%n", &wms->ms.cat_i, &consumed_n);
+      a_n = sscanf(mult->post_lp, "%d%n", &wms->ms.deck_i, &consumed_n);
       e = a_n != 1 || consumed_n != mult->post_fp;
     }
     break;
@@ -1469,7 +1469,7 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
             wms->seq = S_EDIT;
           } else {
             if (wms->saved_mode == M_MOVE_DECK) {
-              wms->ms.cat_i = wms->ms.mov_cat_i;
+              wms->ms.deck_i = wms->ms.mov_cat_i;
               wms->ms.mov_cat_i = -1;
             } else {
               e = wms->saved_mode != M_CREATE_DECK;
@@ -1480,13 +1480,13 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
           }
         } else if (wms->from_page == P_SELECT_DEST_DECK) {
           if (wms->saved_mode == M_SEND) {
-            wms->ms.cat_i = wms->ms.mov_cat_i;
+            wms->ms.deck_i = wms->ms.mov_cat_i;
             wms->ms.card_i = wms->ms.mov_card_i;
             wms->seq = S_EDIT;
           } else {
             e = wms->saved_mode != M_MOVE;
             if (e == 0) {
-              wms->ms.cat_i = wms->ms.mov_cat_i;
+              wms->ms.deck_i = wms->ms.mov_cat_i;
               wms->ms.mov_cat_i = -1;
               wms->seq = S_START_DECKS;
             }
@@ -1656,7 +1656,7 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
         } else {
           e = wms->from_page != P_CAT_NAME;
           if (e == 0) {
-            wms->seq = S_CREATE_CAT;
+            wms->seq = S_CREATE_DECK;
           }
         }
       } else if (memcmp(mult->post_lp, "Cancel", 6) == 0) {
@@ -2337,7 +2337,7 @@ static int gen_html_cat(int16_t n_create, enum HIERARCHY hierarchy, struct WebMe
           rv = printf("%s\t<li><label class=\"msf-td\"><input type=\"radio\" name=\"deck\" value=\"%d\"%s%s>%s</label>%s\n",
               wms->inds->str,
               n_create,
-              n_create == wms->ms.cat_i ? " checked autofocus" : "",
+              n_create == wms->ms.deck_i ? " checked autofocus" : "",
               n_create == wms->ms.mov_cat_i ? " disabled" : "",
               wms->html_lp,
               wms->ms.cat_t[n_create].cat_n_child == -1 ? "</li>" : "");
@@ -2481,7 +2481,7 @@ static void sa_free(struct StringArray *sa)
   sa->sa_n = 0;
 }
 
-static int gen_xml_category(int16_t cat_i, struct XmlGenerator *xg, struct MemorySurfer *ms, struct IndentStr *inds)
+static int gen_xml_category(int16_t deck_i, struct XmlGenerator *xg, struct MemorySurfer *ms, struct IndentStr *inds)
 {
   int e;
   int rv;
@@ -2505,8 +2505,8 @@ static int gen_xml_category(int16_t cat_i, struct XmlGenerator *xg, struct Memor
   if (e == 0) {
     e = inds_set(inds, 1, 1);
     if (e == 0) {
-      cat_ptr = ms->cat_t + cat_i;
-      str = sa_get(&ms->cat_sa, cat_i);
+      cat_ptr = ms->cat_t + deck_i;
+      str = sa_get(&ms->cat_sa, deck_i);
       e = str == NULL;
       if (e == 0) {
         e = xml_escape(&xg->w_lineptr, &xg->w_n, str, ESC_AMP | ESC_LT);
@@ -2514,7 +2514,7 @@ static int gen_xml_category(int16_t cat_i, struct XmlGenerator *xg, struct Memor
           rv = fprintf(xg->w_stream, "\n%s<name>%s</name>", inds->str, xg->w_lineptr);
           e = rv < 0;
           if (e == 0) {
-            str = sa_get(&ms->style_sa, cat_i);
+            str = sa_get(&ms->style_sa, deck_i);
             if (str != NULL && str[0] != '\0') {
               e = xml_escape(&xg->w_lineptr, &xg->w_n, str, ESC_AMP | ESC_LT);
               if (e == 0) {
@@ -2604,15 +2604,15 @@ static int gen_xml_category(int16_t cat_i, struct XmlGenerator *xg, struct Memor
                 }
                 sa_free(&card_sa);
                 if (e == 0) {
-                  if (ms->cat_t[cat_i].cat_n_child != -1)
-                    e = gen_xml_category(ms->cat_t[cat_i].cat_n_child, xg, ms, inds);
+                  if (ms->cat_t[deck_i].cat_n_child != -1)
+                    e = gen_xml_category(ms->cat_t[deck_i].cat_n_child, xg, ms, inds);
                   if (e == 0) {
                     e = fputs ("</deck>", xg->w_stream) <= 0;
                     if (e == 0) {
                       e = inds_set(inds, 1, -1);
                       if (e == 0) {
-                        if (ms->cat_t[cat_i].cat_n_sibling != -1)
-                          e = gen_xml_category(ms->cat_t[cat_i].cat_n_sibling, xg, ms, inds);
+                        if (ms->cat_t[deck_i].cat_n_sibling != -1)
+                          e = gen_xml_category(ms->cat_t[deck_i].cat_n_sibling, xg, ms, inds);
                       }
                     }
                   }
@@ -2756,7 +2756,7 @@ static int gen_html(struct WebMemorySurfer *wms)
         }
         if (e == 0 && (wms->page == P_LEARN || wms->page == P_PREVIEW)) {
           assert(wms->ms.passwd.style_sai < 0 || wms->ms.style_sa.sa_n > 0);
-          str = sa_get(&wms->ms.style_sa, wms->ms.cat_i);
+          str = sa_get(&wms->ms.style_sa, wms->ms.deck_i);
           if (str != NULL) {
             rv = printf("\t\t<style>%s</style>\n", str);
             e = rv < 0;
@@ -2821,8 +2821,8 @@ static int gen_html(struct WebMemorySurfer *wms)
         }
         break;
       case B_HIDDEN_CAT:
-        if (wms->ms.cat_i >= 0) {
-          rv = printf("\t\t\t\t<input type=\"hidden\" name=\"deck\" value=\"%d\">\n", wms->ms.cat_i);
+        if (wms->ms.deck_i >= 0) {
+          rv = printf("\t\t\t\t<input type=\"hidden\" name=\"deck\" value=\"%d\">\n", wms->ms.deck_i);
           e = rv < 0;
         }
         break;
@@ -3153,9 +3153,9 @@ static int gen_html(struct WebMemorySurfer *wms)
           text_str = wms->ms.deck_name != NULL ? wms->ms.deck_name : "new deck name";
           submit_str = "Create";
         } else {
-          assert(wms->seq == S_RENAME_ENTER && wms->ms.cat_i >= 0 && wms->ms.cat_i < wms->ms.cat_a);
+          assert(wms->seq == S_RENAME_ENTER && wms->ms.deck_i >= 0 && wms->ms.deck_i < wms->ms.cat_a);
           header_str = "Enter the name to rename the deck to.";
-          text_str = sa_get(&wms->ms.cat_sa, wms->ms.cat_i);
+          text_str = sa_get(&wms->ms.cat_sa, wms->ms.deck_i);
           e = text_str == NULL;
           submit_str = "Rename";
         }
@@ -3180,7 +3180,7 @@ static int gen_html(struct WebMemorySurfer *wms)
         }
         break;
       case B_STYLE:
-        str = sa_get(&wms->ms.style_sa, wms->ms.cat_i);
+        str = sa_get(&wms->ms.style_sa, wms->ms.deck_i);
         e = xml_escape(&wms->html_lp, &wms->html_n, str, ESC_AMP | ESC_LT);
         if (e == 0) {
           rv = printf("\t\t\t<h1 class=\"msf\">Style</h1>\n"
@@ -3926,7 +3926,7 @@ static int ms_init(struct MemorySurfer *ms)
   ms->cat_t = NULL;
   ms->cat_a = 0;
   ms->n_first = -1;
-  ms->cat_i = -1;
+  ms->deck_i = -1;
   ms->mov_cat_i = -1;
   ms->arrange = -1;
   ms->deck_name = NULL;
@@ -4255,7 +4255,7 @@ static int ms_load_card_list(struct MemorySurfer *ms)
   int e;
   struct Category *cat_ptr;
   int32_t data_size;
-  cat_ptr = ms->cat_t + ms->cat_i;
+  cat_ptr = ms->cat_t + ms->deck_i;
   assert(cat_ptr->cat_used != 0);
   data_size = imf_get_size(&ms->imf, cat_ptr->cat_cli);
   assert(data_size >= 0 && ms->card_l == NULL);
@@ -4424,7 +4424,7 @@ int main(int argc, char *argv[])
   int rv; // return value
   size_t size;
   size_t len;
-  int cat_i;
+  int deck_i;
   int i;
   int j;
   char *q_str;
@@ -4791,7 +4791,7 @@ int main(int argc, char *argv[])
                     e = mtime_test == 0;
                     if (e != 0) {
                       wms->static_header = "Invalid mtime value";
-                      wms->static_msg = "The file has been modified elsewhere";
+                      wms->static_msg = "The file was modified elsewhere";
                       wms->static_btn_main = "OK";
                       wms->todo_main = S_START;
                       wms->page = P_MSG;
@@ -4834,7 +4834,7 @@ int main(int argc, char *argv[])
                   }
                   break;
                 case A_TEST_CAT_SELECTED:
-                  e = wms->ms.cat_i < 0;
+                  e = wms->ms.deck_i < 0;
                   if (e == 1) {
                     wms->static_header = "No deck selected";
                     wms->static_btn_main = "OK";
@@ -4851,9 +4851,9 @@ int main(int argc, char *argv[])
                   }
                   break;
                 case A_TEST_CAT_VALID:
-                  e = wms->ms.cat_i >= wms->ms.cat_a || wms->ms.cat_t[wms->ms.cat_i].cat_used == 0;
+                  e = wms->ms.deck_i >= wms->ms.cat_a || wms->ms.cat_t[wms->ms.deck_i].cat_used == 0;
                   if (e == 1) {
-                    wms->ms.cat_i = -1;
+                    wms->ms.deck_i = -1;
                     wms->static_header = "Invalid deck";
                     wms->static_btn_main = "OK";
                     wms->todo_main = S_SELECT_LEARN_CAT;
@@ -4861,9 +4861,9 @@ int main(int argc, char *argv[])
                   }
                   break;
                 case A_TEST_CAT:
-                  e = wms->ms.cat_i < 0 || wms->ms.cat_i >= wms->ms.cat_a || wms->ms.cat_t[wms->ms.cat_i].cat_used == 0;
-                  if (e == 1 && (wms->seq == S_CREATE_CAT || wms->seq == S_DECKS_CREATE))
-                    e = wms->ms.cat_i != -1 || wms->ms.n_first != -1;
+                  e = wms->ms.deck_i < 0 || wms->ms.deck_i >= wms->ms.cat_a || wms->ms.cat_t[wms->ms.deck_i].cat_used == 0;
+                  if (e == 1 && (wms->seq == S_CREATE_DECK || wms->seq == S_DECKS_CREATE))
+                    e = wms->ms.deck_i != -1 || wms->ms.n_first != -1;
                   if (e != 0) {
                     wms->static_header = "Invalid deck";
                     wms->static_btn_main = "OK";
@@ -4880,32 +4880,38 @@ int main(int argc, char *argv[])
                   }
                   break;
                 case A_TEST_DECK:
-                  e = wms->ms.cat_i < 0 ? 0x09824be2 : 0; // NODECK
+                  e = wms->ms.deck_i < 0 ? 0x09824be2 : 0; // NODECK
                   if (e == 0) {
-                    e = wms->ms.cat_i >= wms->ms.cat_a || wms->ms.cat_t[wms->ms.cat_i].cat_used == 0 ? 0x09823221 : 0; // INVDCK
+                    e = wms->ms.deck_i >= wms->ms.cat_a || wms->ms.cat_t[wms->ms.deck_i].cat_used == 0 ? 0x09823221 : 0; // INVDCK
                     if (e != 0) {
                       if (wms->from_page == P_SELECT_DECK) {
                         wms->static_header = "Invalid deck";
                         wms->static_msg = "The selected deck is not valid (anymore)";
-                        wms->static_btn_main = "OK";
-                        wms->page = P_MSG;
-                        wms->mode = wms->saved_mode == M_START ? M_MSG_DECK : M_MSG_SELECT;
                       }
                     }
                   } else {
-                    if (wms->from_page == P_SELECT_DECK) {
-                      wms->static_header = "No deck selected";
-                      if (wms->seq == S_ASK_DELETE_DECK) {
-                        wms->static_msg = "Please select a deck to delete";
-                      } else if (wms->seq == S_QUESTION) {
-                        wms->static_msg = "Please select a deck to learn";
-                      } else {
-                        e = 0x0a681989; // UNHNDL
-                      }
-                      wms->static_btn_main = "OK";
-                      wms->page = P_MSG;
-                      wms->mode = wms->saved_mode == M_START ? M_MSG_DECK : M_MSG_SELECT;
+                    if (wms->seq == S_DECKS_CREATE || wms->seq == S_CREATE_DECK) {
+                      e = wms->ms.deck_i != -1 || wms->ms.n_first != -1;
                     }
+                    if (e != 0) {
+                      wms->static_header = "No deck selected";
+                      if (wms->from_page == P_SELECT_DECK) {
+                        if (wms->seq == S_DECKS_CREATE) {
+                          wms->static_msg = "Please select a deck were to arrange the new deck to";
+                        } else if (wms->seq == S_ASK_DELETE_DECK) {
+                          wms->static_msg = "Please select a deck to delete";
+                        } else if (wms->seq == S_QUESTION) {
+                          wms->static_msg = "Please select a deck to learn";
+                        } else {
+                          e = 0x0a681989; // UNHNDL
+                        }
+                      }
+                    }
+                  }
+                  if (e != 0) {
+                    wms->static_btn_main = "OK";
+                    wms->page = P_MSG;
+                    wms->mode = wms->saved_mode == M_START ? M_MSG_DECK : M_MSG_SELECT;
                   }
                   break;
                 case A_TEST_ARRANGE:
@@ -5057,13 +5063,13 @@ int main(int argc, char *argv[])
                   wms->page = P_EXPORT;
                   break;
                 case A_LOAD_CARDLIST:
-                  assert(wms->ms.cat_i >= 0 && wms->ms.cat_i < wms->ms.cat_a && wms->ms.cat_t[wms->ms.cat_i].cat_used != 0);
-                  data_size = imf_get_size(&wms->ms.imf, wms->ms.cat_t[wms->ms.cat_i].cat_cli);
+                  assert(wms->ms.deck_i >= 0 && wms->ms.deck_i < wms->ms.cat_a && wms->ms.cat_t[wms->ms.deck_i].cat_used != 0);
+                  data_size = imf_get_size(&wms->ms.imf, wms->ms.cat_t[wms->ms.deck_i].cat_cli);
                   assert(data_size >= 0 && wms->ms.card_l == NULL);
                   wms->ms.card_l = malloc(data_size);
                   e = wms->ms.card_l == NULL;
                   if (e == 0) {
-                    e = imf_get(&wms->ms.imf, wms->ms.cat_t[wms->ms.cat_i].cat_cli, wms->ms.card_l);
+                    e = imf_get(&wms->ms.imf, wms->ms.cat_t[wms->ms.deck_i].cat_cli, wms->ms.card_l);
                     if (e == 0) {
                       assert(wms->ms.card_a == 0);
                       wms->ms.card_a = data_size / sizeof(struct Card);
@@ -5071,22 +5077,22 @@ int main(int argc, char *argv[])
                   }
                   break;
                 case A_LOAD_CARDLIST_OLD:
-                  e = wms->ms.cat_i < 0;
+                  e = wms->ms.deck_i < 0;
                   if (e == 0) {
-                    assert(wms->ms.cat_i >= 0);
-                    e = wms->ms.cat_i >= wms->ms.cat_a || wms->ms.cat_t[wms->ms.cat_i].cat_used == 0;
+                    assert(wms->ms.deck_i >= 0);
+                    e = wms->ms.deck_i >= wms->ms.cat_a || wms->ms.cat_t[wms->ms.deck_i].cat_used == 0;
                     if (e == 0) {
-                      assert(wms->ms.cat_i < wms->ms.cat_a && wms->ms.cat_t[wms->ms.cat_i].cat_used != 0);
+                      assert(wms->ms.deck_i < wms->ms.cat_a && wms->ms.cat_t[wms->ms.deck_i].cat_used != 0);
                       e = ms_load_card_list(&wms->ms);
                     } else {
-                      wms->ms.cat_i = -1;
+                      wms->ms.deck_i = -1;
                       wms->static_header = "Invalid deck";
                       wms->static_btn_main = "OK";
                       wms->todo_main = S_NONE; // S_SELECT_EDIT_CAT S_SELECT_SEARCH_CAT S_SELECT_LEARN_CAT S_DELETE_CARD S_APPEND S_SELECT_EDIT_CAT
                       wms->page = P_MSG;
                     }
                   } else {
-                    assert(wms->ms.cat_i == -1);
+                    assert(wms->ms.deck_i == -1);
                     wms->static_header = "Please select a category";
                     wms->static_btn_main = "OK";
                     wms->todo_main = S_START; // S_NONE S_SELECT_EDIT_CAT S_SELECT_SEARCH_CAT S_SELECT_LEARN_CAT S_DELETE_CARD S_SELECT_EDIT_CAT
@@ -5136,14 +5142,14 @@ int main(int argc, char *argv[])
                     wms->ms.passwd.style_sai = -1;
                     e = ms_create(&wms->ms, O_TRUNC);
                     if (e == 0) {
-                      wms->ms.cat_i = -1;
+                      wms->ms.deck_i = -1;
                     }
                   }
                   break;
                 case A_CLOSE:
                   free(wms->file_title_str);
                   wms->file_title_str = NULL;
-                  wms->ms.cat_i = -1;
+                  wms->ms.deck_i = -1;
                   wms->page = P_FILE;
                   break;
                 case A_START_DECKS:
@@ -5159,16 +5165,16 @@ int main(int argc, char *argv[])
                   }
                   break;
                 case A_SELECT_DEST_DECK:
-                  wms->ms.mov_cat_i = wms->ms.cat_i;
-                  wms->ms.cat_i = -1;
+                  wms->ms.mov_cat_i = wms->ms.deck_i;
+                  wms->ms.deck_i = -1;
                   wms->page = P_SELECT_DEST_DECK;
                   wms->mode = M_MOVE;
                   break;
                 case A_SELECT_SEND_CAT:
                   wms->ms.mov_card_i = wms->ms.card_i;
                   wms->ms.card_i = -1;
-                  wms->ms.mov_cat_i = wms->ms.cat_i;
-                  wms->ms.cat_i = -1;
+                  wms->ms.mov_cat_i = wms->ms.deck_i;
+                  wms->ms.deck_i = -1;
                   wms->page = P_SELECT_DEST_DECK;
                   wms->mode = M_SEND;
                   break;
@@ -5182,19 +5188,19 @@ int main(int argc, char *argv[])
                 case A_STYLE_GO:
                   wms->page = P_STYLE;
                   break;
-                case A_CREATE_CAT:
-                  if (wms->ms.cat_i >= 0)
-                    e = wms->ms.cat_i >= wms->ms.cat_a || wms->ms.cat_t[wms->ms.cat_i].cat_used == 0;
+                case A_CREATE_DECK:
+                  if (wms->ms.deck_i >= 0)
+                    e = wms->ms.deck_i >= wms->ms.cat_a || wms->ms.cat_t[wms->ms.deck_i].cat_used == 0;
                   else {
-                    e = wms->ms.cat_i != -1 || wms->ms.n_first != -1;
+                    e = wms->ms.deck_i != -1 || wms->ms.n_first != -1;
                     if (e == 0)
                       wms->ms.arrange = -1;
                   }
                   if (e == 0) {
-                    cat_i = 0;
-                    while (cat_i < wms->ms.cat_a && wms->ms.cat_t[cat_i].cat_used != 0)
-                      cat_i++;
-                    if (cat_i == wms->ms.cat_a) {
+                    deck_i = 0;
+                    while (deck_i < wms->ms.cat_a && wms->ms.cat_t[deck_i].cat_used != 0)
+                      deck_i++;
+                    if (deck_i == wms->ms.cat_a) {
                       cat_a = wms->ms.cat_a + 7;
                       e = cat_a > INT16_MAX;
                       if (e == 0) {
@@ -5210,66 +5216,66 @@ int main(int argc, char *argv[])
                       }
                     }
                     if (e == 0) {
-                      assert(cat_i < wms->ms.cat_a && wms->ms.cat_t[cat_i].cat_used == 0);
+                      assert(deck_i < wms->ms.cat_a && wms->ms.cat_t[deck_i].cat_used == 0);
                       e = imf_seek_unused(&wms->ms.imf, &index);
                       if (e == 0) {
                         e = imf_put(&wms->ms.imf, index, "", 0);
                         if (e == 0) {
-                          wms->ms.cat_t[cat_i].cat_cli = index;
-                          e = sa_set(&wms->ms.cat_sa, cat_i, wms->ms.deck_name);
+                          wms->ms.cat_t[deck_i].cat_cli = index;
+                          e = sa_set(&wms->ms.cat_sa, deck_i, wms->ms.deck_name);
                           if (e == 0) {
-                            wms->ms.cat_t[cat_i].cat_x = 1;
+                            wms->ms.cat_t[deck_i].cat_x = 1;
                             switch (wms->ms.arrange) {
                             case 0: // Before
                               n_prev = -1;
                               n_parent = -1;
                               for (i = 0; i < wms->ms.cat_a && n_prev == -1 && n_parent == -1; i++)
                                 if (wms->ms.cat_t[i].cat_used != 0) {
-                                  if (wms->ms.cat_t[i].cat_n_sibling == wms->ms.cat_i)
+                                  if (wms->ms.cat_t[i].cat_n_sibling == wms->ms.deck_i)
                                     n_prev = i;
-                                  if (wms->ms.cat_t[i].cat_n_child == wms->ms.cat_i)
+                                  if (wms->ms.cat_t[i].cat_n_child == wms->ms.deck_i)
                                     n_parent = i;
                                 }
                               if (n_prev != -1) {
-                                assert(wms->ms.cat_t[n_prev].cat_n_sibling == wms->ms.cat_i);
-                                wms->ms.cat_t[n_prev].cat_n_sibling = cat_i;
+                                assert(wms->ms.cat_t[n_prev].cat_n_sibling == wms->ms.deck_i);
+                                wms->ms.cat_t[n_prev].cat_n_sibling = deck_i;
                               }
                               else {
-                                if (wms->ms.n_first == wms->ms.cat_i)
-                                  wms->ms.n_first = cat_i;
+                                if (wms->ms.n_first == wms->ms.deck_i)
+                                  wms->ms.n_first = deck_i;
                                 else {
                                   assert(n_parent != -1);
-                                  wms->ms.cat_t[n_parent].cat_n_child = cat_i;
+                                  wms->ms.cat_t[n_parent].cat_n_child = deck_i;
                                 }
                               }
-                              wms->ms.cat_t[cat_i].cat_n_sibling = wms->ms.cat_i;
-                              wms->ms.cat_t[cat_i].cat_n_child = -1;
+                              wms->ms.cat_t[deck_i].cat_n_sibling = wms->ms.deck_i;
+                              wms->ms.cat_t[deck_i].cat_n_child = -1;
                               break;
                             case 1: // Below
-                              wms->ms.cat_t[cat_i].cat_n_sibling = wms->ms.cat_t[wms->ms.cat_i].cat_n_child;
-                              wms->ms.cat_t[wms->ms.cat_i].cat_n_child = cat_i;
-                              wms->ms.cat_t[cat_i].cat_n_child = -1;
+                              wms->ms.cat_t[deck_i].cat_n_sibling = wms->ms.cat_t[wms->ms.deck_i].cat_n_child;
+                              wms->ms.cat_t[wms->ms.deck_i].cat_n_child = deck_i;
+                              wms->ms.cat_t[deck_i].cat_n_child = -1;
                               break;
                             case 2: // Behind
-                              wms->ms.cat_t[cat_i].cat_n_sibling = wms->ms.cat_t[wms->ms.cat_i].cat_n_sibling;
-                              wms->ms.cat_t[wms->ms.cat_i].cat_n_sibling = cat_i;
-                              wms->ms.cat_t[cat_i].cat_n_child = -1;
+                              wms->ms.cat_t[deck_i].cat_n_sibling = wms->ms.cat_t[wms->ms.deck_i].cat_n_sibling;
+                              wms->ms.cat_t[wms->ms.deck_i].cat_n_sibling = deck_i;
+                              wms->ms.cat_t[deck_i].cat_n_child = -1;
                               break;
                             case -1:
                               e = wms->ms.n_first != -1;
                               if (e == 0) {
-                                wms->ms.cat_t[cat_i].cat_n_sibling = -1;
-                                wms->ms.cat_t[cat_i].cat_n_child = -1;
-                                assert(cat_i == 0);
-                                wms->ms.n_first = cat_i;
+                                wms->ms.cat_t[deck_i].cat_n_sibling = -1;
+                                wms->ms.cat_t[deck_i].cat_n_child = -1;
+                                assert(deck_i == 0);
+                                wms->ms.n_first = deck_i;
                               }
                               break;
                             default:
-                              e = 0x000066ec; // WCIA Web(MemorySurfer) A_CREATE_CAT invalid arrange (value)
+                              e = 0x000066ec; // WCIA Web(MemorySurfer) A_CREATE_DECK invalid arrange (value)
                             }
                             if (e == 0) {
-                              wms->ms.cat_t[cat_i].cat_used = 1;
-                              wms->ms.cat_t[cat_i].cat_on = 1;
+                              wms->ms.cat_t[deck_i].cat_used = 1;
+                              wms->ms.cat_t[deck_i].cat_on = 1;
                               data_size = sa_length(&wms->ms.cat_sa);
                               e = imf_put(&wms->ms.imf, SA_INDEX, wms->ms.cat_sa.sa_d, data_size);
                               if (e == 0) {
@@ -5278,7 +5284,7 @@ int main(int argc, char *argv[])
                                 if (e == 0) {
                                   e = imf_sync(&wms->ms.imf);
                                   if (e == 0) {
-                                    wms->ms.cat_i = cat_i;
+                                    wms->ms.deck_i = deck_i;
                                     wms->page = P_SELECT_DECK;
                                     wms->mode = M_START;
                                   }
@@ -5292,8 +5298,8 @@ int main(int argc, char *argv[])
                   }
                   break;
                 case A_RENAME_CAT:
-                  assert(wms->ms.cat_i >= 0 && wms->ms.cat_i < wms->ms.cat_a && wms->ms.cat_t[wms->ms.cat_i].cat_used != 0);
-                  e = sa_set(&wms->ms.cat_sa, wms->ms.cat_i, wms->ms.deck_name);
+                  assert(wms->ms.deck_i >= 0 && wms->ms.deck_i < wms->ms.cat_a && wms->ms.cat_t[wms->ms.deck_i].cat_used != 0);
+                  e = sa_set(&wms->ms.cat_sa, wms->ms.deck_i, wms->ms.deck_name);
                   if (e == 0) {
                     data_size = sa_length(&wms->ms.cat_sa);
                     e = imf_put(&wms->ms.imf, SA_INDEX, wms->ms.cat_sa.sa_d, data_size);
@@ -5314,9 +5320,9 @@ int main(int argc, char *argv[])
                   break;
                 case A_STYLE_APPLY:
                   assert(wms->ms.passwd.pw_flag > 0);
-                  str = sa_get(&wms->ms.style_sa, wms->ms.cat_i);
+                  str = sa_get(&wms->ms.style_sa, wms->ms.deck_i);
                   if (str == NULL || strcmp(str, wms->ms.style_txt)) {
-                    e = sa_set(&wms->ms.style_sa, wms->ms.cat_i, wms->ms.style_txt);
+                    e = sa_set(&wms->ms.style_sa, wms->ms.deck_i, wms->ms.style_txt);
                     if (e == 0) {
                       data_size = sa_length(&wms->ms.style_sa);
                       if (wms->ms.passwd.style_sai < 0) {
@@ -5333,8 +5339,8 @@ int main(int argc, char *argv[])
                   }
                   break;
                 case A_ASK_DELETE_DECK:
-                  assert(wms->ms.cat_t[wms->ms.cat_i].cat_used != 0);
-                  if (wms->ms.cat_t[wms->ms.cat_i].cat_n_child == -1) {
+                  assert(wms->ms.cat_t[wms->ms.deck_i].cat_used != 0);
+                  if (wms->ms.cat_t[wms->ms.deck_i].cat_n_child == -1) {
                     size = 64;
                     assert(wms->dyn_msg == NULL);
                     wms->dyn_msg = malloc(size);
@@ -5360,27 +5366,27 @@ int main(int argc, char *argv[])
                   }
                   break;
                 case A_DELETE_CAT:
-                  assert(wms->ms.cat_t[wms->ms.cat_i].cat_used != 0);
+                  assert(wms->ms.cat_t[wms->ms.deck_i].cat_used != 0);
                   n_prev = -1;
                   n_parent = -1;
                   i = 0;
                   do {
                     if (wms->ms.cat_t[i].cat_used != 0) {
-                      if (wms->ms.cat_t[i].cat_n_sibling == wms->ms.cat_i)
+                      if (wms->ms.cat_t[i].cat_n_sibling == wms->ms.deck_i)
                         n_prev = i;
-                      if (wms->ms.cat_t[i].cat_n_child == wms->ms.cat_i)
+                      if (wms->ms.cat_t[i].cat_n_child == wms->ms.deck_i)
                         n_parent = i;
                     }
                     i++;
                   } while (i < wms->ms.cat_a && n_prev == -1 && n_parent == -1);
                   if (n_prev != -1)
-                    wms->ms.cat_t[n_prev].cat_n_sibling = wms->ms.cat_t[wms->ms.cat_i].cat_n_sibling;
+                    wms->ms.cat_t[n_prev].cat_n_sibling = wms->ms.cat_t[wms->ms.deck_i].cat_n_sibling;
                   else if (n_parent != -1)
-                    wms->ms.cat_t[n_parent].cat_n_child = wms->ms.cat_t[wms->ms.cat_i].cat_n_sibling;
+                    wms->ms.cat_t[n_parent].cat_n_child = wms->ms.cat_t[wms->ms.deck_i].cat_n_sibling;
                   else {
-                    e = wms->ms.n_first != wms->ms.cat_i;
+                    e = wms->ms.n_first != wms->ms.deck_i;
                     if (e == 0)
-                      wms->ms.n_first = wms->ms.cat_t[wms->ms.cat_i].cat_n_sibling;
+                      wms->ms.n_first = wms->ms.cat_t[wms->ms.deck_i].cat_n_sibling;
                   }
                   if (e == 0) {
                     e = ms_load_card_list(&wms->ms);
@@ -5391,17 +5397,17 @@ int main(int argc, char *argv[])
                         card_i++;
                       }
                       if (e == 0)
-                        e = imf_delete (&wms->ms.imf, wms->ms.cat_t[wms->ms.cat_i].cat_cli);
+                        e = imf_delete (&wms->ms.imf, wms->ms.cat_t[wms->ms.deck_i].cat_cli);
                     }
                   }
                   if (e == 0) {
-                    wms->ms.cat_t[wms->ms.cat_i].cat_used = 0;
+                    wms->ms.cat_t[wms->ms.deck_i].cat_used = 0;
                     data_size = sizeof(struct Category) * wms->ms.cat_a;
                     e = imf_put(&wms->ms.imf, C_INDEX, wms->ms.cat_t, data_size);
                     if (e == 0) {
                       e = imf_sync(&wms->ms.imf);
                       if (e == 0) {
-                        wms->ms.cat_i = -1;
+                        wms->ms.deck_i = -1;
                         wms->page = P_SELECT_DECK;
                         wms->mode = M_START;
                       }
@@ -5409,8 +5415,8 @@ int main(int argc, char *argv[])
                   }
                   break;
                 case A_TOGGLE:
-                  assert(wms->ms.cat_i >= 0 && wms->ms.cat_i < wms->ms.cat_a && wms->ms.cat_t[wms->ms.cat_i].cat_used != 0);
-                  wms->ms.cat_t[wms->ms.cat_i].cat_x = wms->ms.cat_t[wms->ms.cat_i].cat_x == 0 ? 1 : 0;
+                  assert(wms->ms.deck_i >= 0 && wms->ms.deck_i < wms->ms.cat_a && wms->ms.cat_t[wms->ms.deck_i].cat_used != 0);
+                  wms->ms.cat_t[wms->ms.deck_i].cat_x = wms->ms.cat_t[wms->ms.deck_i].cat_x == 0 ? 1 : 0;
                   data_size = sizeof(struct Category) * wms->ms.cat_a;
                   e = imf_put(&wms->ms.imf, C_INDEX, wms->ms.cat_t, data_size);
                   if (e == 0) {
@@ -5422,14 +5428,14 @@ int main(int argc, char *argv[])
                   }
                   break;
                 case A_MOVE_CAT:
-                  assert(wms->ms.cat_t[wms->ms.cat_i].cat_used != 0 && wms->ms.cat_t[wms->ms.mov_cat_i].cat_used != 0);
+                  assert(wms->ms.cat_t[wms->ms.deck_i].cat_used != 0 && wms->ms.cat_t[wms->ms.mov_cat_i].cat_used != 0);
                   n_prev = -1;
-                  n_parent = wms->ms.cat_i;
+                  n_parent = wms->ms.deck_i;
                   do {
                     if (n_prev != -1)
-                      cat_i = n_prev;
+                      deck_i = n_prev;
                     if (n_parent != -1)
-                      cat_i = n_parent;
+                      deck_i = n_parent;
                     e = wms->ms.mov_cat_i == n_parent;
                     if (e != 0)
                       break;
@@ -5437,14 +5443,14 @@ int main(int argc, char *argv[])
                     n_parent = -1;
                     for (i = 0; i < wms->ms.cat_a && n_parent == -1 && n_prev == -1; i++)
                       if (wms->ms.cat_t[i].cat_used != 0) {
-                        if (wms->ms.cat_t[i].cat_n_sibling == cat_i)
+                        if (wms->ms.cat_t[i].cat_n_sibling == deck_i)
                           n_prev = i;
-                        if (wms->ms.cat_t[i].cat_n_child == cat_i)
+                        if (wms->ms.cat_t[i].cat_n_child == deck_i)
                           n_parent = i;
                       }
                   } while (n_parent != -1 || n_prev != -1);
                   if (e == 0) {
-                    if (wms->ms.arrange != 0 || wms->ms.cat_t[wms->ms.mov_cat_i].cat_n_sibling != wms->ms.cat_i) {
+                    if (wms->ms.arrange != 0 || wms->ms.cat_t[wms->ms.mov_cat_i].cat_n_sibling != wms->ms.deck_i) {
                       if (wms->ms.n_first != wms->ms.mov_cat_i) {
                         n_prev = -1;
                         n_parent = -1;
@@ -5469,34 +5475,34 @@ int main(int argc, char *argv[])
                         n_parent = -1;
                         do {
                           if (wms->ms.cat_t[i].cat_used != 0) {
-                            if (wms->ms.cat_t[i].cat_n_sibling == wms->ms.cat_i)
+                            if (wms->ms.cat_t[i].cat_n_sibling == wms->ms.deck_i)
                               n_prev = i;
-                            if (wms->ms.cat_t[i].cat_n_child == wms->ms.cat_i)
+                            if (wms->ms.cat_t[i].cat_n_child == wms->ms.deck_i)
                               n_parent = i;
                           }
                           i++;
                         } while (i < wms->ms.cat_a && n_prev == -1 && n_parent == -1);
                         if (n_prev != -1) {
-                          assert(wms->ms.cat_t[n_prev].cat_n_sibling == wms->ms.cat_i);
+                          assert(wms->ms.cat_t[n_prev].cat_n_sibling == wms->ms.deck_i);
                           wms->ms.cat_t[n_prev].cat_n_sibling = wms->ms.mov_cat_i;
                         }
                         else {
-                          if (wms->ms.n_first == wms->ms.cat_i)
+                          if (wms->ms.n_first == wms->ms.deck_i)
                             wms->ms.n_first = wms->ms.mov_cat_i;
                           else {
                             assert(n_parent != -1);
                             wms->ms.cat_t[n_parent].cat_n_child = wms->ms.mov_cat_i;
                           }
                         }
-                        wms->ms.cat_t[wms->ms.mov_cat_i].cat_n_sibling = wms->ms.cat_i;
+                        wms->ms.cat_t[wms->ms.mov_cat_i].cat_n_sibling = wms->ms.deck_i;
                         break;
                       case 1: // Below
-                        wms->ms.cat_t[wms->ms.mov_cat_i].cat_n_sibling = wms->ms.cat_t[wms->ms.cat_i].cat_n_child;
-                        wms->ms.cat_t[wms->ms.cat_i].cat_n_child = wms->ms.mov_cat_i;
+                        wms->ms.cat_t[wms->ms.mov_cat_i].cat_n_sibling = wms->ms.cat_t[wms->ms.deck_i].cat_n_child;
+                        wms->ms.cat_t[wms->ms.deck_i].cat_n_child = wms->ms.mov_cat_i;
                         break;
                       case 2: // Behind
-                        wms->ms.cat_t[wms->ms.mov_cat_i].cat_n_sibling = wms->ms.cat_t[wms->ms.cat_i].cat_n_sibling;
-                        wms->ms.cat_t[wms->ms.cat_i].cat_n_sibling = wms->ms.mov_cat_i;
+                        wms->ms.cat_t[wms->ms.mov_cat_i].cat_n_sibling = wms->ms.cat_t[wms->ms.deck_i].cat_n_sibling;
+                        wms->ms.cat_t[wms->ms.deck_i].cat_n_sibling = wms->ms.mov_cat_i;
                         break;
                       default:
                         e = 0x000ad43b; // WMAIA Web(MemorySurfer) main assert invalid arrange (value)
@@ -5508,7 +5514,7 @@ int main(int argc, char *argv[])
                         if (e == 0) {
                           e = imf_sync (&wms->ms.imf);
                           if (e == 0) {
-                            wms->ms.cat_i = wms->ms.mov_cat_i;
+                            wms->ms.deck_i = wms->ms.mov_cat_i;
                             wms->ms.mov_cat_i = -1;
                             wms->page = P_SELECT_DECK;
                             wms->mode = M_START;
@@ -5573,7 +5579,7 @@ int main(int argc, char *argv[])
                   if (wms->ms.card_i >= 0 && (((wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0) != (wms->ms.is_html > 0))) {
                     wms->ms.card_l[wms->ms.card_i].card_state = (wms->ms.card_l[wms->ms.card_i].card_state & 0x07) | (wms->ms.is_html > 0) << 3;
                     data_size = wms->ms.card_a * sizeof(struct Card);
-                    index = wms->ms.cat_t[wms->ms.cat_i].cat_cli;
+                    index = wms->ms.cat_t[wms->ms.deck_i].cat_cli;
                     e = imf_put(&wms->ms.imf, index, wms->ms.card_l, data_size);
                     need_sync = 1;
                   }
@@ -5623,7 +5629,7 @@ int main(int argc, char *argv[])
                             wms->ms.card_l[wms->ms.card_i].card_strength = 60;
                             wms->ms.card_l[wms->ms.card_i].card_qai = index;
                             wms->ms.card_l[wms->ms.card_i].card_state = STATE_NEW | STATE_HTML;
-                            e = imf_put(&wms->ms.imf, wms->ms.cat_t[wms->ms.cat_i].cat_cli, wms->ms.card_l, data_size);
+                            e = imf_put(&wms->ms.imf, wms->ms.cat_t[wms->ms.deck_i].cat_cli, wms->ms.card_l, data_size);
                             if (e == 0) {
                               need_sync = 1;
                               wms->page = P_EDIT;
@@ -5656,7 +5662,7 @@ int main(int argc, char *argv[])
                             card_ptr->card_strength = 60;
                             card_ptr->card_qai = index;
                             card_ptr->card_state = STATE_NEW | STATE_HTML;
-                            cat_ptr = wms->ms.cat_t + wms->ms.cat_i;
+                            cat_ptr = wms->ms.cat_t + wms->ms.deck_i;
                             e = imf_put(&wms->ms.imf, cat_ptr->cat_cli, wms->ms.card_l, data_size);
                             need_sync = e == 0;
                             wms->page = P_EDIT;
@@ -5694,7 +5700,7 @@ int main(int argc, char *argv[])
                         wms->ms.card_i--;
                       }
                       data_size = wms->ms.card_a * sizeof (struct Card);
-                      cat_ptr = wms->ms.cat_t + wms->ms.cat_i;
+                      cat_ptr = wms->ms.cat_t + wms->ms.deck_i;
                       e = imf_put (&wms->ms.imf, cat_ptr->cat_cli, wms->ms.card_l, data_size);
                       if (e == 0)
                       {
@@ -5746,7 +5752,7 @@ int main(int argc, char *argv[])
                   if (e == 0) {
                     wms->ms.card_l[wms->ms.card_i].card_state = (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) | STATE_SCHEDULED;
                     data_size = wms->ms.card_a * sizeof(struct Card);
-                    index = wms->ms.cat_t[wms->ms.cat_i].cat_cli;
+                    index = wms->ms.cat_t[wms->ms.deck_i].cat_cli;
                     e = imf_put(&wms->ms.imf, index, wms->ms.card_l, data_size);
                     need_sync = e == 0;
                     if (e == 0) {
@@ -5794,7 +5800,7 @@ int main(int argc, char *argv[])
                       size = sizeof(struct Card);
                       memcpy(wms->ms.card_l + card_i, &card, size);
                       data_size = wms->ms.card_a * sizeof(struct Card);
-                      e = imf_put(&wms->ms.imf, wms->ms.cat_t[wms->ms.cat_i].cat_cli, wms->ms.card_l, data_size);
+                      e = imf_put(&wms->ms.imf, wms->ms.cat_t[wms->ms.deck_i].cat_cli, wms->ms.card_l, data_size);
                       if (e == 0) {
                         e = imf_sync(&wms->ms.imf);
                         if (e == 0) {
@@ -5810,7 +5816,7 @@ int main(int argc, char *argv[])
                   }
                   break;
                 case A_SEND_CARD:
-                  e = wms->ms.mov_cat_i == wms->ms.cat_i;
+                  e = wms->ms.mov_cat_i == wms->ms.deck_i;
                   if (e == 0) {
                     e = wms->ms.mov_cat_i < 0 || wms->ms.mov_cat_i >= wms->ms.cat_a || wms->ms.cat_t[wms->ms.mov_cat_i].cat_used == 0;
                     if (e == 0) {
@@ -5855,7 +5861,7 @@ int main(int argc, char *argv[])
                         dest = wms->ms.card_l + wms->ms.card_i;
                         size = sizeof(struct Card);
                         memcpy(dest, src, size);
-                        index = wms->ms.cat_t[wms->ms.cat_i].cat_cli;
+                        index = wms->ms.cat_t[wms->ms.deck_i].cat_cli;
                         e = imf_put(&wms->ms.imf, index, wms->ms.card_l, data_size);
                       }
                     }
@@ -6048,7 +6054,7 @@ int main(int argc, char *argv[])
                   break;
                 case A_PROCEED:
                   assert(mtime_test >= 0);
-                  assert(wms->ms.cat_i >= 0 && wms->ms.cat_i < wms->ms.cat_a && wms->ms.cat_t[wms->ms.cat_i].cat_used != 0);
+                  assert(wms->ms.deck_i >= 0 && wms->ms.deck_i < wms->ms.cat_a && wms->ms.cat_t[wms->ms.deck_i].cat_used != 0);
                   assert(wms->ms.timestamp >= 0);
                   card_ptr = wms->ms.card_l + wms->ms.card_i;
                   if ((card_ptr->card_state & 0x07) == STATE_NEW || (card_ptr->card_state & 0x07) == STATE_SUSPENDED)
@@ -6057,7 +6063,7 @@ int main(int argc, char *argv[])
                   card_ptr->card_time = wms->ms.timestamp;
                   assert((card_ptr->card_state & 0x07) == STATE_SCHEDULED);
                   data_size = wms->ms.card_a * sizeof(struct Card);
-                  e = imf_put(&wms->ms.imf, wms->ms.cat_t[wms->ms.cat_i].cat_cli, wms->ms.card_l, data_size);
+                  e = imf_put(&wms->ms.imf, wms->ms.cat_t[wms->ms.deck_i].cat_cli, wms->ms.card_l, data_size);
                   need_sync = e == 0;
                   break;
                 case A_ASK_SUSPEND:
@@ -6071,7 +6077,7 @@ int main(int argc, char *argv[])
                 case A_SUSPEND:
                   wms->ms.card_l[wms->ms.card_i].card_state = (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) | STATE_SUSPENDED;
                   data_size = wms->ms.card_a * sizeof(struct Card);
-                  index = wms->ms.cat_t[wms->ms.cat_i].cat_cli;
+                  index = wms->ms.cat_t[wms->ms.deck_i].cat_cli;
                   e = imf_put(&wms->ms.imf, index, wms->ms.card_l, data_size);
                   need_sync = e == 0;
                   break;
@@ -6095,7 +6101,7 @@ int main(int argc, char *argv[])
                     e = n > 0 ? 0 : 0x55ac93b4; // NOCRDSC
                     if (e == 0) {
                       data_size = wms->ms.card_a * sizeof(struct Card);
-                      index = wms->ms.cat_t[wms->ms.cat_i].cat_cli;
+                      index = wms->ms.cat_t[wms->ms.deck_i].cat_cli;
                       e = imf_put(&wms->ms.imf, index, wms->ms.card_l, data_size);
                       need_sync = e == 0;
                     }
