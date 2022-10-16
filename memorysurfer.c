@@ -44,7 +44,7 @@
 #include <fcntl.h> // O_TRUNC / O_EXCL
 #include <errno.h>
 
-static const int32_t MSF_VERSION = 0x010001ba;
+static const int32_t MSF_VERSION = 0x010001bb;
 
 enum Field { F_UNKNOWN, F_FILE_TITLE, F_UPLOAD, F_ARRANGE, F_CAT_NAME, F_STYLE_TXT, F_MOVED_CAT, F_SEARCH_TXT, F_MATCH_CASE, F_IS_HTML, F_IS_UNLOCKED, F_CAT, F_CARD, F_MOV_CARD, F_LVL, F_RANK, F_Q, F_A, F_REVEAL_POS, F_TODO_MAIN, F_TODO_ALT, F_MTIME, F_PASSWORD, F_NEW_PASSWORD, F_TOKEN, F_EVENT, F_PAGE, F_MODE, F_TIMEOUT };
 enum Action { A_END, A_NONE, A_FILE, A_WARN_UPLOAD, A_CREATE, A_NEW, A_OPEN_DLG, A_FILELIST, A_OPEN, A_CHANGE_PASSWD, A_WRITE_PASSWD, A_READ_PASSWD, A_CHECK_PASSWORD, A_AUTH_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_LOAD_CARDLIST_OLD, A_GET_CARD, A_CHECK_RESUME, A_SLASH, A_VOID, A_FILE_EXTENSION, A_GATHER, A_UPLOAD, A_UPLOAD_REPORT, A_EXPORT, A_ASK_REMOVE, A_REMOVE, A_ASK_ERASE, A_ERASE, A_CLOSE, A_START_DECKS, A_DECKS_CREATE, A_SELECT_DEST_DECK, A_SELECT_SEND_CAT, A_SELECT_ARRANGE, A_CAT_NAME, A_STYLE_GO, A_CREATE_DECK, A_RENAME_CAT, A_READ_STYLE, A_STYLE_APPLY, A_ASK_DELETE_DECK, A_DELETE_CAT, A_TOGGLE, A_MOVE_CAT, A_SELECT_EDIT_CAT, A_EDIT, A_UPDATE_QA, A_UPDATE_QA_OLD, A_UPDATE_HTML, A_SYNC, A_INSERT, A_APPEND, A_ASK_DELETE_CARD, A_DELETE_CARD, A_PREVIOUS, A_NEXT, A_SCHEDULE, A_SET, A_CARD_ARRANGE, A_MOVE_CARD, A_SEND_CARD, A_SELECT_LEARN_CAT, A_SELECT_SEARCH_CAT, A_PREFERENCES, A_ABOUT, A_APPLY, A_SEARCH, A_PREVIEW, A_RANK, A_DETERMINE_CARD, A_SHOW, A_REVEAL, A_PROCEED, A_ASK_SUSPEND, A_SUSPEND, A_ASK_RESUME, A_RESUME, A_CHECK_FILE, A_LOGIN, A_HISTOGRAM, A_TABLE, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CARD, A_TEST_CAT_SELECTED, A_TEST_CAT_VALID, A_TEST_DECK, A_TEST_ARRANGE, A_TEST_NAME };
@@ -3665,16 +3665,19 @@ static int gen_html(struct WebMemorySurfer *wms)
               for (y = 0; y < 3 && e == 0; y++) {
                 rv = printf("\t\t\t\t<tr>\n");
                 e = rv < 0 ? 0x00505a91 : 0; // LRNXI
+                assert(wms->html_n >= 19); // 8 + 10 + 1 " checked autofocus"
                 for (x = 0; x < 2 && e == 0; x++) {
                   i = j + x + y * 2;
-                  attr_str = "";
-                  if (i == lvl)
-                    attr_str = " checked";
-                  if (i == lvl_sel)
-                    attr_str = " autofocus";
+                  wms->html_lp[0] = '\0';
+                  if (i == lvl) {
+                    strcat(wms->html_lp, " checked");
+                  }
+                  if (i == lvl_sel) {
+                    strcat(wms->html_lp, " autofocus");
+                  }
                   set_time_str(time_diff_str, lvl_s[i]);
                   rv = printf("\t\t\t\t\t<td class=\"msf-lvl\"><label class=\"msf-td\"><input type=\"radio\" name=\"lvl\" value=\"%d\"%s>Level %d (%s)</label></td>\n",
-                      i, attr_str,
+                      i, wms->html_lp,
                       i, time_diff_str);
                   e = rv < 0 ? 0x00587682 : 0; // LRNXJ
                 }
@@ -6037,7 +6040,7 @@ int main(int argc, char *argv[])
                 assert(mtime_test >= 0);
                 assert(wms->ms.deck_i >= 0 && wms->ms.deck_i < wms->ms.cat_a && wms->ms.cat_t[wms->ms.deck_i].cat_used != 0);
                 assert(wms->ms.timestamp >= 0);
-                e = wms->ms.lvl < 0 || wms->ms.lvl >= 20 ? 0x11c9e0f8 : 0; // LVLOUT
+                e = wms->ms.lvl < 0 || wms->ms.lvl > 20 ? 0x3baa2b82 : 0; // LVLOTOB
                 if (e == 0) {
                   card_ptr = wms->ms.card_l + wms->ms.card_i;
                   if ((card_ptr->card_state & 0x07) == STATE_NEW || (card_ptr->card_state & 0x07) == STATE_SUSPENDED) {
