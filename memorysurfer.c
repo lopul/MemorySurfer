@@ -44,8 +44,9 @@
 #include <fcntl.h> // O_TRUNC / O_EXCL
 #include <errno.h>
 
-static const int32_t MSF_VERSION = 0x010001bb;
+static const int32_t MSF_VERSION = 0x010001bc;
 
+enum Error { E_OK, E_FAIL, E_UNESC = 0x012cf4b0, E_PXML = 0x0025968a, E_CRRPT = 0x0687f5d6, E_ASSRT = 0x068e1506, E_POST = 0x003e3ed8, E_RPOFT = 0x115048c5, E_FIELD_1 = 0x0169002d, E_FIELD_2 = 0x0169002e, E_FIELD_3 = 0x0169002f, E_FIELD_4 = 0x01690030, E_FIELD_5 = 0x01690031, E_FIELD_6 = 0x01690032, E_FIELD_7 = 0x01690033, E_PARSE = 0x01d087ce, E_GHTML_1 = 0x03f6667d, E_GHTML_2 = 0x03f6667e, E_GHTML_3 = 0x03f6667f, E_MALLOC_1 = 0x1e8e2971 };
 enum Field { F_UNKNOWN, F_FILE_TITLE, F_UPLOAD, F_ARRANGE, F_CAT_NAME, F_STYLE_TXT, F_MOVED_CAT, F_SEARCH_TXT, F_MATCH_CASE, F_IS_HTML, F_IS_UNLOCKED, F_CAT, F_CARD, F_MOV_CARD, F_LVL, F_RANK, F_Q, F_A, F_REVEAL_POS, F_TODO_MAIN, F_TODO_ALT, F_MTIME, F_PASSWORD, F_NEW_PASSWORD, F_TOKEN, F_EVENT, F_PAGE, F_MODE, F_TIMEOUT };
 enum Action { A_END, A_NONE, A_FILE, A_WARN_UPLOAD, A_CREATE, A_NEW, A_OPEN_DLG, A_FILELIST, A_OPEN, A_CHANGE_PASSWD, A_WRITE_PASSWD, A_READ_PASSWD, A_CHECK_PASSWORD, A_AUTH_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_LOAD_CARDLIST_OLD, A_GET_CARD, A_CHECK_RESUME, A_SLASH, A_VOID, A_FILE_EXTENSION, A_GATHER, A_UPLOAD, A_UPLOAD_REPORT, A_EXPORT, A_ASK_REMOVE, A_REMOVE, A_ASK_ERASE, A_ERASE, A_CLOSE, A_START_DECKS, A_DECKS_CREATE, A_SELECT_DEST_DECK, A_SELECT_SEND_CAT, A_SELECT_ARRANGE, A_CAT_NAME, A_STYLE_GO, A_CREATE_DECK, A_RENAME_CAT, A_READ_STYLE, A_STYLE_APPLY, A_ASK_DELETE_DECK, A_DELETE_CAT, A_TOGGLE, A_MOVE_CAT, A_SELECT_EDIT_CAT, A_EDIT, A_UPDATE_QA, A_UPDATE_QA_OLD, A_UPDATE_HTML, A_SYNC, A_INSERT, A_APPEND, A_ASK_DELETE_CARD, A_DELETE_CARD, A_PREVIOUS, A_NEXT, A_SCHEDULE, A_SET, A_CARD_ARRANGE, A_MOVE_CARD, A_SEND_CARD, A_SELECT_LEARN_CAT, A_SELECT_SEARCH_CAT, A_PREFERENCES, A_ABOUT, A_APPLY, A_SEARCH, A_PREVIEW, A_RANK, A_DETERMINE_CARD, A_SHOW, A_REVEAL, A_PROCEED, A_ASK_SUSPEND, A_SUSPEND, A_ASK_RESUME, A_RESUME, A_CHECK_FILE, A_LOGIN, A_HISTOGRAM, A_TABLE, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CARD, A_TEST_CAT_SELECTED, A_TEST_CAT_VALID, A_TEST_DECK, A_TEST_ARRANGE, A_TEST_NAME };
 enum Page { P_UNDEF = -1, P_START, P_FILE, P_PASSWORD, P_NEW, P_OPEN, P_UPLOAD, P_UPLOAD_REPORT, P_EXPORT, P_CAT_NAME, P_STYLE, P_SELECT_ARRANGE, P_SELECT_DEST_DECK, P_SELECT_DECK, P_EDIT, P_PREVIEW, P_SEARCH, P_PREFERENCES, P_ABOUT, P_LEARN, P_MSG, P_HISTOGRAM, P_TABLE };
@@ -578,7 +579,7 @@ static int xml_unescape(char *xml_str)
         ch = '<';
       } else {
         ch = '\0';
-        e = 0x04174be0; // WIADUD (Web)MemorySurfer illegal ampersand during unescape detected
+        e = E_UNESC; // illegal ampersand during unescape detected
       }
     }
     xml_str[wp++] = ch;
@@ -998,7 +999,7 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
             }
             break;
           default:
-            e = 0x125d6b60; // WMSTLU (Web)MemorySurfer tag length undefined
+            e = E_PXML; // tag length undefined
             break;
           }
         }
@@ -1072,10 +1073,11 @@ static int ms_open(struct MemorySurfer *ms) {
                     n_prev = i;
               if (n_prev != -1) {
                 e = n_prev == ms->n_first;
-                if (e == 0)
+                if (e == 0) {
                   ms->n_first = n_prev;
-                else
-                  e = 0x02d3171a; // MSODHC MemorySurfer ms_open decks hierarchy (is) corrupted
+                } else {
+                  e = E_CRRPT; // decks hierarchy (is) corrupted
+                }
               }
             }
             while (n_prev != -1 && e == 0);
@@ -1083,9 +1085,9 @@ static int ms_open(struct MemorySurfer *ms) {
         }
       }
     }
+  } else {
+    e = E_ASSRT; // ms_open assert failed
   }
-  else
-    e = 0x052e8351; // WMSOAF (Web)MemorySurfer ms_open assert failed
   return e;
 }
 
@@ -1236,7 +1238,7 @@ static int determine_field(struct Multi *mult, struct Parse *parse)
       }
       break;
     default:
-      e = 0x00014618; // WMFD Web(MemorySurfer) malformed form data
+      e = E_POST; // malformed form data
       break;
     }
   }
@@ -1251,7 +1253,7 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
   e = 0;
   switch (parse->field) {
   case F_FILE_TITLE:
-    e = wms->file_title_str != NULL ? 0x1165e5a0 : 0; // RPOFIT - repeated parse of file title
+    e = wms->file_title_str != NULL ? E_RPOFT : 0; // repeated parse of file title
     if (e == 0) {
       wms->file_title_str = malloc(mult->post_wp);
       e = wms->file_title_str == NULL;
@@ -1269,14 +1271,14 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
     e = a_n != 1;
     break;
   case F_CAT_NAME:
-    e = wms->ms.deck_name != NULL ? 0x01a0eada : 0; // PFDKXA
+    e = wms->ms.deck_name != NULL ? E_FIELD_1 : 0;
     if (e == 0) {
       wms->ms.deck_name = malloc(mult->post_wp);
-      e = wms->ms.deck_name == NULL ? 0x027bdd45 : 0; // PFDKXB
+      e = wms->ms.deck_name == NULL ? E_FIELD_2 : 0;
       if (e == 0) {
         assert(mult->post_lp[mult->post_fp] == '\0');
         memcpy(wms->ms.deck_name, mult->post_lp, mult->post_wp);
-        e = percent2c(wms->ms.deck_name, mult->post_fp) ? 0x0356cfb0 : 0; // PFDKXC
+        e = percent2c(wms->ms.deck_name, mult->post_fp) ? E_FIELD_3 : 0;
       }
     }
     break;
@@ -1360,7 +1362,7 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
     if (e == 0) {
       e = wms->ms.lvl < 0 || wms->ms.lvl >= 21;
       if (e != 0) {
-        e = 0x21e1b31e; // WMSPPLA (Web)MemorySurfer parse_post lvl assert (failed)
+        e = E_FIELD_4; // lvl assert (failed)
       }
     }
     break;
@@ -1392,7 +1394,7 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
       e = a_n != 1 || wms->saved_reveal_pos < 0;
     }
     if (e == 1) {
-      e = 0x255dac21; // WMPPRPA WebMemorySurfer parse_post reveal-pos assert (failed)
+      e = E_FIELD_5; // reveal-pos assert (failed)
       wms->saved_reveal_pos = -1;
     }
     break;
@@ -1532,7 +1534,7 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
           wms->seq = S_EDIT_SYNC;
           break;
         default:
-          e = 0x0de65486; // WMSUFP unknown from page
+          e = E_FIELD_6; // unknown from page
         }
       } else if (memcmp(mult->post_lp, "Next", 4) == 0) {
         wms->seq = S_NEXT;
@@ -1896,7 +1898,7 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
     }
     break;
   default:
-    e = 0x13080308; // WMSUFV unknown Field value
+    e = E_FIELD_7; // unknown Field value
     break;
   }
   return e;
@@ -2012,7 +2014,7 @@ static int parse_post(struct WebMemorySurfer *wms) {
           if (e == 0) {
             assert(boundary_str == NULL);
             size = mult->nread - 1;
-            e = size <= 71 ? 0 : 0x00c46685; // WBYEX - boundary exceeded
+            e = size <= 71 ? 0 : E_PARSE; // boundary exceeded
             if (e == 0) {
               boundary_str = malloc(size);
               e = boundary_str == NULL;
@@ -3214,7 +3216,7 @@ static int gen_html(struct WebMemorySurfer *wms)
           submit_str = "Select";
           break;
         default:
-          e = 0x0392159c; // WUMSDD Web(MemorySurfer) unexpected mode B_SELECT_DEST_DECK
+          e = E_GHTML_1; // unexpected mode B_SELECT_DEST_DECK
           break;
         }
         if (e == 0) {
@@ -3265,7 +3267,7 @@ static int gen_html(struct WebMemorySurfer *wms)
             header_str = "Select a deck (if possible) and / or a action";
             break;
           default:
-            e = 0x00264bf0; // WUMSD Web(MemorySurfer) unexpected mode B_SELECT_DECK
+            e = E_GHTML_2; // unexpected mode B_SELECT_DECK
             break;
           }
           if (e == 0) {
@@ -3445,7 +3447,7 @@ static int gen_html(struct WebMemorySurfer *wms)
                       "</html>\n",
               sw_info_str,
               wms->ms.cards_nel);
-          e = rv < 0 ? 0x01a43cb8 : 0; // PREVXA
+          e = rv < 0 ? E_GHTML_3 : 0;
         }
         break;
       case B_SEARCH:
@@ -4342,21 +4344,33 @@ static void e2str(int e, char *e_str)
 {
   int i;
   char ch;
-  if (e == 0)
+  int number;
+  if (e == 0) {
     strcpy(e_str, "0");
-  else if (e == 1)
+  } else if (e == 1) {
     strcpy(e_str, "1");
-  else if (e < 0)
+  } else if (e < 0) {
     strcpy(e_str, "< 0");
-  else {
+  } else {
     i = 0;
+    number = -1;
     while (e != 0) {
-      ch = e % 27;
-      if (ch != 0) {
-        ch += '@';
-        e_str[i++] = ch;
+      if (number >= 0) {
+        ch = e % 27;
+        if (ch != 0) {
+          ch += '@';
+          e_str[i++] = ch;
+        }
+        e /= 27;
+      } else {
+        number = e % 10;
+        e /= 10;
       }
-      e /= 27;
+    }
+    if (number != 0) {
+      e_str[i++] = '-';
+      ch = '0' + number;
+      e_str[i++] = ch;
     }
     e_str[i] = '\0';
   }
@@ -4462,7 +4476,7 @@ int main(int argc, char *argv[])
   void *src;
   struct Category *cat_ptr;
   struct Card *card_ptr;
-  char e_str[8]; // JTLWQNE + '\0' (0x7fffffff)
+  char e_str[9]; // AAAAAA-1 + '\0'
   struct tm bd_time; // broken-down
   int need_sync;
   struct XML *xml;
@@ -4472,7 +4486,7 @@ int main(int argc, char *argv[])
       dbg_stream = NULL;
       size = sizeof(struct WebMemorySurfer);
       wms = malloc(size);
-      e = wms == NULL ? 0x0a4f980d : 0; // WMSMAL WebMemorySurfer (failed), malloc (for)
+      e = wms == NULL ? E_MALLOC_1 : 0;
       if (e == 0) {
         e = wms_init(wms);
         if (e == 0) {
@@ -6201,10 +6215,10 @@ int main(int argc, char *argv[])
         }
         free(wms);
       }
-      if (e != 0) {
-        e2str(e, e_str);
-        fprintf(stderr, "unreported error: %s\n", e_str);
-      }
+    }
+    if (e != 0) {
+      e2str(e, e_str);
+      fprintf(stderr, "unreported error: %s\n", e_str);
     }
   } while (IS_SERVER && e == 0);
   return e;
