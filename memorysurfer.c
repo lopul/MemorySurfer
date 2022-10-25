@@ -44,9 +44,9 @@
 #include <fcntl.h> // O_TRUNC / O_EXCL
 #include <errno.h>
 
-static const int32_t MSF_VERSION = 0x010001bc;
+static const int32_t MSF_VERSION = 0x010001bd;
 
-enum Error { E_OK, E_FAIL, E_UNESC = 0x012cf4b0, E_PXML = 0x0025968a, E_CRRPT = 0x0687f5d6, E_ASSRT = 0x068e1506, E_POST = 0x003e3ed8, E_RPOFT = 0x115048c5, E_FIELD_1 = 0x0169002d, E_FIELD_2 = 0x0169002e, E_FIELD_3 = 0x0169002f, E_FIELD_4 = 0x01690030, E_FIELD_5 = 0x01690031, E_FIELD_6 = 0x01690032, E_FIELD_7 = 0x01690033, E_PARSE = 0x01d087ce, E_GHTML_1 = 0x03f6667d, E_GHTML_2 = 0x03f6667e, E_GHTML_3 = 0x03f6667f, E_MALLOC_1 = 0x1e8e2971 };
+enum Error { E_OK, E_FAIL, E_UNESC = 0x012cf4b0, E_PXML = 0x0025968a, E_CRRPT = 0x0687f5d6, E_ASSRT_1 = 0x068e1507, E_POST = 0x003e3ed8, E_RPOFT = 0x115048c5, E_FIELD_1 = 0x0169002d, E_FIELD_2 = 0x0169002e, E_FIELD_3 = 0x0169002f, E_FIELD_4 = 0x01690030, E_FIELD_5 = 0x01690031, E_FIELD_6 = 0x01690032, E_FIELD_7 = 0x01690033, E_PARSE = 0x01d087ce, E_GHTML_1 = 0x03f6667d, E_GHTML_2 = 0x03f6667e, E_GHTML_3 = 0x03f6667f, E_GHTML_4 = 0x03f66680, E_GHTML_5 = 0x03f66681, E_GHTML_6 = 0x03f66682, E_GENLRN_1 = 0x7d95d699, E_GENLRN_2 = 0x7d95d69a, E_GENLRN_3 = 0x7d95d69b, E_GENLRN_4 = 0x7d95d69c, E_GENLRN_5 = 0x7d95d69d, E_GENLRN_6 = 0x7d95d69e, E_GENLRN_7 = 0x7d95d69f, E_GENLRN_8 = 0x7d95d6a0, E_GENLRN_9 = 0x7d95d6a1, E_GHTML_7 = 0x03f66683, E_GHTML_8 = 0x03f66684, E_GHTML_9 = 0x03f66685, E_MALLOC_1 = 0x1e8e2971, E_MALLOC_2 = 0x1e8e2972, E_MALLOC_3 = 0x1e8e2973, E_ARG_1 = 0x0000da5d, E_ASSRT_2 = 0x0000da5d, E_DETECA = 0x099201b8, E_ARG_2 = 0x0000da5e, E_MALLOC_4 = 0x1e8e2974, E_MALLOC_5 = 0x1e8e2975, E_INIT = 0x003d20c0, E_ASSRT_3 = 0x068e1509, E_ASSRT_4 = 0x068e150a, E_CARD_1 = 0x000e0539, E_CARD_2 = 0x000e053a, E_CARD_3 = 0x000e053b, E_CARD_4 = 0x000e053c, E_DECK_1 = 0x00216467, E_DECK_2 = 0x00216468, E_DECK_3 = 0x00216469, E_DECK_4 = 0x0021646a, E_ASSRT_5 = 0x068e150b, E_UPLOAD_1 = 0x22b56c8f, E_ARRANG_1 = 0x4052a587, E_ARRANG_2 = 0x4052a588, E_CARD_5 = 0x000e053d, E_CARD_6 = 0x000e053e, E_CARD_7 = 0x000e053f, E_LVL_1 = 0x00016d65, E_CARD_8 = 0x000e0540, E_CARD_9 = 0x000e0541 };
 enum Field { F_UNKNOWN, F_FILE_TITLE, F_UPLOAD, F_ARRANGE, F_CAT_NAME, F_STYLE_TXT, F_MOVED_CAT, F_SEARCH_TXT, F_MATCH_CASE, F_IS_HTML, F_IS_UNLOCKED, F_CAT, F_CARD, F_MOV_CARD, F_LVL, F_RANK, F_Q, F_A, F_REVEAL_POS, F_TODO_MAIN, F_TODO_ALT, F_MTIME, F_PASSWORD, F_NEW_PASSWORD, F_TOKEN, F_EVENT, F_PAGE, F_MODE, F_TIMEOUT };
 enum Action { A_END, A_NONE, A_FILE, A_WARN_UPLOAD, A_CREATE, A_NEW, A_OPEN_DLG, A_FILELIST, A_OPEN, A_CHANGE_PASSWD, A_WRITE_PASSWD, A_READ_PASSWD, A_CHECK_PASSWORD, A_AUTH_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_LOAD_CARDLIST_OLD, A_GET_CARD, A_CHECK_RESUME, A_SLASH, A_VOID, A_FILE_EXTENSION, A_GATHER, A_UPLOAD, A_UPLOAD_REPORT, A_EXPORT, A_ASK_REMOVE, A_REMOVE, A_ASK_ERASE, A_ERASE, A_CLOSE, A_START_DECKS, A_DECKS_CREATE, A_SELECT_DEST_DECK, A_SELECT_SEND_CAT, A_SELECT_ARRANGE, A_CAT_NAME, A_STYLE_GO, A_CREATE_DECK, A_RENAME_CAT, A_READ_STYLE, A_STYLE_APPLY, A_ASK_DELETE_DECK, A_DELETE_CAT, A_TOGGLE, A_MOVE_CAT, A_SELECT_EDIT_CAT, A_EDIT, A_UPDATE_QA, A_UPDATE_QA_OLD, A_UPDATE_HTML, A_SYNC, A_INSERT, A_APPEND, A_ASK_DELETE_CARD, A_DELETE_CARD, A_PREVIOUS, A_NEXT, A_SCHEDULE, A_SET, A_CARD_ARRANGE, A_MOVE_CARD, A_SEND_CARD, A_SELECT_LEARN_CAT, A_SELECT_SEARCH_CAT, A_PREFERENCES, A_ABOUT, A_APPLY, A_SEARCH, A_PREVIEW, A_RANK, A_DETERMINE_CARD, A_SHOW, A_REVEAL, A_PROCEED, A_ASK_SUSPEND, A_SUSPEND, A_ASK_RESUME, A_RESUME, A_CHECK_FILE, A_LOGIN, A_HISTOGRAM, A_TABLE, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CARD, A_TEST_CAT_SELECTED, A_TEST_CAT_VALID, A_TEST_DECK, A_TEST_ARRANGE, A_TEST_NAME };
 enum Page { P_UNDEF = -1, P_START, P_FILE, P_PASSWORD, P_NEW, P_OPEN, P_UPLOAD, P_UPLOAD_REPORT, P_EXPORT, P_CAT_NAME, P_STYLE, P_SELECT_ARRANGE, P_SELECT_DEST_DECK, P_SELECT_DECK, P_EDIT, P_PREVIEW, P_SEARCH, P_PREFERENCES, P_ABOUT, P_LEARN, P_MSG, P_HISTOGRAM, P_TABLE };
@@ -1086,7 +1086,7 @@ static int ms_open(struct MemorySurfer *ms) {
       }
     }
   } else {
-    e = E_ASSRT; // ms_open assert failed
+    e = E_ASSRT_1; // ms_open assert failed
   }
   return e;
 }
@@ -3560,12 +3560,12 @@ static int gen_html(struct WebMemorySurfer *wms)
       case B_LEARN:
         q_str = sa_get(&wms->ms.card_sa, 0);
         a_str = sa_get(&wms->ms.card_sa, 1);
-        e = q_str == NULL || a_str == NULL || strlen(mtime_str) != 16 || wms->file_title_str == NULL || strlen(wms->tok_str) != 40 ? 0x000f7b09 : 0; // LRNXA
+        e = q_str == NULL || a_str == NULL || strlen(mtime_str) != 16 || wms->file_title_str == NULL || strlen(wms->tok_str) != 40 ? E_GHTML_4 : 0;
         if (e == 0) {
           if (wms->mode == M_ASK) {
             header_str = "Asking";
           } else {
-            e = wms->mode != M_RATE ? 0x001796fa : 0 ; // LRNXB
+            e = wms->mode != M_RATE ? E_GHTML_5 : 0;
             if (e == 0) {
               header_str = "Rating";
             }
@@ -3616,31 +3616,31 @@ static int gen_html(struct WebMemorySurfer *wms)
                 wms->mode != M_ASK ? " disabled" : "",
                 wms->mode != M_ASK ? " disabled" : "",
                 wms->ms.card_i >= 0 && wms->ms.card_a > 0 && wms->ms.card_i < wms->ms.card_a && (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 && wms->mode == M_RATE ? "" : " disabled");
-            e = rv < 0 ? 0x001fb2eb : 0; // LRNXC
+            e = rv < 0 ? E_GHTML_6 : 0;
           }
           if (e == 0) {
-            e = xml_escape(&wms->html_lp, &wms->html_n, q_str, (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? 0 : ESC_AMP | ESC_LT) ? 0x0027cedc : 0; // LRNXD
+            e = xml_escape(&wms->html_lp, &wms->html_n, q_str, (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? 0 : ESC_AMP | ESC_LT) ? E_GENLRN_1 : 0;
             if (e == 0) {
               rv = printf("\t\t\t<div id=\"%s\" class=\"%s\">%s</div>\n"
                           "\t\t\t<table>\n",
                   (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? "q-html" : "q-txt",
                   (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? "qa-html" : "qa-txt",
                   wms->html_lp);
-              e = rv < 0 ? 0x002feacd : 0; // LRNXE
+              e = rv < 0 ? E_GENLRN_2 : 0;
             }
           }
           if (e == 0) {
             if (wms->mode == M_ASK) {
               for (y = 0; y < 3 && e == 0; y++) {
                 rv = printf ("\t\t\t\t<tr>\n");
-                e = rv < 0 ? 0x003806be : 0; // LRNXF
+                e = rv < 0 ? E_GENLRN_3 : 0;
                 for (x = 0; x < 2 && e == 0; x++) {
                   rv = printf("\t\t\t\t\t<td class=\"msf-lvl\"><label class=\"msf-td\"><input type=\"radio\" disabled>Level</label></td>\n");
-                  e = rv < 0 ? 0x004022af : 0; // LRNXG
+                  e = rv < 0 ? E_GENLRN_4 : 0;
                 }
                 if (e == 0) {
                   rv = printf("\t\t\t\t</tr>\n");
-                  e = rv < 0 ? 0x00483ea0 : 0; // LRNXH
+                  e = rv < 0 ? E_GENLRN_5 : 0;
                 }
               }
             } else {
@@ -3666,7 +3666,7 @@ static int gen_html(struct WebMemorySurfer *wms)
                 lvl_sel = j + 5;
               for (y = 0; y < 3 && e == 0; y++) {
                 rv = printf("\t\t\t\t<tr>\n");
-                e = rv < 0 ? 0x00505a91 : 0; // LRNXI
+                e = rv < 0 ? E_GENLRN_6 : 0;
                 assert(wms->html_n >= 19); // 8 + 10 + 1 " checked autofocus"
                 for (x = 0; x < 2 && e == 0; x++) {
                   i = j + x + y * 2;
@@ -3681,18 +3681,18 @@ static int gen_html(struct WebMemorySurfer *wms)
                   rv = printf("\t\t\t\t\t<td class=\"msf-lvl\"><label class=\"msf-td\"><input type=\"radio\" name=\"lvl\" value=\"%d\"%s>Level %d (%s)</label></td>\n",
                       i, wms->html_lp,
                       i, time_diff_str);
-                  e = rv < 0 ? 0x00587682 : 0; // LRNXJ
+                  e = rv < 0 ? E_GENLRN_7 : 0;
                 }
                 if (e == 0) {
                   rv = printf("\t\t\t\t</tr>\n");
-                  e = rv < 0 ? 0x00609273 : 0; // LRNXK
+                  e = rv < 0 ? E_GENLRN_8 : 0;
                 }
               }
             }
           }
           if (e == 0) {
             assert(wms->mode == M_ASK && wms->reveal_pos == -1 ? wms->ms.cards_nel >= 0 : 1);
-            e = xml_escape(&wms->html_lp, &wms->html_n, a_str, (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? 0 : ESC_AMP | ESC_LT) ? 0x0068ae64 : 0; // LRNXL
+            e = xml_escape(&wms->html_lp, &wms->html_n, a_str, (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? 0 : ESC_AMP | ESC_LT) ? E_GENLRN_9 : 0;
             if (e == 0) {
               rv = printf("\t\t\t</table>\n"
                           "\t\t\t<div id=\"%s\" class=\"%s\"%s>%s</div>\n",
@@ -3700,7 +3700,7 @@ static int gen_html(struct WebMemorySurfer *wms)
                   (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? "qa-html" : "qa-txt",
                   wms->mode == M_RATE || wms->reveal_pos > 0 ? "" : " style=\"background-color: #eee;\"",
                   wms->mode == M_RATE || wms->reveal_pos > 0 ? wms->html_lp : "");
-              e = rv < 0 ? 0x0070ca55 : 0; // LRNXM
+              e = rv < 0 ? E_GHTML_7 : 0;
             }
           }
           if (e == 0) {
@@ -3721,7 +3721,7 @@ static int gen_html(struct WebMemorySurfer *wms)
                 wms->ms.cards_nel,
                 time_diff_str,
                 wms->ms.passwd.mctr);
-            e = rv < 0 ? 0x0078e646 : 0; // LRNXN
+            e = rv < 0 ? E_GHTML_8 : 0;
           }
         }
         break;
@@ -3911,7 +3911,7 @@ static int gen_html(struct WebMemorySurfer *wms)
         }
         break;
       default:
-        e = 0x011e23b9; // WMSGHA (Web)MemorySurfer gen_html assert (failed)
+        e = E_GHTML_9;
         break;
       }
     }
@@ -3991,7 +3991,7 @@ static int wms_init(struct WebMemorySurfer *wms)
     wms->timeout = -1;
     wms->dbg_n = 720;
     wms->dbg_lp = malloc(wms->dbg_n);
-    e = wms->dbg_lp == NULL ? 0x1f3e89c6 : 0; // WMSINIA wms_init failed
+    e = wms->dbg_lp == NULL ? E_MALLOC_1 : 0;
     if (e == 0) {
       wms->dbg_lp[0] = '\0';
       wms->dbg_wp = 0;
@@ -4011,14 +4011,14 @@ static int wms_init(struct WebMemorySurfer *wms)
       wms->todo_alt = -1;
       wms->html_n = 500;
       wms->html_lp = malloc(wms->html_n);
-      e = wms->html_lp == NULL ? 0x36561b0f : 0; // WMSINIB
+      e = wms->html_lp == NULL ? E_MALLOC_2 : 0;
       if (e == 0) {
         memset(wms->mtime, -1, sizeof(wms->mtime));
         memset(wms->tok_digest, -1, sizeof(wms->tok_digest));
         wms->tok_str[0] = '\0';
         size = sizeof(struct IndentStr);
         wms->inds = malloc(size);
-        e = wms->inds == NULL ? 0x4d6dac58 : 0; // WMSINIC
+        e = wms->inds == NULL ? E_MALLOC_3 : 0;
         if (e == 0) {
           inds_init(wms->inds);
           wms->temp_filename = NULL;
@@ -4119,9 +4119,9 @@ static int ms_create(struct MemorySurfer *ms, int flags_mask) {
 static int ms_get_card_sa(struct MemorySurfer *ms)
 {
   int e;
-  e = ms->card_l != NULL ? 0 : 0x0005a29f; // EPTR
+  e = ms->card_l != NULL ? 0 : E_ARG_1;
   if (e == 0 && ms->card_i != -1) {
-    e = ms->card_i >= 0 && ms->card_i < ms->card_a ? 0 : 0x49ca6cb7; // ERANGEC
+    e = ms->card_i >= 0 && ms->card_i < ms->card_a ? 0 : E_ASSRT_2;
     if (e == 0) {
       e = sa_load(&ms->card_sa, &ms->imf, ms->card_l[ms->card_i].card_qai);
     }
@@ -4183,7 +4183,7 @@ static int ms_determine_card(struct MemorySurfer *ms)
         }
         break;
       default:
-        e = 0x0009100c; // MSDCA MemorySurfer ms_determine_card assert (failed)
+        e = E_DETECA; // ms_determine_card assert (failed)
       }
     }
     if (e == 0) {
@@ -4243,7 +4243,7 @@ static int ms_modify_qa(struct StringArray *sa, struct MemorySurfer *ms, int *ne
   int e;
   int is_equal;
   int32_t data_size;
-  e = need_sync == NULL ? 0x4f98f128 : 0; // EINVALC
+  e = need_sync == NULL ? E_ARG_2 : 0;
   if (e == 0) {
     is_equal = sa_cmp(sa, &ms->card_sa);
     if (is_equal == 0) {
@@ -4486,7 +4486,7 @@ int main(int argc, char *argv[])
       dbg_stream = NULL;
       size = sizeof(struct WebMemorySurfer);
       wms = malloc(size);
-      e = wms == NULL ? E_MALLOC_1 : 0;
+      e = wms == NULL ? E_MALLOC_4 : 0;
       if (e == 0) {
         e = wms_init(wms);
         if (e == 0) {
@@ -4495,7 +4495,7 @@ int main(int argc, char *argv[])
           if (e == 0) {
             size = strlen(DATA_PATH) + 10 + 1;
             dbg_filename = malloc(size);
-            e = dbg_filename == NULL;
+            e = dbg_filename == NULL ? E_MALLOC_5 : 0;
             if (e == 0) {
               rv = snprintf(dbg_filename, size, "%s%s", DATA_PATH, "/debug.csv");
               e = rv < 0 || rv >= size;
@@ -4508,11 +4508,9 @@ int main(int argc, char *argv[])
               }
               free(dbg_filename);
             }
-            else
-              e = 0x00344f24; // WMDLF Web(MemorySurfer) malloc debug log file (failed)
+          } else {
+            e = E_INIT; // starting stopwatch failed
           }
-          else
-            e = 0x00020585; // WSSF Web(MemorySurfer) starting stopwatch failed
           if (e == 0) {
             e = parse_post(wms);
             if (e != 0) {
@@ -4777,7 +4775,7 @@ int main(int argc, char *argv[])
                 }
                 break;
               case A_RETRIEVE_MTIME:
-                e = mtime_test != -1;
+                e = mtime_test != -1 ? E_ASSRT_3 : 0;
                 if (e == 0) {
                   mtime_test = 1;
                   if (wms->mtime[0] != 0 || wms->mtime[1] != 0) {
@@ -4794,11 +4792,9 @@ int main(int argc, char *argv[])
                     }
                   }
                 }
-                else
-                  e = 0x00e72d74; // WMSMAA (Web)MemorySurfer main assert A (failed)
                 break;
               case A_MTIME_TEST:
-                e = mtime_test == -1 ? 0x100847ab : 0; // NOMCTR
+                e = mtime_test == -1 ? E_ASSRT_4 : 0;
                 if (e == 0) {
                   e = mtime_test == 0;
                   if (e != 0) {
@@ -4811,13 +4807,13 @@ int main(int argc, char *argv[])
                 }
                 break;
               case A_TEST_CARD:
-                e = wms->ms.card_a < 0 ? 0x60e1fe00 : 0; // ERANGED
+                e = wms->ms.card_a < 0 ? E_CARD_1 : 0;
                 if (e == 0) {
                   if (wms->ms.card_a > 0) {
                     if (wms->seq == S_EDIT && wms->ms.card_i == -1) {
                       wms->ms.card_i = 0;
                     }
-                    e = wms->ms.card_i < 0 || wms->ms.card_i >= wms->ms.card_a || wms->ms.card_l == NULL ? 0x2169ce96 : 0; // EINVALA
+                    e = wms->ms.card_i < 0 || wms->ms.card_i >= wms->ms.card_a || wms->ms.card_l == NULL ? E_CARD_2 : 0;
                     if (e != 0) {
                       wms->static_header = "Invalid card";
                       wms->static_msg = "Out of bounds";
@@ -4826,9 +4822,9 @@ int main(int argc, char *argv[])
                     }
                   } else {
                     assert(wms->ms.card_a == 0);
-                    e = wms->seq != S_APPEND && wms->seq != S_EDIT ? 0x38815fdf : 0; // EINVALB
+                    e = wms->seq != S_APPEND && wms->seq != S_EDIT ? E_CARD_3 : 0;
                     if (e == 0) {
-                      e = wms->ms.card_i == -1 ? 0 : 0x77f98f49; // ERANGEE
+                      e = wms->ms.card_i == -1 ? 0 : E_CARD_4;
                     } else {
                       wms->static_header = "Empty deck";
                       wms->static_msg = "No card present";
@@ -4873,11 +4869,11 @@ int main(int argc, char *argv[])
                 }
                 break;
               case A_TEST_DECK:
-                e = wms->ms.deck_i < 0 ? 0x09824be2 : 0; // NODECK
+                e = wms->ms.deck_i < 0 ? E_DECK_1 : 0; // no deck
                 if (e == 0) {
-                  e = wms->ms.deck_i >= wms->ms.cat_a ? 0x686c7b67 : 0; // OUTOBND
+                  e = wms->ms.deck_i >= wms->ms.cat_a ? E_DECK_2 : 0; // out of bounds
                   if (e == 0) {
-                    e = wms->ms.cat_t[wms->ms.deck_i].cat_used == 0 ? 0x61459d54 : 0; // NOTUSED
+                    e = wms->ms.cat_t[wms->ms.deck_i].cat_used == 0 ? E_DECK_3 : 0; // not used
                     if (e != 0) {
                       wms->static_msg = "The selected deck (index) is not in use (anymore)";
                     }
@@ -4905,7 +4901,7 @@ int main(int argc, char *argv[])
                       } else if (wms->seq == S_QUESTION) {
                         wms->static_msg = "Please select a deck to learn";
                       } else {
-                        e = 0x0a681989; // UNHNDL
+                        e = E_DECK_4;
                       }
                     }
                   }
@@ -4950,7 +4946,7 @@ int main(int argc, char *argv[])
                 }
                 break;
               case A_SLASH:
-                e = wms->file_title_str == NULL;
+                e = wms->file_title_str == NULL ? E_ASSRT_5 : 0;
                 if (e == 0) {
                   str = strchr(wms->file_title_str, '/');
                   e = str != NULL;
@@ -4962,8 +4958,6 @@ int main(int argc, char *argv[])
                     wms->todo_main = S_FILE;
                     wms->page = P_MSG;
                   }
-                } else {
-                  e = 0x029d124a; // WMSMAC (Web)MemorySurfer main assert C (failed)
                 }
                 break;
               case A_VOID:
@@ -5014,7 +5008,7 @@ int main(int argc, char *argv[])
                 wms->page = P_UPLOAD;
                 break;
               case A_UPLOAD_REPORT:
-                e = wms->ms.n_first == -1 ? 0 : 0x04ba4828; // WMSFNE (Web)MemorySurfer File not empty
+                e = wms->ms.n_first == -1 ? 0 : E_UPLOAD_1; // file not empty
                 if (e == 0) {
                   size = sizeof(struct XML);
                   xml = malloc(size);
@@ -5269,7 +5263,7 @@ int main(int argc, char *argv[])
                             }
                             break;
                           default:
-                            e = 0x000066ec; // WCIA Web(MemorySurfer) A_CREATE_DECK invalid arrange (value)
+                            e = E_ARRANG_1;
                           }
                           if (e == 0) {
                             wms->ms.cat_t[deck_i].cat_used = 1;
@@ -5503,7 +5497,7 @@ int main(int argc, char *argv[])
                       wms->ms.cat_t[wms->ms.deck_i].cat_n_sibling = wms->ms.mov_cat_i;
                       break;
                     default:
-                      e = 0x000ad43b; // WMAIA Web(MemorySurfer) main assert invalid arrange (value)
+                      e = E_ARRANG_2;
                       break;
                     }
                     if (e == 0) {
@@ -5540,12 +5534,12 @@ int main(int argc, char *argv[])
                 wms->mode = M_EDIT;
                 break;
               case A_EDIT:
-                e = wms->ms.card_a < 0 ? 0x055eab47 : 0; // ERANGF
+                e = wms->ms.card_a < 0 ? E_CARD_5 : 0;
                 if (e == 0) {
                   if (wms->ms.card_a > 0) {
-                    e = wms->ms.card_i >= 0 && wms->ms.card_i < wms->ms.card_a ? 0 : 0x06399db2; // ERANGG
+                    e = wms->ms.card_i >= 0 && wms->ms.card_i < wms->ms.card_a ? 0 : E_CARD_6;
                   } else {
-                    e = wms->ms.card_i != -1 ? 0x0714901d : 0; // ERANGH
+                    e = wms->ms.card_i != -1 ? E_CARD_7 : 0;
                   }
                 }
                 if (e == 0) {
@@ -6054,7 +6048,7 @@ int main(int argc, char *argv[])
                 assert(mtime_test >= 0);
                 assert(wms->ms.deck_i >= 0 && wms->ms.deck_i < wms->ms.cat_a && wms->ms.cat_t[wms->ms.deck_i].cat_used != 0);
                 assert(wms->ms.timestamp >= 0);
-                e = wms->ms.lvl < 0 || wms->ms.lvl > 20 ? 0x3baa2b82 : 0; // LVLOTOB
+                e = wms->ms.lvl < 0 || wms->ms.lvl > 20 ? E_LVL_1 : 0;
                 if (e == 0) {
                   card_ptr = wms->ms.card_l + wms->ms.card_i;
                   if ((card_ptr->card_state & 0x07) == STATE_NEW || (card_ptr->card_state & 0x07) == STATE_SUSPENDED) {
@@ -6096,15 +6090,16 @@ int main(int argc, char *argv[])
                 wms->mode = M_MSG_RESUME;
                 break;
               case A_RESUME:
-                e = wms->ms.card_a > 0 ? 0 : 0x6be36100; // EMTYCRD
+                e = wms->ms.card_a > 0 ? 0 : E_CARD_8; // empty
                 if (e == 0) {
                   n = 0;
-                  for (card_i = 0; card_i < wms->ms.card_a; card_i++)
+                  for (card_i = 0; card_i < wms->ms.card_a; card_i++) {
                     if ((wms->ms.card_l[card_i].card_state & 0x07) == STATE_SUSPENDED) {
                       wms->ms.card_l[card_i].card_state = (wms->ms.card_l[card_i].card_state & 0x08) | STATE_SCHEDULED;
                       n++;
                     }
-                  e = n > 0 ? 0 : 0x55ac93b4; // NOCRDSC
+                  }
+                  e = n > 0 ? 0 : E_CARD_9; // no card scheduled
                   if (e == 0) {
                     data_size = wms->ms.card_a * sizeof(struct Card);
                     index = wms->ms.cat_t[wms->ms.deck_i].cat_cli;
