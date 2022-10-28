@@ -43,7 +43,7 @@
 #include <fcntl.h> // O_TRUNC / O_EXCL
 #include <errno.h>
 
-static const int32_t MSF_VERSION = 0x010001be;
+static const int32_t MSF_VERSION = 0x010001bf;
 
 enum Error { E_OK, E_FAIL, E_UNESC = 0x012cf4b0, E_PXML = 0x0025968a, E_CRRPT = 0x0687f5d6, E_ASSRT_1 = 0x068e1507, E_POST = 0x003e3ed8, E_RPOFT = 0x115048c5, E_FIELD_1 = 0x0169002d, E_FIELD_2 = 0x0169002e, E_FIELD_3 = 0x0169002f, E_FIELD_4 = 0x01690030, E_FIELD_5 = 0x01690031, E_FIELD_6 = 0x01690032, E_FIELD_7 = 0x01690033, E_PARSE_1 = 0x01d087cf, E_PARSE_2 = 0x01d087d0, E_PARSE_3 = 0x01d087d1, E_EXPOR_1 = 0x05e29399, E_EXPOR_2 = 0x05e2939a, E_GHTML_1 = 0x03f6667d, E_GHTML_2 = 0x03f6667e, E_GHTML_3 = 0x03f6667f, E_GHTML_4 = 0x03f66680, E_GHTML_5 = 0x03f66681, E_GHTML_6 = 0x03f66682, E_GENLRN_1 = 0x7d95d699, E_GENLRN_2 = 0x7d95d69a, E_GENLRN_3 = 0x7d95d69b, E_GENLRN_4 = 0x7d95d69c, E_GENLRN_5 = 0x7d95d69d, E_GENLRN_6 = 0x7d95d69e, E_GENLRN_7 = 0x7d95d69f, E_GENLRN_8 = 0x7d95d6a0, E_GENLRN_9 = 0x7d95d6a1, E_GHTML_7 = 0x03f66683, E_GHTML_8 = 0x03f66684, E_GHTML_9 = 0x03f66685, E_MALLOC_1 = 0x1e8e2971, E_MALLOC_2 = 0x1e8e2972, E_MALLOC_3 = 0x1e8e2973, E_ARG_1 = 0x0000da5d, E_ASSRT_2 = 0x0000da5d, E_DETECA = 0x099201b8, E_ARG_2 = 0x0000da5e, E_MALLOC_4 = 0x1e8e2974, E_MALLOC_5 = 0x1e8e2975, E_INIT = 0x003d20c0, E_ASSRT_3 = 0x068e1509, E_ASSRT_4 = 0x068e150a, E_CARD_1 = 0x000e0539, E_CARD_2 = 0x000e053a, E_CARD_3 = 0x000e053b, E_CARD_4 = 0x000e053c, E_DECK_1 = 0x00216467, E_DECK_2 = 0x00216468, E_DECK_3 = 0x00216469, E_DECK_4 = 0x0021646a, E_ASSRT_5 = 0x068e150b, E_UPLOAD_1 = 0x22b56c8f, E_ARRANG_1 = 0x4052a587, E_ARRANG_2 = 0x4052a588, E_CARD_5 = 0x000e053d, E_CARD_6 = 0x000e053e, E_CARD_7 = 0x000e053f, E_LVL_1 = 0x00016d65, E_CARD_8 = 0x000e0540, E_CARD_9 = 0x000e0541 };
 enum Field { F_UNKNOWN, F_FILE_TITLE, F_UPLOAD, F_ARRANGE, F_CAT_NAME, F_STYLE_TXT, F_MOVED_CAT, F_SEARCH_TXT, F_MATCH_CASE, F_IS_HTML, F_IS_UNLOCKED, F_CAT, F_CARD, F_MOV_CARD, F_LVL, F_RANK, F_Q, F_A, F_REVEAL_POS, F_TODO_MAIN, F_TODO_ALT, F_MTIME, F_PASSWORD, F_NEW_PASSWORD, F_TOKEN, F_EVENT, F_PAGE, F_MODE, F_TIMEOUT };
@@ -2665,6 +2665,27 @@ static time_t lvl_s[21] = { // level strength
   630720000 // 20Y (20)
 };
 
+static void print_hex(char *str, uint8_t *data, size_t len)
+{
+  int i;
+  int nibble[2];
+  char ch;
+  str[len * 2] = '\0';
+  while (len--) {
+    nibble[1] = data[len] & 0xf;
+    nibble[0] = data[len] >> 4;
+    i = 2;
+    while (i--) {
+      ch = nibble[i];
+      if (ch >= 10)
+        ch += 'a' - 10;
+      else
+        ch += '0';
+      str[len * 2 + i] = ch;
+    }
+  }
+}
+
 static int gen_html(struct WebMemorySurfer *wms)
 {
   int e;
@@ -2692,8 +2713,10 @@ static int gen_html(struct WebMemorySurfer *wms)
   char title_str[64];
   FILE *temp_stream;
   char *temp_filename;
-  char *xml_filename;
+  char digest_str[41];
   struct XmlGenerator xg;
+  struct Sha1Context sha1;
+  uint8_t message_digest[SHA1_HASH_SIZE];
   char *sw_info_str;
   char mtime_str[17];
   struct stat file_stat;
@@ -3102,53 +3125,69 @@ static int gen_html(struct WebMemorySurfer *wms)
                 e = rv != 0 ? E_EXPOR_1 : 0;
               }
             }
-            temp_stream = fopen(temp_filename, "r");
-            e = temp_stream == NULL;
             if (e == 0) {
-              e = wms->file_title_str == NULL;
+              e = sha1_reset(&sha1);
               if (e == 0) {
-                dup_str = strdup(wms->file_title_str);
-                e = dup_str == NULL;
+                temp_stream = fopen(temp_filename, "r");
+                e = temp_stream == NULL;
                 if (e == 0) {
-                  len = strlen(dup_str);
-                  e = len <= 5;
-                  if (e == 0) {
-                    ext_str = strrchr(dup_str, '.');
-                    e = ext_str == NULL || ext_str - dup_str != len - 5 || strcmp(ext_str, ".imsf") != 0;
-                    if (e == 0) {
-                      *ext_str = '\0';
-                      size = strlen(dup_str) + 1 + 40 + 4 + 1; // # + 0123456789abcdef0123456789abcdef0123456789 + .xml + '\0'
-                      xml_filename = malloc(size);
-                      e = xml_filename == NULL;
-                      if (e == 0) {
-                        rv = snprintf(xml_filename, size, "%s#0123456789abcdef0123456789abcdef01234567.xml", dup_str);
-                        e = rv < 0 || rv >= size;
-                        if (e == 0) {
-                          rv = printf("Content-Disposition: attachment; filename=\"%s\"\r\n"
-                                      "Content-Type: application/xml; charset=utf-8\r\n\r\n",
-                              xml_filename);
-                          e = rv < 0;
-                          if (e == 0) {
-                            do {
-                              len = fread(wms->html_lp, 1, wms->html_n, temp_stream);
-                              e = len == 0 && ferror(temp_stream) != 0;
-                              if (len > 0 && e == 0) {
-                                size = fwrite(wms->html_lp, 1, len, stdout);
-                                e = size != len;
-                              }
-                            } while (feof(temp_stream) == 0 && e == 0);
-                          }
-                        }
-                        free(xml_filename);
-                      }
+                  do {
+                    len = fread(wms->html_lp, 1, wms->html_n, temp_stream);
+                    e = len == 0 && ferror(temp_stream) != 0;
+                    if (len > 0 && e == 0) {
+                      e = sha1_input(&sha1, (uint8_t*) wms->html_lp, len);
                     }
+                  } while (feof(temp_stream) == 0 && e == 0);
+                  if (e == 0) {
+                    e = sha1_result(&sha1, message_digest);
                   }
-                  free(dup_str);
+                  rv = fclose(temp_stream);
+                  if (e == 0) {
+                    e = rv != 0 ? E_EXPOR_2 : 0;
+                  }
                 }
               }
-              rv = fclose(temp_stream);
+            }
+            if (e == 0) {
+              temp_stream = fopen(temp_filename, "r");
+              e = temp_stream == NULL;
               if (e == 0) {
-                e = rv != 0 ? E_EXPOR_2 : 0;
+                e = wms->file_title_str == NULL;
+                if (e == 0) {
+                  dup_str = strdup(wms->file_title_str);
+                  e = dup_str == NULL;
+                  if (e == 0) {
+                    len = strlen(dup_str);
+                    e = len <= 5;
+                    if (e == 0) {
+                      ext_str = strrchr(dup_str, '.');
+                      e = ext_str == NULL || ext_str - dup_str != len - 5 || strcmp(ext_str, ".imsf") != 0;
+                      if (e == 0) {
+                        *ext_str = '\0';
+                        print_hex(digest_str, message_digest, 20);
+                        rv = printf("Content-Disposition: attachment; filename=\"%s#sha1-%s.xml\"\r\n"
+                                    "Content-Type: application/xml; charset=utf-8\r\n\r\n",
+                            dup_str, digest_str);
+                        e = rv < 0;
+                        if (e == 0) {
+                          do {
+                            len = fread(wms->html_lp, 1, wms->html_n, temp_stream);
+                            e = len == 0 && ferror(temp_stream) != 0;
+                            if (len > 0 && e == 0) {
+                              size = fwrite(wms->html_lp, 1, len, stdout);
+                              e = size != len;
+                            }
+                          } while (feof(temp_stream) == 0 && e == 0);
+                        }
+                      }
+                    }
+                    free(dup_str);
+                  }
+                }
+                rv = fclose(temp_stream);
+                if (e == 0) {
+                  e = rv != 0 ? E_EXPOR_2 : 0;
+                }
               }
             }
           }
@@ -4365,27 +4404,6 @@ static int ms_close(struct MemorySurfer *ms) {
     ms->n_first = -1;
   }
   return e;
-}
-
-static void print_hex(char *str, uint8_t *data, size_t len)
-{
-  int i;
-  int nibble[2];
-  char ch;
-  str[len * 2] = '\0';
-  while (len--) {
-    nibble[1] = data[len] & 0xf;
-    nibble[0] = data[len] >> 4;
-    i = 2;
-    while (i--) {
-      ch = nibble[i];
-      if (ch >= 10)
-        ch += 'a' - 10;
-      else
-        ch += '0';
-      str[len * 2 + i] = ch;
-    }
-  }
 }
 
 static void e2str(int e, char *e_str)
