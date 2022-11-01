@@ -43,7 +43,7 @@
 #include <fcntl.h> // O_TRUNC / O_EXCL
 #include <errno.h>
 
-static const int32_t MSF_VERSION = 0x010001c0;
+static const int32_t MSF_VERSION = 0x010001c1;
 
 enum Error { E_OK, E_FAIL, E_UNESC = 0x012cf4b0, E_PXML = 0x0025968a, E_CRRPT = 0x0687f5d6, E_ASSRT_1 = 0x068e1507, E_HEX = 0x0002b106, E_POST = 0x003e3ed8, E_RPOFT = 0x115048c5, E_FIELD_1 = 0x0169002d, E_FIELD_2 = 0x0169002e, E_FIELD_3 = 0x0169002f, E_FIELD_4 = 0x01690030, E_FIELD_5 = 0x01690031, E_FIELD_6 = 0x01690032, E_FIELD_7 = 0x01690033, E_PARSE_1 = 0x01d087cf, E_PARSE_2 = 0x01d087d0, E_MISMA = 0x007a49be, E_PARSE_4 = 0x01d087d2, E_PARSE_3 = 0x01d087d1, E_EXPOR_1 = 0x05e29399, E_EXPOR_2 = 0x05e2939a, E_EXPOR_3 = 0x05e2939b, E_GHTML_1 = 0x03f6667d, E_GHTML_2 = 0x03f6667e, E_GHTML_3 = 0x03f6667f, E_GHTML_4 = 0x03f66680, E_GHTML_5 = 0x03f66681, E_GHTML_6 = 0x03f66682, E_GENLRN_1 = 0x7d95d699, E_GENLRN_2 = 0x7d95d69a, E_GENLRN_3 = 0x7d95d69b, E_GENLRN_4 = 0x7d95d69c, E_GENLRN_5 = 0x7d95d69d, E_GENLRN_6 = 0x7d95d69e, E_GENLRN_7 = 0x7d95d69f, E_GENLRN_8 = 0x7d95d6a0, E_GENLRN_9 = 0x7d95d6a1, E_GHTML_7 = 0x03f66683, E_GHTML_8 = 0x03f66684, E_GHTML_9 = 0x03f66685, E_MALLOC_1 = 0x1e8e2971, E_MALLOC_2 = 0x1e8e2972, E_MALLOC_3 = 0x1e8e2973, E_ARG_1 = 0x0000da5d, E_ASSRT_2 = 0x0000da5d, E_DETECA = 0x099201b8, E_ARG_2 = 0x0000da5e, E_MALLOC_4 = 0x1e8e2974, E_MALLOC_5 = 0x1e8e2975, E_INIT = 0x003d20c0, E_ASSRT_3 = 0x068e1509, E_ASSRT_4 = 0x068e150a, E_CARD_1 = 0x000e0539, E_CARD_2 = 0x000e053a, E_CARD_3 = 0x000e053b, E_CARD_4 = 0x000e053c, E_DECK_1 = 0x00216467, E_DECK_2 = 0x00216468, E_DECK_3 = 0x00216469, E_DECK_4 = 0x0021646a, E_ASSRT_5 = 0x068e150b, E_UPLOAD_1 = 0x22b56c8f, E_ARRANG_1 = 0x4052a587, E_ARRANG_2 = 0x4052a588, E_CARD_5 = 0x000e053d, E_CARD_6 = 0x000e053e, E_CARD_7 = 0x000e053f, E_LVL_1 = 0x00016d65, E_CARD_8 = 0x000e0540, E_CARD_9 = 0x000e0541 };
 enum Field { F_UNKNOWN, F_FILE_TITLE, F_UPLOAD, F_ARRANGE, F_CAT_NAME, F_STYLE_TXT, F_MOVED_CAT, F_SEARCH_TXT, F_MATCH_CASE, F_IS_HTML, F_IS_UNLOCKED, F_CAT, F_CARD, F_MOV_CARD, F_LVL, F_RANK, F_Q, F_A, F_REVEAL_POS, F_TODO_MAIN, F_TODO_ALT, F_MTIME, F_PASSWORD, F_NEW_PASSWORD, F_TOKEN, F_EVENT, F_PAGE, F_MODE, F_TIMEOUT };
@@ -1090,17 +1090,17 @@ static int ms_open(struct MemorySurfer *ms) {
   return e;
 }
 
-static int scan_hex(uint8_t *data, char *str, size_t len)
+static int scan_hex(uint8_t *data, char *str, size_t count)
 {
   int e;
   int i;
   char ch;
   int nibble[2];
   e = 0;
-  while (len-- && e == 0) {
+  while (count-- && e == 0) {
     i = 2;
     while (i--) {
-      ch = str[len * 2 + i];
+      ch = str[count * 2 + i];
       if (ch >= 'a' && ch <= 'f') {
         nibble[i] = ch - 'a' + 10;
       } else if (ch >= '0' && ch <= '9') {
@@ -1109,7 +1109,7 @@ static int scan_hex(uint8_t *data, char *str, size_t len)
         e = E_HEX;
       }
     }
-    data[len] = nibble[0] << 4 | nibble[1];
+    data[count] = nibble[0] << 4 | nibble[1];
   }
   return e;
 }
@@ -1904,7 +1904,8 @@ static int parse_field(struct WebMemorySurfer *wms, struct Multi *mult, struct P
   return e;
 }
 
-static int parse_post(struct WebMemorySurfer *wms) {
+static int parse_post(struct WebMemorySurfer *wms)
+{
   int e;
   int rv; // return value
   char *str;
@@ -2208,7 +2209,7 @@ static int parse_post(struct WebMemorySurfer *wms) {
                   len = fread(wms->html_lp, 1, wms->html_n, temp_stream);
                   e = len == 0 && ferror(temp_stream) != 0;
                   if (len > 0 && e == 0) {
-                    e = sha1_input(&sha1, (uint8_t*) wms->html_lp, len);
+                    e = sha1_input(&sha1, (uint8_t*)wms->html_lp, len);
                   }
                 } while (feof(temp_stream) == 0 && e == 0);
                 if (e == 0) {
@@ -2797,7 +2798,7 @@ static int gen_html(struct WebMemorySurfer *wms)
   char *sw_info_str;
   char mtime_str[17];
   struct stat file_stat;
-  int nb; // number (of) bytes
+  int n;
   int dx; // delta
   int dy;
   int vby; // viewbox
@@ -2818,8 +2819,8 @@ static int gen_html(struct WebMemorySurfer *wms)
     if (e == 0) {
       assert(file_stat.st_mtim.tv_sec >= 0 && file_stat.st_mtim.tv_nsec >= 0);
       size = sizeof(mtime_str);
-      nb = snprintf(mtime_str, size, "%08x%08x", (uint32_t) file_stat.st_mtim.tv_sec, (uint32_t) file_stat.st_mtim.tv_nsec);
-      e = nb != 16;
+      rv = snprintf(mtime_str, size, "%08x%08x", (uint32_t) file_stat.st_mtim.tv_sec, (uint32_t) file_stat.st_mtim.tv_nsec);
+      e = rv != 16;
     }
   }
   if (e == 0) {
@@ -3212,7 +3213,7 @@ static int gen_html(struct WebMemorySurfer *wms)
                     len = fread(wms->html_lp, 1, wms->html_n, temp_stream);
                     e = len == 0 && ferror(temp_stream) != 0;
                     if (len > 0 && e == 0) {
-                      e = sha1_input(&sha1, (uint8_t*) wms->html_lp, len);
+                      e = sha1_input(&sha1, (uint8_t*)wms->html_lp, len);
                     }
                   } while (feof(temp_stream) == 0 && e == 0);
                   if (e == 0) {
@@ -3487,6 +3488,11 @@ static int gen_html(struct WebMemorySurfer *wms)
         a_str = sa_get(&wms->ms.card_sa, 1);
         e = xml_escape(&wms->html_lp, &wms->html_n, q_str, ESC_AMP | ESC_LT);
         if (e == 0) {
+          n = 0;
+          assert(wms->ms.cat_a > 0);
+          for (i = 0; i < wms->ms.cat_a && n < 2; i++) {
+            n += wms->ms.cat_t[i].cat_used != 0;
+          }
           assert(strlen(mtime_str) == 16 && wms->file_title_str != NULL && strlen(wms->tok_str) == 40);
           rv = printf("\t\t\t<h1 class=\"msf\">Editing</h1>\n"
                       "\t\t\t<div class=\"msf-btns\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Insert\"%s>Insert</button>\n"
@@ -3510,7 +3516,7 @@ static int gen_html(struct WebMemorySurfer *wms)
               wms->ms.card_i >= 0 && wms->ms.card_a > 0 && wms->ms.card_i < wms->ms.card_a && (wms->ms.card_l[wms->ms.card_i].card_state & 0x07) >= STATE_NEW ? "" : " disabled",
               wms->ms.card_i != wms->ms.mov_card_i ? "" : " disabled",
               wms->ms.mov_card_i != -1 && wms->ms.card_i != wms->ms.mov_card_i ? "" : " disabled",
-              wms->ms.card_i != -1 ? "" : " disabled");
+              wms->ms.card_i != -1 && n == 2 ? "" : " disabled");
           e = rv < 0;
           if (e == 0) {
             e = xml_escape(&wms->html_lp, &wms->html_n, a_str, ESC_AMP | ESC_LT);
@@ -3943,46 +3949,46 @@ static int gen_html(struct WebMemorySurfer *wms)
         rv = snprintf(wms->html_lp, wms->html_n, "M1 %d", vby);
         e = rv < 0 || rv >= wms->html_n;
         if (e == 0) {
-          nb = rv;
+          n = rv;
           y = 0;
           dx = 0;
           for (i = 0; i < 100 && e == 0; i++) {
             dy = y - wms->hist_bucket[i];
             if (dy != 0) {
               if (dx > 0) {
-                size = wms->html_n - nb;
-                rv = snprintf(wms->html_lp + nb, size, "h%d", dx);
+                size = wms->html_n - n;
+                rv = snprintf(wms->html_lp + n, size, "h%d", dx);
                 e = rv < 0 || rv >= size;
-                nb += rv;
+                n += rv;
                 dx = 0;
               }
               if (e == 0) {
-                size = wms->html_n - nb;
-                rv = snprintf(wms->html_lp + nb, size, "v%d", dy);
+                size = wms->html_n - n;
+                rv = snprintf(wms->html_lp + n, size, "v%d", dy);
                 e = rv < 0 || rv >= size;
-                nb += rv;
+                n += rv;
                 y -= dy;
               }
             }
             dx++;
           }
           if (e == 0) {
-            size = wms->html_n - nb;
-            rv = snprintf(wms->html_lp + nb, size, "h%d", dx);
+            size = wms->html_n - n;
+            rv = snprintf(wms->html_lp + n, size, "h%d", dx);
             e = rv < 0 || rv >= size;
-            nb += rv;
+            n += rv;
             if (e == 0) {
               if (y > 0) {
-                size = wms->html_n - nb;
-                rv = snprintf(wms->html_lp + nb, size, "v%d", y);
+                size = wms->html_n - n;
+                rv = snprintf(wms->html_lp + n, size, "v%d", y);
                 e = rv < 0 || rv >= size;
-                nb += rv;
+                n += rv;
               }
               if (e == 0) {
-                size = wms->html_n - nb;
-                rv = snprintf(wms->html_lp + nb, size, "z");
+                size = wms->html_n - n;
+                rv = snprintf(wms->html_lp + n, size, "z");
                 e = rv < 0 || rv >= size;
-                nb += rv;
+                n += rv;
               }
             }
           }
@@ -4000,7 +4006,7 @@ static int gen_html(struct WebMemorySurfer *wms)
                           "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Refresh\">Refresh</button>\n"
                           "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Done\">Done</button></div>\n"
                           "\t\t</form>\n"
-                          "\t\t<code class=\"msf\">%s; gaps=%d, gaps_size=%d, Details: %s, nb=%d</code>\n"
+                          "\t\t<code class=\"msf\">%s; gaps=%d, gaps_size=%d, Details: %s, n=%d</code>\n"
                           "\t</body>\n"
                           "</html>\n",
                   vby + 1,
@@ -4009,7 +4015,7 @@ static int gen_html(struct WebMemorySurfer *wms)
                   wms->ms.imf.stats_gaps,
                   wms->ms.imf.stats_gaps_space,
                   wms->ms.imf.stats_gaps_str,
-                  nb);
+                  n);
               e = rv < 0;
             }
           }
@@ -4789,7 +4795,7 @@ int main(int argc, char *argv[])
                 if (e == 0) {
                   assert(wms->ms.password != NULL);
                   len = strlen(wms->ms.password);
-                  e = sha1_input(&sha1, (uint8_t*) wms->ms.password, len);
+                  e = sha1_input(&sha1, (uint8_t*)wms->ms.password, len);
                   if (e == 0) {
                     e = sha1_result(&sha1, wms->ms.passwd.pw_msg_digest);
                     if (e == 0) {
@@ -4845,7 +4851,7 @@ int main(int argc, char *argv[])
                 if (e == 0) {
                   assert(wms->ms.password != NULL);
                   len = strlen(wms->ms.password);
-                  e = sha1_input(&sha1, (uint8_t*) wms->ms.password, len);
+                  e = sha1_input(&sha1, (uint8_t*)wms->ms.password, len);
                   if (e == 0) {
                     e = sha1_result(&sha1, message_digest);
                     if (e == 0) {
@@ -4869,9 +4875,9 @@ int main(int argc, char *argv[])
                   for (i = 0; i < wms->ms.passwd.timeout.to_count; i++) {
                     e = sha1_reset(&sha1);
                     assert(e == 0);
-                    e = sha1_input(&sha1, (uint8_t*) wms->ms.passwd.pw_msg_digest, SHA1_HASH_SIZE);
+                    e = sha1_input(&sha1, (uint8_t*)wms->ms.passwd.pw_msg_digest, SHA1_HASH_SIZE);
                     if (e == 0) {
-                      e = sha1_input(&sha1, (uint8_t*) &mod_time, sizeof(uint32_t));
+                      e = sha1_input(&sha1, (uint8_t*)&mod_time, sizeof(uint32_t));
                       if (e == 0) {
                         e = sha1_result(&sha1, message_digest);
                         if (e == 0) {
@@ -4900,11 +4906,11 @@ int main(int argc, char *argv[])
                   assert(wms->ms.passwd.pw_flag > 0);
                   e = sha1_reset(&sha1);
                   if (e == 0) {
-                    e = sha1_input(&sha1, (uint8_t*) wms->ms.passwd.pw_msg_digest, SHA1_HASH_SIZE);
+                    e = sha1_input(&sha1, (uint8_t*)wms->ms.passwd.pw_msg_digest, SHA1_HASH_SIZE);
                     if (e == 0) {
                       assert(wms->ms.passwd.timeout.to_sec > 0);
                       mod_time = wms->ms.timestamp / wms->ms.passwd.timeout.to_sec * wms->ms.passwd.timeout.to_sec;
-                      e = sha1_input(&sha1, (uint8_t*) &mod_time, sizeof(uint32_t));
+                      e = sha1_input(&sha1, (uint8_t*)&mod_time, sizeof(uint32_t));
                       if (e == 0) {
                         e = sha1_result(&sha1, message_digest);
                         if (e == 0) {
