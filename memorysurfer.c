@@ -43,7 +43,7 @@
 #include <fcntl.h> // O_TRUNC / O_EXCL
 #include <errno.h>
 
-static const int32_t MSF_VERSION = 0x010001c3;
+static const int32_t MSF_VERSION = 0x010001c4;
 
 enum Error { E_OK, E_FAIL, E_UNESC = 0x012cf4b0, E_PXML = 0x0025968a, E_CRRPT = 0x0687f5d6, E_ASSRT_1 = 0x068e1507, E_HEX = 0x0002b106, E_POST = 0x003e3ed8, E_RPOFT = 0x115048c5, E_FIELD_1 = 0x0169002d, E_FIELD_2 = 0x0169002e, E_FIELD_3 = 0x0169002f, E_FIELD_4 = 0x01690030, E_FIELD_5 = 0x01690031, E_FIELD_6 = 0x01690032, E_FIELD_7 = 0x01690033, E_PARSE_1 = 0x01d087cf, E_HASH_1 = 0x001a255d, E_HASH_2 = 0x001a255e, E_PARSE_2 = 0x01d087d0, E_MISMA = 0x007a49be, E_SHA = 0x000025a8, E_PARSE_3 = 0x01d087d1, E_EXPOR_1 = 0x05e29399, E_EXPOR_2 = 0x05e2939a, E_EXPOR_3 = 0x05e2939b, E_GHTML_1 = 0x03f6667d, E_GHTML_2 = 0x03f6667e, E_GHTML_3 = 0x03f6667f, E_GHTML_4 = 0x03f66680, E_GHTML_5 = 0x03f66681, E_GHTML_6 = 0x03f66682, E_GENLRN_1 = 0x7d95d699, E_GENLRN_2 = 0x7d95d69a, E_GENLRN_3 = 0x7d95d69b, E_GENLRN_4 = 0x7d95d69c, E_GENLRN_5 = 0x7d95d69d, E_GENLRN_6 = 0x7d95d69e, E_GENLRN_7 = 0x7d95d69f, E_GENLRN_8 = 0x7d95d6a0, E_GENLRN_9 = 0x7d95d6a1, E_GHTML_7 = 0x03f66683, E_GHTML_8 = 0x03f66684, E_GHTML_9 = 0x03f66685, E_MALLOC_1 = 0x1e8e2971, E_MALLOC_2 = 0x1e8e2972, E_MALLOC_3 = 0x1e8e2973, E_ARG_1 = 0x0000da5d, E_ASSRT_2 = 0x0000da5d, E_DETECA = 0x099201b8, E_ARG_2 = 0x0000da5e, E_MALLOC_4 = 0x1e8e2974, E_MALLOC_5 = 0x1e8e2975, E_INIT = 0x003d20c0, E_ASSRT_3 = 0x068e1509, E_ASSRT_4 = 0x068e150a, E_CARD_1 = 0x000e0539, E_CARD_2 = 0x000e053a, E_CARD_3 = 0x000e053b, E_CARD_4 = 0x000e053c, E_DECK_1 = 0x00216467, E_DECK_2 = 0x00216468, E_DECK_3 = 0x00216469, E_DECK_4 = 0x0021646a, E_ASSRT_5 = 0x068e150b, E_UPLOAD_1 = 0x22b56c8f, E_ARRANG_1 = 0x4052a587, E_ARRANG_2 = 0x4052a588, E_CARD_5 = 0x000e053d, E_CARD_6 = 0x000e053e, E_CARD_7 = 0x000e053f, E_LVL_1 = 0x00016d65, E_CARD_8 = 0x000e0540, E_CARD_9 = 0x000e0541 };
 enum Field { F_UNKNOWN, F_FILE_TITLE, F_UPLOAD, F_ARRANGE, F_CAT_NAME, F_STYLE_TXT, F_MOVED_CAT, F_SEARCH_TXT, F_MATCH_CASE, F_IS_HTML, F_IS_UNLOCKED, F_CAT, F_CARD, F_MOV_CARD, F_LVL, F_RANK, F_Q, F_A, F_REVEAL_POS, F_TODO_MAIN, F_TODO_ALT, F_MTIME, F_PASSWORD, F_NEW_PASSWORD, F_TOKEN, F_EVENT, F_PAGE, F_MODE, F_TIMEOUT };
@@ -101,9 +101,9 @@ static enum Action action_seq[S_END+1][17] = {
   { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST_OLD, A_TEST_CARD, A_GET_CARD, A_UPDATE_QA, A_EDIT, A_SYNC, A_END }, // S_EDIT_SYNC
   { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST_OLD, A_TEST_CARD, A_GET_CARD, A_UPDATE_QA, A_UPDATE_HTML, A_INSERT, A_SYNC, A_END }, // S_INSERT
   { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST_OLD, A_TEST_CARD, A_GET_CARD, A_UPDATE_QA, A_UPDATE_HTML, A_APPEND, A_SYNC, A_END }, // S_APPEND
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST_OLD, A_TEST_CARD, A_UPDATE_QA_OLD, A_UPDATE_HTML, A_SYNC, A_ASK_DELETE_CARD, A_END }, // S_ASK_DELETE_CARD
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_LOAD_CARDLIST_OLD, A_TEST_CARD, A_DELETE_CARD, A_END }, // S_DELETE_CARD
-  { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST_OLD, A_UPDATE_QA_OLD, A_UPDATE_HTML, A_PREVIOUS, A_SYNC, A_END }, // S_PREVIOUS
+  { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST_OLD, A_TEST_CARD, A_UPDATE_QA_OLD, A_UPDATE_HTML, A_SYNC, A_ASK_DELETE_CARD, A_END }, // S_ASK_DELETE_CARD
+  { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_LOAD_CARDLIST_OLD, A_TEST_CARD, A_DELETE_CARD, A_END }, // S_DELETE_CARD
+  { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST_OLD, A_TEST_CARD, A_GET_CARD, A_UPDATE_QA, A_UPDATE_HTML, A_PREVIOUS, A_SYNC, A_END }, // S_PREVIOUS
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST_OLD, A_UPDATE_QA_OLD, A_UPDATE_HTML, A_NEXT, A_SYNC, A_END }, // S_NEXT
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST_OLD, A_TEST_CARD, A_UPDATE_QA_OLD, A_UPDATE_HTML, A_SCHEDULE, A_SYNC, A_END }, // S_SCHEDULE
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST_OLD, A_TEST_CARD, A_UPDATE_QA_OLD, A_UPDATE_HTML, A_SET, A_SYNC, A_END }, // S_SET
@@ -4772,9 +4772,9 @@ int main(int argc, char *argv[])
                     wms->todo_main = S_NONE;
                     wms->page = P_MSG;
                   }
-                }
-                else
+                } else {
                   e = wms->seq != S_FILE && wms->seq != S_ABOUT;
+                }
                 break;
               case A_CHANGE_PASSWD:
                 free(wms->ms.password);
@@ -5131,7 +5131,7 @@ int main(int argc, char *argv[])
                 break;
               case A_GATHER:
                 if (wms->file_title_str != NULL) {
-                  size = strlen(DATA_PATH) + strlen(wms->file_title_str) + 2; // + '/' + '\0'
+                  size = strlen(DATA_PATH) + strlen(wms->file_title_str) + 2; // '/' + '\0'
                   str = malloc(size);
                   e = str == NULL;
                   if (e == 0) {
@@ -5142,8 +5142,9 @@ int main(int argc, char *argv[])
                       wms->ms.imf_filename = str;
                     }
                   }
-                } else
+                } else {
                   e = wms->seq != S_FILE && wms->seq != S_ABOUT;
+                }
                 break;
               case A_UPLOAD:
                 wms->page = P_UPLOAD;
@@ -5882,16 +5883,16 @@ int main(int argc, char *argv[])
               case A_PREVIOUS:
                 if (wms->ms.card_a > 0) {
                   wms->ms.card_i--;
-                  if (wms->ms.card_i < 0)
+                  if (wms->ms.card_i < 0) {
                     wms->ms.card_i = 0;
-                  if (wms->ms.card_i >= wms->ms.card_a)
-                    wms->ms.card_i = wms->ms.card_a - 1;
-                } else
+                  }
+                  assert(wms->ms.card_i < wms->ms.card_a);
+                } else {
                   wms->ms.card_i = -1;
+                }
                 if (wms->ms.card_i != -1) {
                   e = ms_get_card_sa(&wms->ms);
-                  if (e == 0)
-                    wms->page = P_EDIT;
+                  wms->page = P_EDIT;
                 }
                 break;
               case A_NEXT:
