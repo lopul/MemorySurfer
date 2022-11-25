@@ -2,7 +2,7 @@
 //
 // Author: Lorenz Pullwitt <memorysurfer@lorenz-pullwitt.de>
 // Copyright 2016-2022
-// version: 1.0.6
+// version: 1.0.0.7
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -28,6 +28,8 @@
 #include <assert.h>
 #include <unistd.h>
 #include <stdlib.h> // abs
+
+enum Error { E_COPEN_1 = 0x048023b3, E_COPEN_2 = 0x048023b4, E_COPEN_3 = 0x048023b5, E_CARG = 0x001707d2, E_CFREE = 0x01a6806e };
 
 const int32_t INITIAL_CHUNKS = 8;
 
@@ -311,8 +313,10 @@ imf_create (struct IndexedMemoryFile *imf, const char *filename, int flags_mask)
   return e;
 }
 
-int imf_open(struct IndexedMemoryFile *imf, const char *filename) {
+int imf_open(struct IndexedMemoryFile *imf, const char *filename)
+{
   int e;
+  int rv;
   int filedesc;
   struct flock fl;
   int32_t data_size;
@@ -324,16 +328,17 @@ int imf_open(struct IndexedMemoryFile *imf, const char *filename) {
   sw_i = sw_start("imf_open", &imf->sw);
   e = sw_i < 0;
   if (e == 0) {
-    e = imf->filedesc != -1 || imf->chunk_count != 0 ? 0x052e5e3e : 0; // IMFOAF - imf_open assert (failed)
+    e = imf->filedesc != -1 || imf->chunk_count != 0 ? E_COPEN_1 : 0;
     if (e == 0) {
       filedesc = open(filename, O_RDWR, 0);
-      e = filedesc == -1 ? 0x059fe56c : 0; // IMFOOF - imf_open open (failed)
+      e = filedesc == -1 ? E_COPEN_2 : 0;
       if (e == 0) {
         fl.l_type = F_WRLCK;
         fl.l_whence = SEEK_SET;
         fl.l_start = 0;
         fl.l_len = 0; // Lock entire file
-        e = fcntl(filedesc, F_SETLK, &fl) ? 0x0556e9f3 : 0; // IMFOFF - imf_open fcntl (failed)
+        rv = fcntl(filedesc, F_SETLK, &fl);
+        e = rv == -1 ? E_COPEN_3 : 0;
         if (e == 0) {
           data_size = sizeof(struct Chunk) * 2;
           chunks = malloc(data_size);
@@ -369,8 +374,9 @@ int imf_open(struct IndexedMemoryFile *imf, const char *filename) {
         }
       }
     }
+    rv = sw_stop(sw_i, &imf->sw);
     if (e == 0) {
-      e = sw_stop(sw_i, &imf->sw);
+      e = rv;
     }
   }
   return e;
@@ -523,27 +529,26 @@ int imf_sync(struct IndexedMemoryFile *imf) {
   return e;
 }
 
-int imf_close(struct IndexedMemoryFile *imf) {
+int imf_close(struct IndexedMemoryFile *imf)
+{
   int e;
-  e = imf == NULL || imf->filedesc == -1;
+  int rv;
+  e = imf == NULL || imf->filedesc == -1 ? E_CARG : 0;
   if (e == 0) {
-    e = close(imf->filedesc);
-    if (e == 0) {
-      imf->filedesc = -1;
-      free(imf->chunks);
-      imf->chunks = NULL;
-      imf->chunk_count = 0;
-      free(imf->chunk_order);
-      imf->chunk_order = NULL;
-      free(imf->delete_mark);
-      imf->delete_mark = NULL;
-      imf->delete_end = 0;
-      free(imf->stats_gaps_str);
-      imf->stats_gaps_str = NULL;
-    }
+    rv = close(imf->filedesc);
+    imf->filedesc = -1;
+    e = rv == -1 ? E_CFREE : 0;
+    free(imf->chunks);
+    imf->chunks = NULL;
+    imf->chunk_count = 0;
+    free(imf->chunk_order);
+    imf->chunk_order = NULL;
+    free(imf->delete_mark);
+    imf->delete_mark = NULL;
+    imf->delete_end = 0;
+    free(imf->stats_gaps_str);
+    imf->stats_gaps_str = NULL;
   }
-  if (e != 0)
-    e = 0x0000f927; // IMFC - imf_close (failed)
   return e;
 }
 
