@@ -43,7 +43,7 @@
 #include <fcntl.h> // O_TRUNC / O_EXCL
 #include <errno.h>
 
-static const int32_t MSF_VERSION = 0x010001d2;
+static const int32_t MSF_VERSION = 0x010001d3;
 
 enum Error { E_OVERRN_1 = 0x7da6edc1, E_OVERRN_2 = 0x7da6edc2, E_OVERRN_3 = 0x7da6edc3, E_NEWLN_1 = 0x0495e6fd, E_NEWLN_2 = 0x0495e6fe, E_NEWLN_3 = 0x0495e6ff, E_UNESC = 0x012cf4b0, E_PXML = 0x0025968a, E_CRRPT = 0x0687f5d6, E_ASSRT_1 = 0x068e1507, E_HEX = 0x0002b106, E_POST = 0x003e3ed8, E_RPOFT = 0x115048c5, E_FIELD_1 = 0x0169002d, E_FIELD_2 = 0x0169002e, E_FIELD_3 = 0x0169002f, E_FIELD_4 = 0x01690030, E_FIELD_5 = 0x01690031, E_FIELD_6 = 0x01690032, E_FIELD_7 = 0x01690033, E_PARSE_1 = 0x01d087cf, E_HASH_1 = 0x001a255d, E_HASH_2 = 0x001a255e, E_PARSE_2 = 0x01d087d0, E_MISMA = 0x007a49be, E_SHA = 0x000025a8, E_PARSE_3 = 0x01d087d1, E_EXPOR_1 = 0x05e29399, E_EXPOR_2 = 0x05e2939a, E_EXPOR_3 = 0x05e2939b, E_GHTML_1 = 0x03f6667d, E_GHTML_2 = 0x03f6667e, E_GHTML_3 = 0x03f6667f, E_GHTML_4 = 0x03f66680, E_GHTML_5 = 0x03f66681, E_GHTML_6 = 0x03f66682, E_GENLRN_1 = 0x7d95d699, E_GENLRN_2 = 0x7d95d69a, E_GENLRN_3 = 0x7d95d69b, E_GENLRN_4 = 0x7d95d69c, E_GENLRN_5 = 0x7d95d69d, E_GENLRN_6 = 0x7d95d69e, E_GENLRN_7 = 0x7d95d69f, E_GENLRN_8 = 0x7d95d6a0, E_GENLRN_9 = 0x7d95d6a1, E_GHTML_7 = 0x03f66683, E_GHTML_8 = 0x03f66684, E_GHTML_9 = 0x03f66685, E_MALLOC_1 = 0x1e8e2971, E_MALLOC_2 = 0x1e8e2972, E_MALLOC_3 = 0x1e8e2973, E_ARG_1 = 0x0000da5d, E_ASSRT_2 = 0x0000da5d, E_DETECA = 0x099201b8, E_ARG_2 = 0x0000da5e, E_MALLOC_4 = 0x1e8e2974, E_MALLOC_5 = 0x1e8e2975, E_INIT = 0x003d20c0, E_ASSRT_3 = 0x068e1509, E_ASSRT_4 = 0x068e150a, E_CARD_1 = 0x000e0539, E_CARD_2 = 0x000e053a, E_CARD_3 = 0x000e053b, E_CARD_4 = 0x000e053c, E_DECK_1 = 0x00216467, E_DECK_2 = 0x00216468, E_DECK_3 = 0x00216469, E_DECK_4 = 0x0021646a, E_ASSRT_5 = 0x068e150b, E_UPLOAD_1 = 0x22b56c8f, E_MAX = 0x0002ad00, E_ARRANG_1 = 0x4052a587, E_MOVED = 0x0155e4ce, E_TOPOL = 0x03fbfe34, E_ARRANG_2 = 0x4052a588, E_CARD_5 = 0x000e053d, E_CARD_6 = 0x000e053e, E_CARD_7 = 0x000e053f, E_MCTR = 0x00384cd0, E_OVERFL_1 = 0x68bee46d, E_OVERFL_2 = 0x68bee46e, E_STATE = 0x01d1b8ba, E_SEND = 0x000d9828, E_LVL_1 = 0x00016d65, E_CARD_8 = 0x000e0540, E_CARD_9 = 0x000e0541 };
 enum Field { F_UNKNOWN, F_FILE_TITLE, F_UPLOAD, F_ARRANGE, F_CAT_NAME, F_STYLE_TXT, F_MOVED_CAT, F_SEARCH_TXT, F_MATCH_CASE, F_IS_HTML, F_IS_UNLOCKED, F_DECK, F_CARD, F_MOV_CARD, F_LVL, F_RANK, F_Q, F_A, F_REVEAL_POS, F_TODO_MAIN, F_TODO_ALT, F_MCTR, F_MTIME, F_PASSWORD, F_NEW_PASSWORD, F_TOKEN, F_EVENT, F_PAGE, F_MODE, F_TIMEOUT };
@@ -209,7 +209,7 @@ struct MemorySurfer {
   struct StringArray cat_sa;
   struct StringArray style_sa;
   struct Category *cat_t; // tree
-  int cat_a; // allocated
+  int deck_a; // allocated
   int16_t n_first;
   int deck_i;
   int mov_deck_i; // moved
@@ -706,7 +706,7 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
   char *str;
   int len;
   int i;
-  int cat_a;
+  int deck_a;
   size_t size;
   struct tm bd_time; // broken-down
   int a_n; // assignments
@@ -729,26 +729,26 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
           break;
         case TAG_DECK:
           deck_i = 0;
-          while (deck_i < wms->ms.cat_a && wms->ms.cat_t[deck_i].cat_used != 0)
+          while (deck_i < wms->ms.deck_a && wms->ms.cat_t[deck_i].cat_used != 0)
             deck_i++;
           assert(deck_i <= INT16_MAX);
-          if (deck_i == wms->ms.cat_a) {
-            cat_a = wms->ms.cat_a + 7;
-            size = sizeof(struct Category) * cat_a;
+          if (deck_i == wms->ms.deck_a) {
+            deck_a = wms->ms.deck_a + 7;
+            size = sizeof(struct Category) * deck_a;
             wms->ms.cat_t = realloc(wms->ms.cat_t, size);
             e = wms->ms.cat_t == NULL;
             if (e == 0) {
-              size = sizeof(struct CardList) * cat_a;
+              size = sizeof(struct CardList) * deck_a;
               xml->cardlist_l = realloc(xml->cardlist_l, size);
               e = xml->cardlist_l == NULL;
             }
             if (e == 0) {
-              for (i = wms->ms.cat_a; i < cat_a; i++) {
+              for (i = wms->ms.deck_a; i < deck_a; i++) {
                 wms->ms.cat_t[i].cat_used = 0;
                 xml->cardlist_l[i].card_l = NULL;
                 xml->cardlist_l[i].card_a = 0;
               }
-              wms->ms.cat_a = cat_a;
+              wms->ms.deck_a = deck_a;
             }
           }
           if (e == 0) {
@@ -1070,7 +1070,7 @@ static int ms_open(struct MemorySurfer *ms)
   int i;
   int32_t data_size;
   int16_t n_prev;
-  e = ms->imf_filename == NULL || ms->cat_t != NULL || ms->cat_a != 0 || ms->n_first != -1 ? E_ASSRT_1 : 0;
+  e = ms->imf_filename == NULL || ms->cat_t != NULL || ms->deck_a != 0 || ms->n_first != -1 ? E_ASSRT_1 : 0;
   if (e == 0) {
     e = imf_open(&ms->imf, ms->imf_filename);
     if (e == 0) {
@@ -1083,13 +1083,13 @@ static int ms_open(struct MemorySurfer *ms)
           e = ms->cat_t == NULL;
         }
         if (e == 0) {
-          assert(ms->cat_a == 0);
-          ms->cat_a = data_size / sizeof(struct Category);
+          assert(ms->deck_a == 0);
+          ms->deck_a = data_size / sizeof(struct Category);
           e = imf_get(&ms->imf, C_INDEX, ms->cat_t);
           if (e == 0) {
             do {
               n_prev = -1;
-              for (i = 0; i < ms->cat_a && n_prev == -1; i++)
+              for (i = 0; i < ms->deck_a && n_prev == -1; i++)
                 if (ms->cat_t[i].cat_used != 0)
                   if (ms->cat_t[i].cat_n_sibling == ms->n_first || ms->cat_t[i].cat_n_child == ms->n_first)
                     n_prev = i;
@@ -3338,7 +3338,7 @@ static int gen_html(struct WebMemorySurfer *wms)
           text_str = wms->ms.deck_name != NULL ? wms->ms.deck_name : "new deck name";
           submit_str = "Create";
         } else {
-          assert(wms->seq == S_RENAME_ENTER && wms->ms.deck_i >= 0 && wms->ms.deck_i < wms->ms.cat_a);
+          assert(wms->seq == S_RENAME_ENTER && wms->ms.deck_i >= 0 && wms->ms.deck_i < wms->ms.deck_a);
           header_str = "Enter the name to rename the deck to.";
           text_str = sa_get(&wms->ms.cat_sa, wms->ms.deck_i);
           e = text_str == NULL;
@@ -3506,8 +3506,8 @@ static int gen_html(struct WebMemorySurfer *wms)
         e = xml_escape(&wms->html_lp, &wms->html_n, q_str, ESC_AMP | ESC_LT);
         if (e == 0) {
           n = 0;
-          assert(wms->ms.cat_a > 0);
-          for (i = 0; i < wms->ms.cat_a && n < 2; i++) {
+          assert(wms->ms.deck_a > 0);
+          for (i = 0; i < wms->ms.deck_a && n < 2; i++) {
             n += wms->ms.cat_t[i].cat_used != 0;
           }
           assert(strlen(mtime_str) == 16 && wms->file_title_str != NULL && strlen(wms->tok_str) == 40);
@@ -4116,7 +4116,7 @@ static int ms_init(struct MemorySurfer *ms)
   sa_init(&ms->style_sa);
   assert(sizeof(struct Category) == 12);
   ms->cat_t = NULL;
-  ms->cat_a = 0;
+  ms->deck_a = 0;
   ms->n_first = -1;
   ms->deck_i = -1;
   ms->mov_deck_i = -1;
@@ -4223,7 +4223,7 @@ static void ms_free(struct MemorySurfer *ms)
   sa_free(&ms->cat_sa);
   free(ms->cat_t);
   ms->cat_t = NULL;
-  ms->cat_a = 0;
+  ms->deck_a = 0;
   free(ms->style_txt);
   ms->style_txt = NULL;
   free(ms->deck_name);
@@ -4501,10 +4501,10 @@ static int ms_close(struct MemorySurfer *ms) {
   e = imf_close(&ms->imf);
   if (e == 0) {
     sa_free(&ms->cat_sa);
-    assert((ms->cat_a == 0 && ms->cat_t == NULL) || (ms->cat_a > 0 && ms->cat_t != NULL));
+    assert((ms->deck_a == 0 && ms->cat_t == NULL) || (ms->deck_a > 0 && ms->cat_t != NULL));
     free(ms->cat_t);
     ms->cat_t = NULL;
-    ms->cat_a = 0;
+    ms->deck_a = 0;
     ms->n_first = -1;
   }
   return e;
@@ -4635,7 +4635,7 @@ int main(int argc, char *argv[])
   struct Sha1Context sha1;
   uint8_t message_digest[SHA1_HASH_SIZE];
   uint32_t mod_time;
-  int cat_a;
+  int deck_a;
   int16_t n_parent;
   int16_t n_prev;
   struct Card card;
@@ -5026,7 +5026,7 @@ int main(int argc, char *argv[])
                 }
                 break;
               case A_TEST_CAT_VALID:
-                e = wms->ms.deck_i >= wms->ms.cat_a || wms->ms.cat_t[wms->ms.deck_i].cat_used == 0;
+                e = wms->ms.deck_i >= wms->ms.deck_a || wms->ms.cat_t[wms->ms.deck_i].cat_used == 0;
                 if (e == 1) {
                   wms->ms.deck_i = -1;
                   wms->static_header = "Invalid deck";
@@ -5038,7 +5038,7 @@ int main(int argc, char *argv[])
               case A_TEST_DECK:
                 e = wms->ms.deck_i < 0 ? E_DECK_1 : 0; // no deck
                 if (e == 0) {
-                  e = wms->ms.deck_i >= wms->ms.cat_a ? E_DECK_2 : 0; // out of bounds
+                  e = wms->ms.deck_i >= wms->ms.deck_a ? E_DECK_2 : 0; // out of bounds
                   if (e == 0) {
                     e = wms->ms.cat_t[wms->ms.deck_i].cat_used == 0 ? E_DECK_3 : 0; // not used
                     if (e != 0) {
@@ -5239,7 +5239,7 @@ int main(int argc, char *argv[])
                   data_size = sa_length(&wms->ms.cat_sa);
                   e = imf_put(&wms->ms.imf, SA_INDEX, wms->ms.cat_sa.sa_d, data_size);
                   if (e == 0) {
-                    data_size = sizeof(struct Category) * wms->ms.cat_a;
+                    data_size = sizeof(struct Category) * wms->ms.deck_a;
                     e = imf_put(&wms->ms.imf, C_INDEX, wms->ms.cat_t, data_size);
                     if (e == 0) {
                       assert(wms->ms.passwd.style_sai == -1);
@@ -5262,16 +5262,16 @@ int main(int argc, char *argv[])
                 wms->page = P_EXPORT;
                 break;
               case A_LOAD_CARDLIST:
-                assert(wms->ms.deck_i >= 0 && wms->ms.deck_i < wms->ms.cat_a && wms->ms.cat_t[wms->ms.deck_i].cat_used != 0);
+                assert(wms->ms.deck_i >= 0 && wms->ms.deck_i < wms->ms.deck_a && wms->ms.cat_t[wms->ms.deck_i].cat_used != 0);
                 e = ms_load_card_list(&wms->ms);
                 break;
               case A_LOAD_CARDLIST_OLD:
                 e = wms->ms.deck_i < 0;
                 if (e == 0) {
                   assert(wms->ms.deck_i >= 0);
-                  e = wms->ms.deck_i >= wms->ms.cat_a || wms->ms.cat_t[wms->ms.deck_i].cat_used == 0;
+                  e = wms->ms.deck_i >= wms->ms.deck_a || wms->ms.cat_t[wms->ms.deck_i].cat_used == 0;
                   if (e == 0) {
-                    assert(wms->ms.deck_i < wms->ms.cat_a && wms->ms.cat_t[wms->ms.deck_i].cat_used != 0);
+                    assert(wms->ms.deck_i < wms->ms.deck_a && wms->ms.cat_t[wms->ms.deck_i].cat_used != 0);
                     e = ms_load_card_list(&wms->ms);
                   } else {
                     wms->ms.deck_i = -1;
@@ -5379,7 +5379,7 @@ int main(int argc, char *argv[])
                 break;
               case A_CREATE_DECK:
                 if (wms->ms.deck_i >= 0) {
-                  e = wms->ms.deck_i >= wms->ms.cat_a || wms->ms.cat_t[wms->ms.deck_i].cat_used == 0;
+                  e = wms->ms.deck_i >= wms->ms.deck_a || wms->ms.cat_t[wms->ms.deck_i].cat_used == 0;
                 } else {
                   e = wms->ms.deck_i != -1 || wms->ms.n_first != -1;
                   if (e == 0) {
@@ -5388,26 +5388,26 @@ int main(int argc, char *argv[])
                 }
                 if (e == 0) {
                   deck_i = 0;
-                  while (deck_i < wms->ms.cat_a && wms->ms.cat_t[deck_i].cat_used != 0) {
+                  while (deck_i < wms->ms.deck_a && wms->ms.cat_t[deck_i].cat_used != 0) {
                     deck_i++;
                   }
-                  if (deck_i == wms->ms.cat_a) {
-                    cat_a = wms->ms.cat_a + 7;
-                    e = cat_a > INT16_MAX ? E_MAX : 0;
+                  if (deck_i == wms->ms.deck_a) {
+                    deck_a = wms->ms.deck_a + 7;
+                    e = deck_a > INT16_MAX ? E_MAX : 0;
                     if (e == 0) {
-                      size = sizeof(struct Category) * cat_a;
+                      size = sizeof(struct Category) * deck_a;
                       wms->ms.cat_t = realloc(wms->ms.cat_t, size);
                       e = wms->ms.cat_t == NULL;
                       if (e == 0) {
-                        for (i = wms->ms.cat_a; i < cat_a; i++) {
+                        for (i = wms->ms.deck_a; i < deck_a; i++) {
                           wms->ms.cat_t[i].cat_used = 0;
                         }
-                        wms->ms.cat_a = cat_a;
+                        wms->ms.deck_a = deck_a;
                       }
                     }
                   }
                   if (e == 0) {
-                    assert(deck_i < wms->ms.cat_a && wms->ms.cat_t[deck_i].cat_used == 0);
+                    assert(deck_i < wms->ms.deck_a && wms->ms.cat_t[deck_i].cat_used == 0);
                     e = imf_seek_unused(&wms->ms.imf, &index);
                     if (e == 0) {
                       e = imf_put(&wms->ms.imf, index, "", 0);
@@ -5420,7 +5420,7 @@ int main(int argc, char *argv[])
                           case 0: // Before
                             n_prev = -1;
                             n_parent = -1;
-                            for (i = 0; i < wms->ms.cat_a && n_prev == -1 && n_parent == -1; i++)
+                            for (i = 0; i < wms->ms.deck_a && n_prev == -1 && n_parent == -1; i++)
                               if (wms->ms.cat_t[i].cat_used != 0) {
                                 if (wms->ms.cat_t[i].cat_n_sibling == wms->ms.deck_i) {
                                   n_prev = i;
@@ -5471,7 +5471,7 @@ int main(int argc, char *argv[])
                             data_size = sa_length(&wms->ms.cat_sa);
                             e = imf_put(&wms->ms.imf, SA_INDEX, wms->ms.cat_sa.sa_d, data_size);
                             if (e == 0) {
-                              data_size = sizeof(struct Category) * wms->ms.cat_a;
+                              data_size = sizeof(struct Category) * wms->ms.deck_a;
                               e = imf_put(&wms->ms.imf, C_INDEX, wms->ms.cat_t, data_size);
                               if (e == 0) {
                                 need_sync = 1;
@@ -5488,7 +5488,7 @@ int main(int argc, char *argv[])
                 }
                 break;
               case A_RENAME_DECK:
-                assert(wms->ms.deck_i >= 0 && wms->ms.deck_i < wms->ms.cat_a && wms->ms.cat_t[wms->ms.deck_i].cat_used != 0);
+                assert(wms->ms.deck_i >= 0 && wms->ms.deck_i < wms->ms.deck_a && wms->ms.cat_t[wms->ms.deck_i].cat_used != 0);
                 e = sa_set(&wms->ms.cat_sa, wms->ms.deck_i, wms->ms.deck_name);
                 if (e == 0) {
                   data_size = sa_length(&wms->ms.cat_sa);
@@ -5568,7 +5568,7 @@ int main(int argc, char *argv[])
                     }
                   }
                   i++;
-                } while (i < wms->ms.cat_a && n_prev == -1 && n_parent == -1);
+                } while (i < wms->ms.deck_a && n_prev == -1 && n_parent == -1);
                 if (n_prev != -1) {
                   wms->ms.cat_t[n_prev].cat_n_sibling = wms->ms.cat_t[wms->ms.deck_i].cat_n_sibling;
                 } else if (n_parent != -1) {
@@ -5594,7 +5594,7 @@ int main(int argc, char *argv[])
                 }
                 if (e == 0) {
                   wms->ms.cat_t[wms->ms.deck_i].cat_used = 0;
-                  data_size = sizeof(struct Category) * wms->ms.cat_a;
+                  data_size = sizeof(struct Category) * wms->ms.deck_a;
                   e = imf_put(&wms->ms.imf, C_INDEX, wms->ms.cat_t, data_size);
                   if (e == 0) {
                     need_sync = 1;
@@ -5605,9 +5605,9 @@ int main(int argc, char *argv[])
                 }
                 break;
               case A_TOGGLE:
-                assert(wms->ms.deck_i >= 0 && wms->ms.deck_i < wms->ms.cat_a && wms->ms.cat_t[wms->ms.deck_i].cat_used != 0);
+                assert(wms->ms.deck_i >= 0 && wms->ms.deck_i < wms->ms.deck_a && wms->ms.cat_t[wms->ms.deck_i].cat_used != 0);
                 wms->ms.cat_t[wms->ms.deck_i].cat_x = wms->ms.cat_t[wms->ms.deck_i].cat_x == 0 ? 1 : 0;
-                data_size = sizeof(struct Category) * wms->ms.cat_a;
+                data_size = sizeof(struct Category) * wms->ms.deck_a;
                 e = imf_put(&wms->ms.imf, C_INDEX, wms->ms.cat_t, data_size);
                 if (e == 0) {
                   need_sync = 1;
@@ -5617,7 +5617,7 @@ int main(int argc, char *argv[])
                 break;
               case A_MOVE_DECK:
                 assert(wms->ms.cat_t[wms->ms.deck_i].cat_used != 0);
-                e = wms->ms.mov_deck_i < 0 || wms->ms.mov_deck_i >= wms->ms.cat_a || wms->ms.cat_t[wms->ms.mov_deck_i].cat_used == 0 ? E_MOVED : 0;
+                e = wms->ms.mov_deck_i < 0 || wms->ms.mov_deck_i >= wms->ms.deck_a || wms->ms.cat_t[wms->ms.mov_deck_i].cat_used == 0 ? E_MOVED : 0;
                 if (e == 0) {
                   n_prev = -1;
                   n_parent = wms->ms.deck_i;
@@ -5632,7 +5632,7 @@ int main(int argc, char *argv[])
                     if (e == 0) {
                       n_prev = -1;
                       n_parent = -1;
-                      for (i = 0; i < wms->ms.cat_a && n_parent == -1 && n_prev == -1; i++) {
+                      for (i = 0; i < wms->ms.deck_a && n_parent == -1 && n_prev == -1; i++) {
                         if (wms->ms.cat_t[i].cat_used != 0) {
                           if (wms->ms.cat_t[i].cat_n_sibling == deck_i) {
                             n_prev = i;
@@ -5649,7 +5649,7 @@ int main(int argc, char *argv[])
                       if (wms->ms.n_first != wms->ms.mov_deck_i) {
                         n_prev = -1;
                         n_parent = -1;
-                        for (i = 0; i < wms->ms.cat_a && n_prev == -1 && n_parent == -1; i++)
+                        for (i = 0; i < wms->ms.deck_a && n_prev == -1 && n_parent == -1; i++)
                           if (wms->ms.cat_t[i].cat_used != 0) {
                             if (wms->ms.cat_t[i].cat_n_sibling == wms->ms.mov_deck_i) {
                               n_prev = i;
@@ -5682,7 +5682,7 @@ int main(int argc, char *argv[])
                             }
                           }
                           i++;
-                        } while (i < wms->ms.cat_a && n_prev == -1 && n_parent == -1);
+                        } while (i < wms->ms.deck_a && n_prev == -1 && n_parent == -1);
                         if (n_prev != -1) {
                           assert(wms->ms.cat_t[n_prev].cat_n_sibling == wms->ms.deck_i);
                           wms->ms.cat_t[n_prev].cat_n_sibling = wms->ms.mov_deck_i;
@@ -5709,7 +5709,7 @@ int main(int argc, char *argv[])
                         break;
                       }
                       if (e == 0) {
-                        data_size = sizeof(struct Category) * wms->ms.cat_a;
+                        data_size = sizeof(struct Category) * wms->ms.deck_a;
                         e = imf_put(&wms->ms.imf, C_INDEX, wms->ms.cat_t, data_size);
                         if (e == 0) {
                           need_sync = 1;
@@ -6011,7 +6011,7 @@ int main(int argc, char *argv[])
               case A_SEND_CARD:
                 e = wms->ms.mov_deck_i == wms->ms.deck_i;
                 if (e == 0) {
-                  e = wms->ms.mov_deck_i < 0 || wms->ms.mov_deck_i >= wms->ms.cat_a || wms->ms.cat_t[wms->ms.mov_deck_i].cat_used == 0 ? E_SEND : 0;
+                  e = wms->ms.mov_deck_i < 0 || wms->ms.mov_deck_i >= wms->ms.deck_a || wms->ms.cat_t[wms->ms.mov_deck_i].cat_used == 0 ? E_SEND : 0;
                   if (e == 0) {
                     index = wms->ms.cat_t[wms->ms.mov_deck_i].cat_cli;
                     data_size = imf_get_size(&wms->ms.imf, index);
@@ -6035,35 +6035,45 @@ int main(int argc, char *argv[])
                               size = n * sizeof(struct Card);
                               memmove(dest, src, size);
                             }
+                            if (wms->ms.mov_card_i == mov_card_a) {
+                              wms->ms.mov_card_i--;
+                            }
                             data_size = mov_card_a * sizeof(struct Card);
                             e = imf_put(&wms->ms.imf, index, mov_card_l, data_size);
+                            if (e == 0) {
+                              wms->ms.card_i = wms->ms.card_a;
+                              wms->ms.card_a++;
+                              data_size = wms->ms.card_a * sizeof(struct Card);
+                              wms->ms.card_l = realloc(wms->ms.card_l, data_size);
+                              e = wms->ms.card_l == NULL;
+                              if (e == 0) {
+                                src = &card;
+                                dest = wms->ms.card_l + wms->ms.card_i;
+                                size = sizeof(struct Card);
+                                memcpy(dest, src, size);
+                                index = wms->ms.cat_t[wms->ms.deck_i].cat_cli;
+                                e = imf_put(&wms->ms.imf, index, wms->ms.card_l, data_size);
+                              }
+                            }
+                            if (e == 0) {
+                              wms->ms.deck_i = wms->ms.mov_deck_i;
+                              wms->ms.mov_deck_i = -1;
+                              wms->ms.card_i = wms->ms.mov_card_i;
+                              wms->ms.mov_card_i = -1;
+                              free(wms->ms.card_l);
+                              wms->ms.card_l = mov_card_l;
+                              mov_card_l = NULL;
+                              wms->ms.card_a = mov_card_a;
+                              e = ms_get_card_sa(&wms->ms);
+                              if (e == 0) {
+                                need_sync = 1;
+                                wms->page = P_EDIT;
+                              }
+                            }
                           }
                           free(mov_card_l);
                         }
                       }
-                    }
-                  }
-                  if (e == 0) {
-                    wms->ms.card_i = wms->ms.card_a;
-                    wms->ms.card_a++;
-                    data_size = wms->ms.card_a * sizeof(struct Card);
-                    wms->ms.card_l = realloc(wms->ms.card_l, data_size);
-                    e = wms->ms.card_l == NULL;
-                    if (e == 0) {
-                      src = &card;
-                      dest = wms->ms.card_l + wms->ms.card_i;
-                      size = sizeof(struct Card);
-                      memcpy(dest, src, size);
-                      index = wms->ms.cat_t[wms->ms.deck_i].cat_cli;
-                      e = imf_put(&wms->ms.imf, index, wms->ms.card_l, data_size);
-                    }
-                  }
-                  need_sync = 1;
-                  if (e == 0) {
-                    e = ms_get_card_sa(&wms->ms);
-                    if (e == 0) {
-                      wms->page = P_EDIT;
-                      wms->ms.mov_card_i = -1;
                     }
                   }
                 } else {
@@ -6240,7 +6250,7 @@ int main(int argc, char *argv[])
                 break;
               case A_PROCEED:
                 assert(mtime_test >= 0);
-                assert(wms->ms.deck_i >= 0 && wms->ms.deck_i < wms->ms.cat_a && wms->ms.cat_t[wms->ms.deck_i].cat_used != 0);
+                assert(wms->ms.deck_i >= 0 && wms->ms.deck_i < wms->ms.deck_a && wms->ms.cat_t[wms->ms.deck_i].cat_used != 0);
                 assert(wms->ms.timestamp >= 0);
                 e = wms->ms.lvl < 0 || wms->ms.lvl > 20 ? E_LVL_1 : 0;
                 if (e == 0) {
