@@ -1,7 +1,7 @@
 
 //
 // Author: Lorenz Pullwitt <memorysurfer@lorenz-pullwitt.de>
-// Copyright 2016-2020
+// Copyright 2016-2022
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -10,7 +10,7 @@
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
@@ -21,12 +21,13 @@
 #include <stdint.h>
 #include <sys/time.h> // stopwatch
 
+enum { DATA_SIZE_MAX = 0x7ffff000 };
+
 #pragma pack(push)
 #pragma pack(4)
-struct Chunk
-{
+struct Chunk {
   int64_t position;
-  int32_t chunk_size;
+  uint32_t chunk_size;
 };
 #pragma pack(pop)
 

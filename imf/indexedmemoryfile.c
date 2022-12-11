@@ -2,7 +2,7 @@
 //
 // Author: Lorenz Pullwitt <memorysurfer@lorenz-pullwitt.de>
 // Copyright 2016-2022
-// version: 1.0.0.8
+// version: 1.0.0.9
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -29,7 +29,7 @@
 #include <unistd.h>
 #include <stdlib.h> // abs
 
-enum Error { E_COPEN_1 = 0x048023b3, E_COPEN_2 = 0x048023b4, E_COPEN_3 = 0x048023b5, E_CARG = 0x001707d2, E_CFREE = 0x01a6806e };
+enum Error { E_COPEN_1 = 0x048023b3, E_COPEN_2 = 0x048023b4, E_COPEN_3 = 0x048023b5, E_LARGE = 0x01ac7d3e, E_CARG = 0x001707d2, E_CFREE = 0x01a6806e };
 
 const int32_t INITIAL_CHUNKS = 8;
 
@@ -142,33 +142,29 @@ static int imf_alloc_chunks(struct IndexedMemoryFile *imf)
 {
   int e;
   int i;
-  int32_t data_size;
   int32_t increase;
   int32_t chunk_count;
   struct Chunk *chunks;
   int32_t *chunk_order;
   size_t size;
   increase = imf->chunk_count;
-  if (increase > 128)
-  {
+  if (increase > 128) {
     increase = 128;
   }
   chunk_count = imf->chunk_count + increase;
-  assert (chunk_count < ((0x7FFFFFFF - SHA1_HASH_SIZE) / sizeof (struct Chunk) - 2));
-  data_size = sizeof (struct Chunk) * chunk_count;
-  chunks = realloc (imf->chunks, data_size);
+  size = DATA_SIZE_MAX / sizeof(struct Chunk) + 2;
+  assert(chunk_count < size);
+  size = sizeof(struct Chunk) * chunk_count;
+  chunks = realloc(imf->chunks, size);
   e = chunks == NULL;
-  if (e == 0)
-  {
-    size = sizeof (int32_t) * chunk_count;
-    chunk_order = realloc (imf->chunk_order, size);
+  if (e == 0) {
+    size = sizeof(int32_t) * chunk_count;
+    chunk_order = realloc(imf->chunk_order, size);
     e = chunk_order == NULL;
-    if (e == 0)
-    {
+    if (e == 0) {
       imf->chunks = chunks;
       imf->chunk_order = chunk_order;
-      for (i = imf->chunk_count; i < chunk_count; i++)
-      {
+      for (i = imf->chunk_count; i < chunk_count; i++) {
         chunks[i].position = INT64_MAX;
         chunks[i].chunk_size = 0;
         chunk_order[i] = i;
@@ -179,7 +175,7 @@ static int imf_alloc_chunks(struct IndexedMemoryFile *imf)
   return e;
 }
 
-static int imf_find_space(struct IndexedMemoryFile *imf, int64_t *position, int32_t chunk_size)
+static int imf_find_space(struct IndexedMemoryFile *imf, int64_t *position, uint32_t chunk_size)
 {
   int e;
   int i;
@@ -187,7 +183,8 @@ static int imf_find_space(struct IndexedMemoryFile *imf, int64_t *position, int3
   int64_t r_offset; // right
   int64_t space;
   int64_t lg_pos; // large gap
-  int32_t lg_chunk_size;
+  uint32_t lg_chunk_size;
+  assert(chunk_size <= DATA_SIZE_MAX + SHA1_HASH_SIZE);
   lg_pos = -1;
   e = -1;
   l_offset = 0;
@@ -253,7 +250,7 @@ int imf_create(struct IndexedMemoryFile *imf, const char *filename, int flags_ma
   int32_t *chunk_order;
   int64_t position;
   int i;
-  int32_t chunk_size;
+  uint32_t chunk_size;
   struct flock fl;
   assert (imf->filedesc == -1 && imf->chunk_count == 0 && imf->chunks == NULL);
   filedesc = open (filename, O_CREAT | flags_mask | O_RDWR, S_IRUSR | S_IWUSR);
@@ -373,12 +370,12 @@ int imf_open(struct IndexedMemoryFile *imf, const char *filename)
   return e;
 }
 
-int imf_seek_unused (struct IndexedMemoryFile *imf, int32_t *index)
+int imf_seek_unused(struct IndexedMemoryFile *imf, int32_t *index)
 {
   int e;
   int32_t i;
-  int32_t chunk_size;
-  assert (imf->chunk_count > 0);
+  uint32_t chunk_size;
+  assert(imf->chunk_count > 0);
   for (i = 0; i < imf->chunk_count; i++)
   {
     chunk_size = imf->chunks[i].chunk_size;
@@ -389,16 +386,14 @@ int imf_seek_unused (struct IndexedMemoryFile *imf, int32_t *index)
       break;
     }
   }
-  assert (e == 0);
-  // alloc at least one "ending chunk"
-  if (i == (imf->chunk_count - 1))
-  {
-    e = imf_alloc_chunks (imf);
+  assert(e == 0);
+  if (i == imf->chunk_count - 1) {
+    e = imf_alloc_chunks(imf);
   }
   return e;
 }
 
-int32_t imf_get_size (struct IndexedMemoryFile *imf, int32_t index)
+int32_t imf_get_size(struct IndexedMemoryFile *imf, int32_t index)
 {
   int32_t data_size;
   assert(index >= 0 && index < imf->chunk_count && imf->chunks[index].chunk_size >= SHA1_HASH_SIZE);
@@ -406,14 +401,14 @@ int32_t imf_get_size (struct IndexedMemoryFile *imf, int32_t index)
   return data_size;
 }
 
-int imf_get (struct IndexedMemoryFile *imf, int32_t index, void *data)
+int imf_get(struct IndexedMemoryFile *imf, int32_t index, void *data)
 {
   int e;
   int32_t data_size;
   int64_t position;
   data_size = imf_get_size (imf, index);
   position = imf->chunks[index].position;
-  e = imf_read (imf, data, position, data_size);
+  e = imf_read(imf, data, position, data_size);
   return e;
 }
 
@@ -432,7 +427,7 @@ static int imf_prepare_free(struct IndexedMemoryFile *imf)
 
 static void imf_free(struct IndexedMemoryFile *imf, int32_t index)
 {
-  assert(imf->chunks[index].chunk_size != 0);
+  assert(imf->chunks[index].chunk_size >= SHA1_HASH_SIZE);
   imf->delete_mark[imf->delete_end++] = index;
 }
 
@@ -449,36 +444,33 @@ int imf_put(struct IndexedMemoryFile *imf, int32_t index, void *data, int32_t da
 {
   int e;
   int64_t position;
-  int32_t chunk_size;
+  uint32_t chunk_size;
   int32_t free_index;
-  assert(index > 1 && data_size <= 0x7ffff000 - SHA1_HASH_SIZE);
-  chunk_size = data_size + SHA1_HASH_SIZE;
-  e = imf_find_space (imf, &position, chunk_size);
-  if (e == 0)
-  {
-    e = imf_write (imf, data, position, data_size);
-    if (e == 0)
-    {
-      e = imf->chunks[index].chunk_size > 0;
-      if (e != 0)
-      {
-        e = imf_seek_unused (imf, &free_index);
-        if (e == 0)
-        {
-          e = imf_prepare_free (imf);
-          if (e == 0)
-          {
-            imf->chunks[free_index].position = imf->chunks[index].position;
-            imf->chunks[free_index].chunk_size = imf->chunks[index].chunk_size;
-            imf_free (imf, free_index);
+  assert(index > 1);
+  e = data_size < 0 || data_size > DATA_SIZE_MAX ? E_LARGE : 0;
+  if (e == 0) {
+    chunk_size = data_size + SHA1_HASH_SIZE;
+    e = imf_find_space(imf, &position, chunk_size);
+    if (e == 0) {
+      e = imf_write(imf, data, position, data_size);
+      if (e == 0) {
+        if (imf->chunks[index].chunk_size > 0) {
+          assert(imf->chunks[index].chunk_size >= SHA1_HASH_SIZE);
+          e = imf_seek_unused(imf, &free_index);
+          if (e == 0) {
+            e = imf_prepare_free(imf);
+            if (e == 0) {
+              imf->chunks[free_index].position = imf->chunks[index].position;
+              imf->chunks[free_index].chunk_size = imf->chunks[index].chunk_size;
+              imf_free(imf, free_index);
+            }
           }
         }
-      }
-      if (e == 0)
-      {
-        imf->chunks[index].position = position;
-        imf->chunks[index].chunk_size = chunk_size;
-        imf_sort_order (imf);
+        if (e == 0) {
+          imf->chunks[index].position = position;
+          imf->chunks[index].chunk_size = chunk_size;
+          imf_sort_order(imf);
+        }
       }
     }
   }
@@ -543,12 +535,11 @@ int imf_close(struct IndexedMemoryFile *imf)
 }
 
 // file_length returns the lenght of the used part in the file.
-int
-imf_get_length (struct IndexedMemoryFile *imf, int64_t *file_length)
+int imf_get_length(struct IndexedMemoryFile *imf, int64_t *file_length)
 {
   int status;
   int i;
-  int32_t chunk_size;
+  uint32_t chunk_size;
   assert (file_length != NULL);
   status = (imf->chunk_count <= 0);
   if (status == 0)
@@ -559,7 +550,7 @@ imf_get_length (struct IndexedMemoryFile *imf, int64_t *file_length)
     {
       i--;
       chunk_size = imf->chunks[imf->chunk_order[i]].chunk_size;
-      status = (chunk_size == 0);
+      status = chunk_size == 0;
       if (status == 0)
       {
         *file_length = imf->chunks[imf->chunk_order[i]].position + chunk_size;
@@ -584,7 +575,7 @@ imf_truncate (IndexedMemoryFile *imf)
   return status;
 }
 */
-void imf_info_swaps (struct IndexedMemoryFile *imf)
+void imf_info_swaps(struct IndexedMemoryFile *imf)
 {
   int i;
   int dist;
@@ -601,7 +592,7 @@ void imf_info_swaps (struct IndexedMemoryFile *imf)
   imf->stat_swap = tot_abs_dist / 2;
 }
 
-int imf_info_gaps (struct IndexedMemoryFile *imf)
+int imf_info_gaps(struct IndexedMemoryFile *imf)
 {
   int e;
   int rv; // return value
