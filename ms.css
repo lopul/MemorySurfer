@@ -3,7 +3,7 @@
 	Author: Lorenz Pullwitt <memorysurfer@lorenz-pullwitt.de>
 	Copyright 2016-2022
 
-	ms.css (1.0.0.27) is part of MemorySurfer.
+	ms.css (1.0.0.28) is part of MemorySurfer.
 
 	MemorySurfer is free software; you can redistribute it and/or
 	modify it under the terms of the GNU General Public License
@@ -50,7 +50,7 @@ div.qa-html {
 	border-width: 1px;
 	border-style: solid;
 	border-radius: 0.3ex;
-	border-color: rgba(0, 0, 0, .25);
+	border-color: #999;
 	min-height: 2.5em;
 }
 
@@ -60,7 +60,7 @@ div.qa-txt {
 	border-width: 1px;
 	border-style: solid;
 	border-radius: 0.3ex;
-	border-color: rgba(0, 0, 0, .25);
+	border-color: #999;
 	min-height: 2.5em;
 	font-family: monospace;
 	white-space: pre-wrap;
@@ -130,7 +130,7 @@ label.msf-td {
 }
 
 code.msf {
-	opacity: 0.2;
+	color: #ccc;
 }
 
 cite.msf {
