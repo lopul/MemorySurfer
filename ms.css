@@ -3,7 +3,7 @@
 	Author: Lorenz Pullwitt <memorysurfer@lorenz-pullwitt.de>
 	Copyright 2016-2022
 
-	ms.css (1.0.0.28) is part of MemorySurfer.
+	ms.css (1.0.0.29) is part of MemorySurfer.
 
 	MemorySurfer is free software; you can redistribute it and/or
 	modify it under the terms of the GNU General Public License
@@ -121,7 +121,7 @@ input[type=text].msf {
 label.msf-div {
 	display: flex;
 	margin: 0;
-	padding: 0.9ex 0.8ex 0.9ex 1px;
+	padding: 0.5ex 0.8ex 0.5ex 1px;
 }
 
 label.msf-td {
