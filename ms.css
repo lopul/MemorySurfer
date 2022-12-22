@@ -3,7 +3,7 @@
 	Author: Lorenz Pullwitt <memorysurfer@lorenz-pullwitt.de>
 	Copyright 2016-2022
 
-	ms.css (1.0.0.29) is part of MemorySurfer.
+	ms.css (1.0.0.30) is part of MemorySurfer.
 
 	MemorySurfer is free software; you can redistribute it and/or
 	modify it under the terms of the GNU General Public License
@@ -148,7 +148,7 @@ div.msf-anchor {
 div.msf-dlg {
 	position: absolute;
 	visibility: hidden;
-	top: 60px;
+	top: 67px;
 	left: 17%;
 	width: 66%;
 	max-width: 50ex;
