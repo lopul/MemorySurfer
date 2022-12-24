@@ -43,7 +43,7 @@
 #include <fcntl.h> // O_TRUNC / O_EXCL
 #include <errno.h>
 
-static const int32_t MSF_VERSION = 0x010001e1;
+static const int32_t MSF_VERSION = 0x010001e2;
 
 enum Error { E_OVERRN_1 = 0x7da6edc1, E_OVERRN_2 = 0x7da6edc2, E_OVERRN_3 = 0x7da6edc3, E_NEWLN_1 = 0x0495e6fd, E_NEWLN_2 = 0x0495e6fe, E_NEWLN_3 = 0x0495e6ff, E_UNESC = 0x012cf4b0, E_PXML = 0x0025968a, E_CRRPT = 0x0687f5d6, E_ASSRT_1 = 0x068e1507, E_HEX = 0x0002b106, E_POST = 0x003e3ed8, E_RPOFT = 0x115048c5, E_FIELD_1 = 0x0169002d, E_FIELD_2 = 0x0169002e, E_FIELD_3 = 0x0169002f, E_FIELD_4 = 0x01690030, E_FIELD_5 = 0x01690031, E_FIELD_6 = 0x01690032, E_FIELD_7 = 0x01690033, E_PARSE_1 = 0x01d087cf, E_HASH_1 = 0x001a255d, E_HASH_2 = 0x001a255e, E_PARSE_2 = 0x01d087d0, E_MISMA = 0x007a49be, E_SHA = 0x000025a8, E_PARSE_3 = 0x01d087d1, E_EXPOR_1 = 0x05e29399, E_EXPOR_2 = 0x05e2939a, E_EXPOR_3 = 0x05e2939b, E_GHTML_1 = 0x03f6667d, E_GHTML_2 = 0x03f6667e, E_GHTML_3 = 0x03f6667f, E_GHTML_4 = 0x03f66680, E_GHTML_5 = 0x03f66681, E_GHTML_6 = 0x03f66682, E_GENLRN_1 = 0x7d95d699, E_GENLRN_2 = 0x7d95d69a, E_GENLRN_3 = 0x7d95d69b, E_GENLRN_4 = 0x7d95d69c, E_GENLRN_5 = 0x7d95d69d, E_GENLRN_6 = 0x7d95d69e, E_GENLRN_7 = 0x7d95d69f, E_GENLRN_8 = 0x7d95d6a0, E_GENLRN_9 = 0x7d95d6a1, E_GHTML_7 = 0x03f66683, E_GHTML_8 = 0x03f66684, E_GHTML_9 = 0x03f66685, E_MALLOC_1 = 0x1e8e2971, E_MALLOC_2 = 0x1e8e2972, E_MALLOC_3 = 0x1e8e2973, E_ARG_1 = 0x0000da5d, E_ASSRT_2 = 0x0000da5d, E_DETECA = 0x099201b8, E_ARG_2 = 0x0000da5e, E_MALLOC_4 = 0x1e8e2974, E_MALLOC_5 = 0x1e8e2975, E_INIT = 0x003d20c0, E_CREATE = 0x311ccf88, E_ASSRT_3 = 0x068e1509, E_ASSRT_4 = 0x068e150a, E_CARD_1 = 0x000e0539, E_CARD_2 = 0x000e053a, E_CARD_3 = 0x000e053b, E_CARD_4 = 0x000e053c, E_DECK_1 = 0x00216467, E_DECK_2 = 0x00216468, E_DECK_3 = 0x00216469, E_DECK_4 = 0x0021646a, E_ASSRT_5 = 0x068e150b, E_UPLOAD_1 = 0x22b56c8f, E_MAX = 0x0002ad00, E_ARRANG_1 = 0x4052a587, E_MOVED = 0x0155e4ce, E_TOPOL = 0x03fbfe34, E_ARRANG_2 = 0x4052a588, E_CARD_5 = 0x000e053d, E_CARD_6 = 0x000e053e, E_CARD_7 = 0x000e053f, E_MCTR = 0x00384cd0, E_OVERFL_1 = 0x68bee46d, E_OVERFL_2 = 0x68bee46e, E_STATE = 0x01d1b8ba, E_SEND = 0x000d9828, E_LVL_1 = 0x00016d65, E_CARD_8 = 0x000e0540, E_CARD_9 = 0x000e0541 };
 enum Field { F_UNKNOWN, F_FILE_TITLE, F_UPLOAD, F_ARRANGE, F_DECK_NAME, F_STYLE_TXT, F_MOVED_CAT, F_SEARCH_TXT, F_MATCH_CASE, F_IS_HTML, F_IS_UNLOCKED, F_DECK, F_CARD, F_MOV_CARD, F_LVL, F_RANK, F_Q, F_A, F_REVEAL_POS, F_TODO_MAIN, F_MCTR, F_MTIME, F_PASSWORD, F_NEW_PASSWORD, F_TOKEN, F_EVENT, F_PAGE, F_MODE, F_TIMEOUT };
@@ -292,11 +292,11 @@ struct WebMemorySurfer {
   int reveal_pos;
   int saved_reveal_pos;
   int sw_i;
-  const char *static_header;
-  const char *static_msg;
   char *dyn_msg;
-  char *static_btn_main; // left
-  char *static_btn_alt; // right
+  const char *msg_header;
+  const char *msg_static;
+  char *msg_btn_main; // left
+  char *msg_btn_alt; // right
   int todo_main;
   size_t html_n;
   char *html_lp;
@@ -1032,8 +1032,8 @@ static int parse_xml(struct XML *xml, struct WebMemorySurfer *wms, enum Tag tag,
         }
       }
     } else if (tag == TAG_ROOT && parent_cat_i == -1) {
-      wms->static_header = "No or Empty XML data";
-      wms->static_btn_main = "OK";
+      wms->msg_header = "No or Empty XML data";
+      wms->msg_btn_main = "OK";
       wms->todo_main = S_WARN_UPLOAD;
       wms->page = P_MSG;
     }
@@ -3424,7 +3424,7 @@ static int gen_html(struct WebMemorySurfer *wms)
         if (e == 0) {
           rv = printf("\t\t\t<h1 class=\"msf\">Style</h1>\n"
                       "\t\t\t<p class=\"msf\">Define the (inline) &lt;style&gt; for this deck (and it's cards).</p>\n"
-                      "\t\t\t<div class=\"msf-txtarea\"><textarea class=\"msf\" name=\"style-txt\" rows=\"10\" placeholder=\"div.qa-txt { font-family: serif; }\ndiv.qa-html { background-color: #ffe; }\ndiv#a-html { text-align: center; }\n/* ... */\">%s</textarea></div>\n"
+                      "\t\t\t<div class=\"msf-txtarea\"><textarea class=\"msf\" name=\"style-txt\" rows=\"10\" placeholder=\"div.qa-txt { font-family: serif; }\ndiv.qa-html { background-color: #ffe; }\ndiv#a-html { text-align: center; }\ndiv#q-txt { color: #888; }\n/* ... */\">%s</textarea></div>\n"
                       "\t\t\t<div class=\"msf-btns\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Apply\">Apply</button>\n"
                       "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Stop\">Stop</button></div>\n"
                       "\t\t</form>\n"
@@ -3638,7 +3638,8 @@ static int gen_html(struct WebMemorySurfer *wms)
           e = xml_escape(&wms->html_lp, &wms->html_n, q_str, (wms->ms.card_l[wms->ms.card_i].card_state & 0x08) != 0 ? 0 : ESC_AMP | ESC_LT);
           if (e == 0) {
             rv = printf("\t\t\t<h1 class=\"msf\">Preview</h1>\n"
-                        "\t\t\t<div class=\"msf-btns msf-anchor\"><label class=\"msf-div\"><input id=\"msf-unlock\" type=\"checkbox\" name=\"is-unlocked\"%s>Unlock</label>\n"
+                        "\t\t\t<div class=\"msf-btns msf-anchor\"><input id=\"msf-unlock\" type=\"checkbox\" name=\"is-unlocked\"%s>\n"
+                        "\t\t\t<label class=\"msf-div\" for=\"msf-unlock\">Unlock</label>\n"
                         "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Style\">Style</button>\n"
                         "\t\t\t\t<button id=\"msf-surround\" class=\"msf\" type=\"button\" disabled>Surround</button>\n"
                         "\t\t\t\t<button id=\"msf-unformat-btn\" class=\"msf\" type=\"button\" disabled>Unformat</button>\n"
@@ -3825,14 +3826,16 @@ static int gen_html(struct WebMemorySurfer *wms)
                         "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Show\"%s>Show</button>\n"
                         "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Reveal\"%s>Reveal</button>\n"
                         "\t\t\t\t<span class=\"msf-space\"></span>\n"
-                        "\t\t\t\t<label class=\"msf-div\"><input id=\"msf-unlock\" type=\"checkbox\" name=\"is-unlocked\"%s>Unlock</label>\n"
+                        "\t\t\t\t<input id=\"msf-unlock\" type=\"checkbox\" name=\"is-unlocked\"%s>\n"
+                        "\t\t\t\t<label class=\"msf-div\" for=\"msf-unlock\">Unlock</label>\n"
                         "\t\t\t\t<button id=\"msf-menu\" class=\"msf\" type=\"button\">☰</button>\n"
                         "\t\t\t\t<div id=\"msf-data\" class=\"msf-dlg\">\n"
                         "\t\t\t\t\t<h1 class=\"msf\">Data Views</h1>\n"
                         "\t\t\t\t\t<div class=\"msf-btns\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Histogram\">Histogram</button>\n"
                         "\t\t\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Table\">Table</button>\n"
                         "\t\t\t\t\t\t<span class=\"msf-space\"></span>\n"
-                        "\t\t\t\t\t\t<label class=\"msf-div\"><input id=\"msf-tools-cbox\" type=\"checkbox\"%s>Tools</label></div>\n"
+                        "\t\t\t\t\t\t<input id=\"msf-tools-cbox\" type=\"checkbox\"%s>\n"
+                        "\t\t\t\t\t\t<label class=\"msf-div\" for=\"msf-tools-cbox\">Tools</label></div>\n"
                         "\t\t\t\t\t<div class=\"msf-btns\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"ProceedSend\" style=\"max-width:min-content;\"%s>Proceed&amp;Send</button>\n"
                         "\t\t\t\t\t\t<span class=\"msf-space\"></span>\n"
                         "\t\t\t\t\t\t<button id=\"msf-data-close\" class=\"msf\" type=\"button\">Close</button></div>\n"
@@ -3978,7 +3981,7 @@ static int gen_html(struct WebMemorySurfer *wms)
         }
         break;
       case B_MSG:
-        assert(wms->static_header != NULL && wms->static_btn_main != NULL);
+        assert(wms->msg_header != NULL && wms->msg_btn_main != NULL);
         if (wms->mode == M_NONE) {
           assert(wms->todo_main >= S_FILE && wms->todo_main <= S_END);
           rv = printf("\t\t\t\t<input type=\"hidden\" name=\"todo_main\" value=\"%d\">\n", wms->todo_main);
@@ -3987,23 +3990,23 @@ static int gen_html(struct WebMemorySurfer *wms)
         if (e == 0) {
           rv = printf("\t\t\t</div>\n"
                       "\t\t\t<h1 class=\"msf\">%s</h1>\n",
-              wms->static_header);
+              wms->msg_header);
           e = rv < 0;
-          if (wms->static_msg != NULL && e == 0) {
-            rv = printf("\t\t\t<p class=\"msf\">%s</p>\n", wms->static_msg);
+          if (wms->msg_static != NULL && e == 0) {
+            rv = printf("\t\t\t<p class=\"msf\">%s</p>\n", wms->msg_static);
             e = rv < 0;
           }
           if (e == 0) {
             rv = printf("\t\t\t<div class=\"msf-btns\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"%s\">%s</button>\n",
-                wms->static_btn_main,
-                wms->static_btn_main);
+                wms->msg_btn_main,
+                wms->msg_btn_main);
             e = rv < 0;
           }
         }
-        if (e == 0 && wms->static_btn_alt != NULL) {
+        if (e == 0 && wms->msg_btn_alt != NULL) {
           rv = printf("\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"%s\">%s</button>\n",
-              wms->static_btn_alt,
-              wms->static_btn_alt);
+              wms->msg_btn_alt,
+              wms->msg_btn_alt);
           e = rv < 0;
         }
         if (e == 0) {
@@ -4251,10 +4254,10 @@ static int wms_init(struct WebMemorySurfer *wms)
       wms->reveal_pos = -1;
       wms->saved_reveal_pos = -1;
       wms->sw_i = -1;
-      wms->static_header = NULL;
-      wms->static_msg = NULL;
-      wms->static_btn_main = NULL;
-      wms->static_btn_alt = NULL;
+      wms->msg_header = NULL;
+      wms->msg_static = NULL;
+      wms->msg_btn_main = NULL;
+      wms->msg_btn_alt = NULL;
       wms->dyn_msg = NULL;
       wms->todo_main = -1;
       wms->html_n = 500;
@@ -4802,9 +4805,9 @@ int main(int argc, char *argv[])
               }
             } else if (wms->page == P_UNDEF) {
               e2str(e, e_str);
-              wms->static_header = "Invalid form data";
-              wms->static_msg = e_str;
-              wms->static_btn_main = "OK";
+              wms->msg_header = "Invalid form data";
+              wms->msg_static = e_str;
+              wms->msg_btn_main = "OK";
               wms->todo_main = S_NONE;
               wms->page = P_MSG;
             }
@@ -4827,10 +4830,10 @@ int main(int argc, char *argv[])
                 break;
               case A_WARN_UPLOAD:
                 if (wms->ms.n_first != -1) {
-                  wms->static_header = "Warning: Erase?";
-                  wms->static_msg = "Before importing, the content of the current file is erased (and rebuild during the import).";
-                  wms->static_btn_main = "Erase";
-                  wms->static_btn_alt = "Cancel";
+                  wms->msg_header = "Warning: Erase?";
+                  wms->msg_static = "Before importing, the content of the current file is erased (and rebuild during the import).";
+                  wms->msg_btn_main = "Erase";
+                  wms->msg_btn_alt = "Cancel";
                   wms->page = P_MSG;
                   wms->mode = M_MSG_UPLOAD;
                 } else {
@@ -4845,9 +4848,9 @@ int main(int argc, char *argv[])
                   free(wms->file_title_str);
                   wms->file_title_str = NULL;
                   e2str(e, e_str);
-                  wms->static_header = strerror(rv);
-                  wms->static_msg = e_str;
-                  wms->static_btn_main = "OK";
+                  wms->msg_header = strerror(rv);
+                  wms->msg_static = e_str;
+                  wms->msg_btn_main = "OK";
                   wms->todo_main = S_NONE;
                   wms->page = P_MSG;
                 }
@@ -4914,9 +4917,9 @@ int main(int argc, char *argv[])
                     free(wms->ms.imf_filename);
                     wms->ms.imf_filename = NULL;
                     e2str(e, e_str);
-                    wms->static_header = "Can't open file";
-                    wms->static_msg = e_str;
-                    wms->static_btn_main = "OK";
+                    wms->msg_header = "Can't open file";
+                    wms->msg_static = e_str;
+                    wms->msg_btn_main = "OK";
                     wms->todo_main = S_NONE;
                     wms->page = P_MSG;
                   }
@@ -4962,8 +4965,8 @@ int main(int argc, char *argv[])
                   } else {
                     free(wms->file_title_str);
                     wms->file_title_str = NULL;
-                    wms->static_header = "Read of password hash failed";
-                    wms->static_btn_main = "OK";
+                    wms->msg_header = "Read of password hash failed";
+                    wms->msg_btn_main = "OK";
                     wms->todo_main = S_NONE;
                     wms->page = P_MSG;
                   }
@@ -4975,8 +4978,8 @@ int main(int argc, char *argv[])
                 assert(wms->ms.passwd.pw_flag >= 0);
                 e = wms->ms.passwd.pw_flag > 0;
                 if (e != 0) {
-                  wms->static_header = "A password is already set";
-                  wms->static_btn_main = "OK";
+                  wms->msg_header = "A password is already set";
+                  wms->msg_btn_main = "OK";
                   wms->todo_main = S_GO_LOGIN;
                   wms->page = P_MSG;
                 }
@@ -4997,8 +5000,8 @@ int main(int argc, char *argv[])
                 }
                 if (e != 0) {
                   sleep(1);
-                  wms->static_header = "Invalid password";
-                  wms->static_btn_main = "OK";
+                  wms->msg_header = "Invalid password";
+                  wms->msg_btn_main = "OK";
                   wms->todo_main = S_GO_LOGIN;
                   wms->page = P_MSG;
                 }
@@ -5028,8 +5031,8 @@ int main(int argc, char *argv[])
                   } while (i < wms->ms.passwd.timeout.to_count && e != 0);
                   if (e != 0) {
                     sleep(1);
-                    wms->static_header = "Invalid session token";
-                    wms->static_btn_main = "OK";
+                    wms->msg_header = "Invalid session token";
+                    wms->msg_btn_main = "OK";
                     wms->todo_main = S_GO_LOGIN;
                     wms->page = P_MSG;
                   }
@@ -5083,9 +5086,9 @@ int main(int argc, char *argv[])
                 if (e == 0) {
                   e = mtime_test == 0;
                   if (e != 0) {
-                    wms->static_header = "Invalid mtime value";
-                    wms->static_msg = "The file was modified elsewhere";
-                    wms->static_btn_main = "OK";
+                    wms->msg_header = "Invalid mtime value";
+                    wms->msg_static = "The file was modified elsewhere";
+                    wms->msg_btn_main = "OK";
                     wms->todo_main = S_START;
                     wms->page = P_MSG;
                   }
@@ -5100,9 +5103,9 @@ int main(int argc, char *argv[])
                     }
                     e = wms->ms.card_i < 0 || wms->ms.card_i >= wms->ms.card_a || wms->ms.card_l == NULL ? E_CARD_2 : 0;
                     if (e != 0) {
-                      wms->static_header = "Invalid card";
-                      wms->static_msg = "Out of bounds";
-                      wms->static_btn_main = "OK";
+                      wms->msg_header = "Invalid card";
+                      wms->msg_static = "Out of bounds";
+                      wms->msg_btn_main = "OK";
                       wms->page = P_MSG;
                     }
                   } else {
@@ -5111,9 +5114,9 @@ int main(int argc, char *argv[])
                     if (e == 0) {
                       e = wms->ms.card_i == -1 ? 0 : E_CARD_4;
                     } else {
-                      wms->static_header = "Empty deck";
-                      wms->static_msg = "No card present";
-                      wms->static_btn_main = "OK";
+                      wms->msg_header = "Empty deck";
+                      wms->msg_static = "No card present";
+                      wms->msg_btn_main = "OK";
                       wms->page = P_MSG;
                     }
                   }
@@ -5129,16 +5132,16 @@ int main(int argc, char *argv[])
               case A_TEST_CAT_SELECTED:
                 e = wms->ms.deck_i < 0;
                 if (e == 1) {
-                  wms->static_header = "No deck selected";
-                  wms->static_btn_main = "OK";
+                  wms->msg_header = "No deck selected";
+                  wms->msg_btn_main = "OK";
                   wms->todo_main = S_START;
                   wms->page = P_MSG;
                   if (wms->from_page == P_LEARN) {
-                    wms->static_header = "Please select a category to learn";
+                    wms->msg_header = "Please select a category to learn";
                     wms->todo_main = S_SELECT_LEARN_CAT;
                   } else if (wms->from_page == P_SELECT_DECK || wms->from_page == P_SELECT_DEST_DECK) {
                     if (wms->seq == S_DECKS_CREATE)
-                      wms->static_header = "Please select a category were to arrange the new category to";
+                      wms->msg_header = "Please select a category were to arrange the new category to";
                     wms->todo_main = S_START_DECKS;
                   }
                 }
@@ -5147,8 +5150,8 @@ int main(int argc, char *argv[])
                 e = wms->ms.deck_i >= wms->ms.deck_a || wms->ms.cat_t[wms->ms.deck_i].deck_slot_used == 0;
                 if (e == 1) {
                   wms->ms.deck_i = -1;
-                  wms->static_header = "Invalid deck";
-                  wms->static_btn_main = "OK";
+                  wms->msg_header = "Invalid deck";
+                  wms->msg_btn_main = "OK";
                   wms->todo_main = S_SELECT_LEARN_CAT;
                   wms->page = P_MSG;
                 }
@@ -5160,33 +5163,33 @@ int main(int argc, char *argv[])
                   if (e == 0) {
                     e = wms->ms.cat_t[wms->ms.deck_i].deck_slot_used == 0 ? E_DECK_3 : 0; // not used
                     if (e != 0) {
-                      wms->static_msg = "The selected deck (index) is not in use (anymore)";
+                      wms->msg_static = "The selected deck (index) is not in use (anymore)";
                     }
                   } else {
-                    wms->static_msg = "The selected deck is out of bounds";
+                    wms->msg_static = "The selected deck is out of bounds";
                   }
                   if (e != 0) {
-                    wms->static_header = "Invalid deck";
+                    wms->msg_header = "Invalid deck";
                   }
                 } else {
                   if (wms->seq == S_DECKS_CREATE || wms->seq == S_CREATE_DECK) {
                     e = wms->ms.deck_i != -1 || wms->ms.n_first != -1;
                   }
                   if (e != 0) {
-                    wms->static_header = "No deck selected";
+                    wms->msg_header = "No deck selected";
                     if (wms->from_page == P_SELECT_DECK) {
                       if (wms->seq == S_DECKS_CREATE) {
-                        wms->static_msg = "Please select a deck where to arrange the new deck to";
+                        wms->msg_static = "Please select a deck where to arrange the new deck to";
                       } else if (wms->seq == S_SELECT_DEST_CAT) {
-                        wms->static_msg = "Please select a deck to move";
+                        wms->msg_static = "Please select a deck to move";
                       } else if (wms->seq == S_ASK_DELETE_DECK) {
-                        wms->static_msg = "Please select a deck to delete";
+                        wms->msg_static = "Please select a deck to delete";
                       } else if (wms->seq == S_TOGGLE) {
-                        wms->static_msg = "Please select a deck to toggle";
+                        wms->msg_static = "Please select a deck to toggle";
                       } else if (wms->seq == S_QUESTION) {
-                        wms->static_msg = "Please select a deck to learn";
+                        wms->msg_static = "Please select a deck to learn";
                       } else if (wms->seq == S_DECKS_RENAME) {
-                        wms->static_msg = "Please select a deck to rename";
+                        wms->msg_static = "Please select a deck to rename";
                       } else {
                         e = E_DECK_4;
                       }
@@ -5194,7 +5197,7 @@ int main(int argc, char *argv[])
                   }
                 }
                 if (e != 0) {
-                  wms->static_btn_main = "OK";
+                  wms->msg_btn_main = "OK";
                   wms->page = P_MSG;
                   if (wms->seq == S_DECK_NAME || wms->seq == S_RENAME_DECK || wms->seq == S_CREATE_DECK || wms->seq == S_DELETE_DECK) {
                     wms->mode = M_MSG_DECKS;
@@ -5212,9 +5215,9 @@ int main(int argc, char *argv[])
                   e = wms->ms.arrange != -1 || wms->ms.n_first != -1;
                 }
                 if (e != 0) {
-                  wms->static_header = "No arrange";
-                  wms->static_msg = "Please select how to arrange the deck";
-                  wms->static_btn_main = "OK";
+                  wms->msg_header = "No arrange";
+                  wms->msg_static = "Please select how to arrange the deck";
+                  wms->msg_btn_main = "OK";
                   wms->page = P_MSG;
                   wms->mode = M_MSG_DECKS;
                 }
@@ -5226,8 +5229,8 @@ int main(int argc, char *argv[])
                   e = len == 0;
                 }
                 if (e != 0) {
-                  wms->static_header = "Please enter a name for the deck";
-                  wms->static_btn_main = "OK";
+                  wms->msg_header = "Please enter a name for the deck";
+                  wms->msg_btn_main = "OK";
                   wms->todo_main = S_START_DECKS;
                   wms->page = P_MSG;
                 }
@@ -5240,8 +5243,8 @@ int main(int argc, char *argv[])
                   if (e != 0) {
                     free(wms->file_title_str);
                     wms->file_title_str = NULL;
-                    wms->static_header = "Error: Slash ('/')";
-                    wms->static_btn_main = "OK";
+                    wms->msg_header = "Error: Slash ('/')";
+                    wms->msg_btn_main = "OK";
                     wms->todo_main = S_FILE;
                     wms->page = P_MSG;
                   }
@@ -5254,8 +5257,8 @@ int main(int argc, char *argv[])
                 if (e != 0) {
                   free(wms->file_title_str);
                   wms->file_title_str = NULL;
-                  wms->static_header = "Error: No filename";
-                  wms->static_btn_main = "OK";
+                  wms->msg_header = "Error: No filename";
+                  wms->msg_btn_main = "OK";
                   wms->todo_main = S_FILE;
                   wms->page = P_MSG;
                 }
@@ -5395,15 +5398,15 @@ int main(int argc, char *argv[])
                     e = ms_load_card_list(&wms->ms);
                   } else {
                     wms->ms.deck_i = -1;
-                    wms->static_header = "Invalid deck";
-                    wms->static_btn_main = "OK";
+                    wms->msg_header = "Invalid deck";
+                    wms->msg_btn_main = "OK";
                     wms->todo_main = S_NONE; // S_SELECT_EDIT_CAT S_SELECT_SEARCH_CAT S_SELECT_LEARN_CAT S_DELETE_CARD S_APPEND S_SELECT_EDIT_CAT
                     wms->page = P_MSG;
                   }
                 } else {
                   assert(wms->ms.deck_i == -1);
-                  wms->static_header = "Please select a category";
-                  wms->static_btn_main = "OK";
+                  wms->msg_header = "Please select a category";
+                  wms->msg_btn_main = "OK";
                   wms->todo_main = S_START; // S_NONE S_SELECT_EDIT_CAT S_SELECT_SEARCH_CAT S_SELECT_LEARN_CAT S_DELETE_CARD S_SELECT_EDIT_CAT
                   wms->page = P_MSG;
                 }
@@ -5421,9 +5424,9 @@ int main(int argc, char *argv[])
                 }
                 break;
               case A_ASK_REMOVE:
-                wms->static_header = "Remove file from the file system?";
-                wms->static_btn_main = "Remove";
-                wms->static_btn_alt = "Cancel";
+                wms->msg_header = "Remove file from the file system?";
+                wms->msg_btn_main = "Remove";
+                wms->msg_btn_alt = "Cancel";
                 wms->page = P_MSG;
                 wms->mode = M_MSG_FILE;
                 break;
@@ -5440,9 +5443,9 @@ int main(int argc, char *argv[])
                 }
                 break;
               case A_ASK_ERASE:
-                wms->static_header = "Erase all decks & cards?";
-                wms->static_btn_main = "Erase";
-                wms->static_btn_alt = "Cancel";
+                wms->msg_header = "Erase all decks & cards?";
+                wms->msg_btn_main = "Erase";
+                wms->msg_btn_alt = "Cancel";
                 wms->page = P_MSG;
                 wms->mode = M_MSG_FILE;
                 break;
@@ -5666,18 +5669,18 @@ int main(int argc, char *argv[])
                     rv = snprintf(wms->dyn_msg, size, "Delete this deck and its %d card(s)?", wms->ms.card_a);
                     e = rv < 0 || rv >= size;
                     if (e == 0) {
-                      wms->static_header = "Delete Deck?";
-                      wms->static_msg = wms->dyn_msg;
-                      wms->static_btn_main = "Delete";
-                      wms->static_btn_alt = "Cancel";
+                      wms->msg_header = "Delete Deck?";
+                      wms->msg_static = wms->dyn_msg;
+                      wms->msg_btn_main = "Delete";
+                      wms->msg_btn_alt = "Cancel";
                       wms->page = P_MSG;
                       wms->mode = M_MSG_DECKS;
                     }
                   }
                 } else {
-                  wms->static_header = "Delete (of deck) failed";
-                  wms->static_msg = "A Deck to delete must be a leaf";
-                  wms->static_btn_main = "OK";
+                  wms->msg_header = "Delete (of deck) failed";
+                  wms->msg_static = "A Deck to delete must be a leaf";
+                  wms->msg_btn_main = "OK";
                   wms->page = P_MSG;
                   wms->mode = M_MSG_DECKS;
                 }
@@ -5849,16 +5852,16 @@ int main(int argc, char *argv[])
                         }
                       }
                     } else {
-                      wms->static_header = "Unchanged";
-                      wms->static_msg = "Moving the previous sibling before its following sibling has no effect";
-                      wms->static_btn_main = "OK";
+                      wms->msg_header = "Unchanged";
+                      wms->msg_static = "Moving the previous sibling before its following sibling has no effect";
+                      wms->msg_btn_main = "OK";
                       wms->page = P_MSG;
                       wms->mode = M_MSG_DECKS;
                     }
                   } else {
-                    wms->static_header = "Invalid topology";
-                    wms->static_msg = "Placing the deck here is not possible";
-                    wms->static_btn_main = "OK";
+                    wms->msg_header = "Invalid topology";
+                    wms->msg_static = "Placing the deck here is not possible";
+                    wms->msg_btn_main = "OK";
                     wms->page = P_MSG;
                     wms->mode = M_MSG_DECKS;
                   }
@@ -5944,8 +5947,8 @@ int main(int argc, char *argv[])
                       e = imf_sync(&wms->ms.imf);
                     }
                   } else {
-                    wms->static_header = "Error: Invalid mtime value";
-                    wms->static_btn_main = "OK";
+                    wms->msg_header = "Error: Invalid mtime value";
+                    wms->msg_btn_main = "OK";
                     wms->todo_main = S_SELECT_EDIT_CAT;
                     wms->page = P_MSG;
                   }
@@ -6026,9 +6029,9 @@ int main(int argc, char *argv[])
                 }
                 break;
               case A_ASK_DELETE_CARD:
-                wms->static_header = "Delete Item?";
-                wms->static_btn_main = "Delete";
-                wms->static_btn_alt = "Cancel";
+                wms->msg_header = "Delete Item?";
+                wms->msg_btn_main = "Delete";
+                wms->msg_btn_alt = "Cancel";
                 wms->page = P_MSG;
                 wms->mode = M_MSG_CARD;
                 break;
@@ -6228,9 +6231,9 @@ int main(int argc, char *argv[])
                     }
                   }
                 } else {
-                  wms->static_header = "Same deck";
-                  wms->static_msg = "The destination deck must be different from the current deck of the card";
-                  wms->static_btn_main = "OK";
+                  wms->msg_header = "Same deck";
+                  wms->msg_static = "The destination deck must be different from the current deck of the card";
+                  wms->msg_btn_main = "OK";
                   wms->page = P_MSG;
                   wms->mode = M_MSG_CARD;
                 }
@@ -6341,10 +6344,10 @@ int main(int argc, char *argv[])
                     }
                   }
                 } else if (e == -1) {
-                  wms->static_header = "Notification";
-                  wms->static_msg = "No card eligible for repetition.";
-                  wms->static_btn_main = "OK";
-                  wms->static_btn_alt = "Table";
+                  wms->msg_header = "Notification";
+                  wms->msg_static = "No card eligible for repetition.";
+                  wms->msg_btn_main = "OK";
+                  wms->msg_btn_alt = "Table";
                   wms->page = P_MSG;
                   wms->mode = M_NO_CARD_ELIGIBLE;
                 }
@@ -6418,10 +6421,10 @@ int main(int argc, char *argv[])
                 }
                 break;
               case A_ASK_SUSPEND:
-                wms->static_header = "Suspend?";
-                wms->static_msg = "Suspend this card from learning?";
-                wms->static_btn_main = "Suspend";
-                wms->static_btn_alt = "Cancel";
+                wms->msg_header = "Suspend?";
+                wms->msg_static = "Suspend this card from learning?";
+                wms->msg_btn_main = "Suspend";
+                wms->msg_btn_alt = "Cancel";
                 wms->page = P_MSG;
                 wms->mode = M_MSG_SUSPEND;
                 break;
@@ -6437,10 +6440,10 @@ int main(int argc, char *argv[])
                 need_sync = 1;
                 break;
               case A_ASK_RESUME:
-                wms->static_header = "Resume?";
-                wms->static_msg = "Resume all suspended cards of this deck?";
-                wms->static_btn_main = "Resume";
-                wms->static_btn_alt = "Cancel";
+                wms->msg_header = "Resume?";
+                wms->msg_static = "Resume all suspended cards of this deck?";
+                wms->msg_btn_main = "Resume";
+                wms->msg_btn_alt = "Cancel";
                 wms->page = P_MSG;
                 wms->mode = M_MSG_RESUME;
                 break;
@@ -6466,8 +6469,8 @@ int main(int argc, char *argv[])
               case A_CHECK_FILE:
                 e = wms->file_title_str == NULL;
                 if (e != 0) {
-                  wms->static_header = "Please select a file.";
-                  wms->static_btn_main = "OK";
+                  wms->msg_header = "Please select a file.";
+                  wms->msg_btn_main = "OK";
                   wms->todo_main = S_FILELIST;
                   wms->page = P_MSG;
                 }
@@ -6538,9 +6541,9 @@ int main(int argc, char *argv[])
             wms->file_title_str = NULL;
             free(wms->ms.imf_filename);
             wms->ms.imf_filename = NULL;
-            wms->static_header = "Unexpected error";
-            wms->static_msg = e_str;
-            wms->static_btn_main = "OK";
+            wms->msg_header = "Unexpected error";
+            wms->msg_static = e_str;
+            wms->msg_btn_main = "OK";
             wms->todo_main = S_NONE;
             wms->page = P_MSG;
           }
