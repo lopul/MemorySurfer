@@ -43,7 +43,7 @@
 #include <fcntl.h> // O_TRUNC / O_EXCL
 #include <errno.h>
 
-static const int32_t MSF_VERSION = 0x010001e5;
+static const int32_t MSF_VERSION = 0x010001e6;
 
 enum Error { E_OVERRN_1 = 0x7da6edc1, E_OVERRN_2 = 0x7da6edc2, E_OVERRN_3 = 0x7da6edc3, E_NEWLN_1 = 0x0495e6fd, E_NEWLN_2 = 0x0495e6fe, E_NEWLN_3 = 0x0495e6ff, E_UNESC = 0x012cf4b0, E_PXML = 0x0025968a, E_CRRPT = 0x0687f5d6, E_ASSRT_1 = 0x068e1507, E_HEX = 0x0002b106, E_POST = 0x003e3ed8, E_RPOFT = 0x115048c5, E_FIELD_1 = 0x0169002d, E_FIELD_2 = 0x0169002e, E_FIELD_3 = 0x0169002f, E_SCOPE_1 = 0x01c73201, E_SCOPE_2 = 0x01c73202, E_FIELD_4 = 0x01690030, E_FIELD_5 = 0x01690031, E_FIELD_6 = 0x01690032, E_FIELD_7 = 0x01690033, E_PARSE_1 = 0x01d087cf, E_HASH_1 = 0x001a255d, E_HASH_2 = 0x001a255e, E_PARSE_2 = 0x01d087d0, E_MISMA = 0x007a49be, E_SHA = 0x000025a8, E_PARSE_3 = 0x01d087d1, E_EXPOR_1 = 0x05e29399, E_EXPOR_2 = 0x05e2939a, E_EXPOR_3 = 0x05e2939b, E_GHTML_1 = 0x03f6667d, E_GHTML_2 = 0x03f6667e, E_GHTML_3 = 0x03f6667f, E_GHTML_4 = 0x03f66680, E_GHTML_5 = 0x03f66681, E_GHTML_6 = 0x03f66682, E_GENLRN_1 = 0x7d95d699, E_GENLRN_2 = 0x7d95d69a, E_GENLRN_3 = 0x7d95d69b, E_GENLRN_4 = 0x7d95d69c, E_GENLRN_5 = 0x7d95d69d, E_GENLRN_6 = 0x7d95d69e, E_GENLRN_7 = 0x7d95d69f, E_GENLRN_8 = 0x7d95d6a0, E_GENLRN_9 = 0x7d95d6a1, E_GHTML_7 = 0x03f66683, E_GHTML_8 = 0x03f66684, E_GHTML_9 = 0x03f66685, E_MALLOC_1 = 0x1e8e2971, E_MALLOC_2 = 0x1e8e2972, E_MALLOC_3 = 0x1e8e2973, E_ARG_1 = 0x0000da5d, E_ASSRT_2 = 0x0000da5d, E_DETECA = 0x099201b8, E_ARG_2 = 0x0000da5e, E_MALLOC_4 = 0x1e8e2974, E_MALLOC_5 = 0x1e8e2975, E_INIT = 0x003d20c0, E_CREATE = 0x311ccf88, E_ASSRT_3 = 0x068e1509, E_ASSRT_4 = 0x068e150a, E_CARD_1 = 0x000e0539, E_CARD_2 = 0x000e053a, E_CARD_3 = 0x000e053b, E_CARD_4 = 0x000e053c, E_DECK_1 = 0x00216467, E_DECK_2 = 0x00216468, E_DECK_3 = 0x00216469, E_DECK_4 = 0x0021646a, E_ASSRT_5 = 0x068e150b, E_UPLOAD_1 = 0x22b56c8f, E_MAX = 0x0002ad00, E_ARRANG_1 = 0x4052a587, E_MOVED = 0x0155e4ce, E_TOPOL = 0x03fbfe34, E_ARRANG_2 = 0x4052a588, E_CARD_5 = 0x000e053d, E_CARD_6 = 0x000e053e, E_CARD_7 = 0x000e053f, E_MCTR = 0x00384cd0, E_OVERFL_1 = 0x68bee46d, E_OVERFL_2 = 0x68bee46e, E_STATE = 0x01d1b8ba, E_SEND = 0x000d9828, E_LVL_1 = 0x00016d65, E_CARD_8 = 0x000e0540, E_CARD_9 = 0x000e0541 };
 enum Field { F_UNKNOWN, F_FILE_TITLE, F_UPLOAD, F_ARRANGE, F_DECK_NAME, F_STYLE_TXT, F_MOVED_CAT, F_SCOPE, F_SEARCH_TXT, F_MATCH_CASE, F_IS_HTML, F_IS_UNLOCKED, F_DECK, F_CARD, F_MOV_CARD, F_LVL, F_RANK, F_Q, F_A, F_REVEAL_POS, F_TODO_MAIN, F_MCTR, F_MTIME, F_PASSWORD, F_NEW_PASSWORD, F_TOKEN, F_EVENT, F_PAGE, F_MODE, F_TIMEOUT };
@@ -310,6 +310,7 @@ struct WebMemorySurfer {
   int hist_max;
   int lvl_bucket[2][21]; // 0 = total, 1 = eligible
   int count_bucket[4];
+  int checked_decks;
   uint8_t tok_digest[SHA1_HASH_SIZE];
   char tok_str[41];
   struct IndentStr *inds;
@@ -3710,7 +3711,7 @@ static int gen_html(struct WebMemorySurfer *wms)
         }
         if (e == 0) {
           rv = printf("\t\t</form>\n"
-                      "\t\t<code class=\"msf\">%s; nel: %d</code>\n"
+                      "\t\t<code class=\"msf\">%s; neli: %d</code>\n"
                       "\t</body>\n"
                       "</html>\n",
               sw_info_str,
@@ -4005,12 +4006,13 @@ static int gen_html(struct WebMemorySurfer *wms)
                         "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Search\">Search</button>\n"
                         "\t\t\t\t<button class=\"msf\" type=\"submit\" name=\"event\" value=\"Stop\">Stop</button></div>\n"
                         "\t\t</form>\n"
-                        "\t\t<code class=\"msf\">%s; nel: %d; time_diff: %s</code>\n"
+                        "\t\t<code class=\"msf\">%s; neli: %d; mctr: %u; time_diff: %s</code>\n"
                         "\t</body>\n"
                         "</html>\n",
                 wms->ms.can_resume != 0 ? "" : " disabled",
                 sw_info_str,
                 wms->ms.cards_nel,
+                wms->ms.passwd.mctr,
                 time_diff_str);
             e = rv < 0 ? E_GHTML_8 : 0;
           }
@@ -4139,11 +4141,13 @@ static int gen_html(struct WebMemorySurfer *wms)
         break;
       case B_TABLE:
         rv = printf("\t\t\t<h1 class=\"msf\">Table</h1>\n"
+                    "\t\t\t<p class=\"msf\">%d deck(s) checked (for learning).</p>\n"
                     "\t\t\t<table>\n"
                     "\t\t\t\t<thead>\n"
                     "\t\t\t\t\t<tr><td>Level</td><td>Strength</td><td>Cards</td><td>Eligible</td><td>Threshold</td></tr>\n"
                     "\t\t\t\t</thead>\n"
-                    "\t\t\t\t<tbody>\n");
+                    "\t\t\t\t<tbody>\n",
+            wms->checked_decks);
         e = rv < 0;
         size = sizeof(el_str);
         for (i = 0; i < 21 && e == 0; i++) {
@@ -5595,7 +5599,7 @@ int main(int argc, char *argv[])
                           case 0: // Before
                             n_prev = -1;
                             n_parent = -1;
-                            for (i = 0; i < wms->ms.deck_a && n_prev == -1 && n_parent == -1; i++)
+                            for (i = 0; i < wms->ms.deck_a && n_prev == -1 && n_parent == -1; i++) {
                               if (wms->ms.cat_t[i].deck_slot_used != 0) {
                                 if (wms->ms.cat_t[i].n_sibling == wms->ms.deck_i) {
                                   n_prev = i;
@@ -5604,6 +5608,7 @@ int main(int argc, char *argv[])
                                   n_parent = i;
                                 }
                               }
+                            }
                             if (n_prev != -1) {
                               assert(wms->ms.cat_t[n_prev].n_sibling == wms->ms.deck_i);
                               wms->ms.cat_t[n_prev].n_sibling = deck_i;
@@ -6340,7 +6345,7 @@ int main(int argc, char *argv[])
                                 wms->ms.deck_i = wms->ms.deck_a - 1;
                               }
                             } while (wms->ms.cat_t[wms->ms.deck_i].deck_slot_used == 0);
-                            ms_load_card_list(&wms->ms);
+                            e = ms_load_card_list(&wms->ms);
                           }
                           wms->ms.card_i = -1;
                           if (wms->ms.card_a > 0) {
@@ -6355,7 +6360,7 @@ int main(int argc, char *argv[])
                                 wms->ms.deck_i = 0;
                               }
                             } while (wms->ms.cat_t[wms->ms.deck_i].deck_slot_used == 0);
-                            ms_load_card_list(&wms->ms);
+                            e = ms_load_card_list(&wms->ms);
                           }
                           wms->ms.card_i = -1;
                           if (wms->ms.card_a > 0) {
@@ -6586,23 +6591,34 @@ int main(int argc, char *argv[])
                 for (i = 0; i < 4; i++) {
                   wms->count_bucket[i] = 0;
                 }
-                if (wms->ms.card_a > 0) {
-                  for (card_i = 0; card_i < wms->ms.card_a; card_i++) {
-                    wms->count_bucket[wms->ms.card_l[card_i].card_state & 0x03]++;
-                    if ((wms->ms.card_l[card_i].card_state & 0x07) == STATE_SCHEDULED) {
-                      for (i = 0; i < 21; i++) {
-                        if (lvl_s[i] >= wms->ms.card_l[card_i].card_strength)
-                          break;
-                      }
-                      wms->lvl_bucket[0][i]++;
-                      time_diff = wms->ms.timestamp - wms->ms.card_l[card_i].card_time;
-                      retent = exp(-(double)time_diff / wms->ms.card_l[card_i].card_strength);
-                      if (retent <= 1 / M_E) {
-                        wms->lvl_bucket[1][i]++;
+                wms->checked_decks = 0;
+                deck_i = wms->ms.deck_i;
+                for (wms->ms.deck_i = 0; wms->ms.deck_i < wms->ms.deck_a && e == 0; wms->ms.deck_i++) {
+                  if (wms->ms.cat_t[wms->ms.deck_i].deck_slot_used != 0 && wms->ms.cat_t[wms->ms.deck_i].deck_on != 0) {
+                    wms->checked_decks++;
+                    e = ms_load_card_list(&wms->ms);
+                    if (e == 0) {
+                      if (wms->ms.card_a > 0) {
+                        for (card_i = 0; card_i < wms->ms.card_a; card_i++) {
+                          wms->count_bucket[wms->ms.card_l[card_i].card_state & 0x03]++;
+                          if ((wms->ms.card_l[card_i].card_state & 0x07) == STATE_SCHEDULED) {
+                            for (i = 0; i < 21; i++) {
+                              if (lvl_s[i] >= wms->ms.card_l[card_i].card_strength)
+                                break;
+                            }
+                            wms->lvl_bucket[0][i]++;
+                            time_diff = wms->ms.timestamp - wms->ms.card_l[card_i].card_time;
+                            retent = exp(-(double)time_diff / wms->ms.card_l[card_i].card_strength);
+                            if (retent <= 1 / M_E) {
+                              wms->lvl_bucket[1][i]++;
+                            }
+                          }
+                        }
                       }
                     }
                   }
                 }
+                wms->ms.deck_i = deck_i;
                 wms->page = P_TABLE;
                 break;
               }
