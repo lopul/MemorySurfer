@@ -43,11 +43,11 @@
 #include <fcntl.h> // O_TRUNC / O_EXCL
 #include <errno.h>
 
-static const int32_t MSF_VERSION = 0x010001ea;
+static const int32_t MSF_VERSION = 0x010001eb;
 
 enum Error { E_OVERRN_1 = 0x7da6edc1, E_OVERRN_2 = 0x7da6edc2, E_OVERRN_3 = 0x7da6edc3, E_NEWLN_1 = 0x0495e6fd, E_NEWLN_2 = 0x0495e6fe, E_NEWLN_3 = 0x0495e6ff, E_UNESC = 0x012cf4b0, E_PXML = 0x0025968a, E_CRRPT = 0x0687f5d6, E_ASSRT_1 = 0x068e1507, E_HEX = 0x0002b106, E_POST = 0x003e3ed8, E_RPOFT = 0x115048c5, E_FIELD_1 = 0x0169002d, E_FIELD_2 = 0x0169002e, E_FIELD_3 = 0x0169002f, E_SCOPE_1 = 0x01c73201, E_SCOPE_2 = 0x01c73202, E_FIELD_4 = 0x01690030, E_FIELD_5 = 0x01690031, E_FIELD_6 = 0x01690032, E_FIELD_7 = 0x01690033, E_PARSE_1 = 0x01d087cf, E_HASH_1 = 0x001a255d, E_HASH_2 = 0x001a255e, E_PARSE_2 = 0x01d087d0, E_MISMA = 0x007a49be, E_SHA = 0x000025a8, E_PARSE_3 = 0x01d087d1, E_EXPOR_1 = 0x05e29399, E_EXPOR_2 = 0x05e2939a, E_EXPOR_3 = 0x05e2939b, E_GHTML_1 = 0x03f6667d, E_GHTML_2 = 0x03f6667e, E_GHTML_3 = 0x03f6667f, E_GHTML_4 = 0x03f66680, E_GHTML_5 = 0x03f66681, E_GHTML_6 = 0x03f66682, E_GENLRN_1 = 0x7d95d699, E_GENLRN_2 = 0x7d95d69a, E_GENLRN_3 = 0x7d95d69b, E_GENLRN_4 = 0x7d95d69c, E_GENLRN_5 = 0x7d95d69d, E_GENLRN_6 = 0x7d95d69e, E_GENLRN_7 = 0x7d95d69f, E_GENLRN_8 = 0x7d95d6a0, E_GENLRN_9 = 0x7d95d6a1, E_GHTML_7 = 0x03f66683, E_GHTML_8 = 0x03f66684, E_GHTML_9 = 0x03f66685, E_MALLOC_1 = 0x1e8e2971, E_MALLOC_2 = 0x1e8e2972, E_MALLOC_3 = 0x1e8e2973, E_ARG_1 = 0x0000da5d, E_ASSRT_2 = 0x0000da5d, E_DETECA = 0x099201b8, E_ARG_2 = 0x0000da5e, E_MALLOC_4 = 0x1e8e2974, E_MALLOC_5 = 0x1e8e2975, E_INIT = 0x003d20c0, E_CREATE = 0x311ccf88, E_ASSRT_3 = 0x068e1509, E_ASSRT_4 = 0x068e150a, E_CARD_1 = 0x000e0539, E_CARD_2 = 0x000e053a, E_CARD_3 = 0x000e053b, E_CARD_4 = 0x000e053c, E_DECK_1 = 0x00216467, E_DECK_2 = 0x00216468, E_DECK_3 = 0x00216469, E_DECK_4 = 0x0021646a, E_ASSRT_5 = 0x068e150b, E_UPLOAD_1 = 0x22b56c8f, E_MAX = 0x0002ad00, E_ARRANG_1 = 0x4052a587, E_MOVED = 0x0155e4ce, E_TOPOL = 0x03fbfe34, E_ARRANG_2 = 0x4052a588, E_CARD_5 = 0x000e053d, E_CARD_6 = 0x000e053e, E_CARD_7 = 0x000e053f, E_MCTR = 0x00384cd0, E_OVERFL_1 = 0x68bee46d, E_OVERFL_2 = 0x68bee46e, E_STATE = 0x01d1b8ba, E_SEND = 0x000d9828, E_LVL_1 = 0x00016d65, E_CARD_8 = 0x000e0540, E_CARD_9 = 0x000e0541 };
 enum Field { F_UNKNOWN, F_FILE_TITLE, F_UPLOAD, F_ARRANGE, F_DECK_NAME, F_STYLE_TXT, F_MOVED_CAT, F_SCOPE, F_SEARCH_TXT, F_MATCH_CASE, F_IS_HTML, F_IS_UNLOCKED, F_DECK, F_CARD, F_MOV_CARD, F_LVL, F_RANK, F_Q, F_A, F_REVEAL_POS, F_TODO_MAIN, F_MCTR, F_MTIME, F_PASSWORD, F_NEW_PASSWORD, F_TOKEN, F_EVENT, F_PAGE, F_MODE, F_TIMEOUT };
-enum Action { A_END, A_NONE, A_FILE, A_WARN_UPLOAD, A_CREATE, A_NEW, A_OPEN_DLG, A_FILELIST, A_OPEN, A_CHANGE_PASSWD, A_WRITE_PASSWD, A_READ_PASSWD, A_CHECK_PASSWORD, A_AUTH_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_LOAD_CARDLIST_OLD, A_GET_CARD, A_CHECK_RESUME, A_SLASH, A_VOID, A_FILE_EXTENSION, A_GATHER, A_UPLOAD, A_UPLOAD_REPORT, A_EXPORT, A_ASK_REMOVE, A_REMOVE, A_ASK_ERASE, A_ERASE, A_CLOSE, A_START_DECKS, A_DECKS_CREATE, A_SELECT_DEST_DECK, A_SELECT_SEND_DECK, A_SELECT_PROCEED_SEND, A_SELECT_ARRANGE, A_ENTER_NAME, A_STYLE_GO, A_CREATE_DECK, A_RENAME_DECK, A_READ_STYLE, A_STYLE_APPLY, A_ASK_DELETE_DECK, A_DELETE_DECK, A_TOGGLE, A_MOVE_DECK, A_SELECT_EDIT_CAT, A_EDIT, A_UPDATE_QA, A_UPDATE_HTML, A_UPDATE_DECK_FLAGS, A_SYNC, A_SYNC_OLD, A_INSERT, A_APPEND, A_ASK_DELETE_CARD, A_DELETE_CARD, A_PREVIOUS, A_NEXT, A_SCHEDULE, A_SET, A_CARD_ARRANGE, A_MOVE_CARD, A_SEND_CARD, A_SELECT_LEARN_CAT, A_SELECT_SEARCH_CAT, A_PREFERENCES, A_ABOUT, A_APPLY, A_SEARCH, A_PREVIEW, A_RANK, A_DETERMINE_CARD, A_SHOW, A_REVEAL, A_PROCEED, A_ASK_SUSPEND, A_SUSPEND, A_ASK_RESUME, A_RESUME, A_CHECK_FILE, A_LOGIN, A_HISTOGRAM, A_TABLE, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CARD, A_TEST_CAT_SELECTED, A_TEST_CAT_VALID, A_TEST_DECK, A_TEST_ARRANGE, A_TEST_NAME };
+enum Action { A_END, A_NONE, A_FILE, A_WARN_UPLOAD, A_CREATE, A_NEW, A_OPEN_DLG, A_FILELIST, A_OPEN, A_CHANGE_PASSWD, A_WRITE_PASSWD, A_READ_PASSWD, A_CHECK_PASSWORD, A_AUTH_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST, A_LOAD_CARDLIST_OLD, A_GET_CARD, A_CHECK_RESUME, A_DECK_PATH, A_SLASH, A_VOID, A_FILE_EXTENSION, A_GATHER, A_UPLOAD, A_UPLOAD_REPORT, A_EXPORT, A_ASK_REMOVE, A_REMOVE, A_ASK_ERASE, A_ERASE, A_CLOSE, A_START_DECKS, A_DECKS_CREATE, A_SELECT_DEST_DECK, A_SELECT_SEND_DECK, A_SELECT_PROCEED_SEND, A_SELECT_ARRANGE, A_ENTER_NAME, A_STYLE_GO, A_CREATE_DECK, A_RENAME_DECK, A_READ_STYLE, A_STYLE_APPLY, A_ASK_DELETE_DECK, A_DELETE_DECK, A_TOGGLE, A_MOVE_DECK, A_SELECT_EDIT_CAT, A_EDIT, A_UPDATE_QA, A_UPDATE_HTML, A_UPDATE_DECK_FLAGS, A_SYNC, A_SYNC_OLD, A_INSERT, A_APPEND, A_ASK_DELETE_CARD, A_DELETE_CARD, A_PREVIOUS, A_NEXT, A_SCHEDULE, A_SET, A_CARD_ARRANGE, A_MOVE_CARD, A_SEND_CARD, A_SELECT_LEARN_CAT, A_SELECT_SEARCH_CAT, A_PREFERENCES, A_ABOUT, A_APPLY, A_SEARCH, A_PREVIEW, A_RANK, A_DETERMINE_CARD, A_SHOW, A_REVEAL, A_PROCEED, A_ASK_SUSPEND, A_SUSPEND, A_ASK_RESUME, A_RESUME, A_CHECK_FILE, A_LOGIN, A_HISTOGRAM, A_TABLE, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_CARD, A_TEST_CAT_SELECTED, A_TEST_CAT_VALID, A_TEST_DECK, A_TEST_ARRANGE, A_TEST_NAME };
 enum Page { P_UNDEF = -1, P_START, P_FILE, P_PASSWORD, P_NEW, P_OPEN, P_UPLOAD, P_UPLOAD_REPORT, P_EXPORT, P_CAT_NAME, P_STYLE, P_SELECT_ARRANGE, P_SELECT_DEST_DECK, P_SELECT_DECK, P_EDIT, P_PREVIEW, P_SEARCH, P_PREFERENCES, P_ABOUT, P_LEARN, P_MSG, P_HISTOGRAM, P_TABLE };
 enum Block { B_END, B_START_HTML, B_FORM_URLENCODED, B_FORM_MULTIPART, B_OPEN_DIV, B_HIDDEN_CAT, B_HIDDEN_ARRANGE, B_HIDDEN_CAT_NAME, B_HIDDEN_SEARCH_TXT, B_HIDDEN_MOV_CARD, B_CLOSE_DIV, B_START, B_FILE, B_PASSWORD, B_NEW, B_OPEN, B_UPLOAD, B_UPLOAD_REPORT, B_EXPORT, B_DECK_NAME, B_STYLE, B_SELECT_ARRANGE, B_SELECT_DEST_DECK, B_SELECT_DECK, B_EDIT, B_PREVIEW, B_SEARCH, B_PREFERENCES, B_ABOUT, B_LEARN, B_MSG, B_HISTOGRAM, B_TABLE };
 enum Mode { M_NONE = -1, M_DEFAULT, M_MSG_START, M_MSG_UPLOAD, M_MSG_FILE, M_MSG_CARD, M_MSG_DECKS, M_MSG_SELECT_EDIT, M_MSG_SELECT_LEARN, M_MSG_SELECT_SEARCH, M_MSG_SUSPEND, M_MSG_RESUME, M_CHANGE_PASSWD, M_ASK, M_RATE, M_MSG_NO_CARD_ELIGIBLE, M_EDIT, M_LEARN, M_SEARCH, M_SEND, M_PROCEED_SEND, M_MOVE, M_CARD, M_MOVE_DECK, M_CREATE_DECK, M_START, M_END };
@@ -112,22 +112,22 @@ static enum Action action_seq[S_END+1][18] = {
   { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST_OLD, A_TEST_CARD, A_MOVE_CARD, A_SYNC, A_END }, // S_MOVE_CARD
   { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST_OLD, A_TEST_CARD, A_GET_CARD, A_UPDATE_QA, A_UPDATE_HTML, A_SYNC_OLD, A_SELECT_SEND_DECK, A_END }, // S_EDITING_SEND
   { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_TEST_DECK, A_LOAD_CARDLIST, A_SEND_CARD, A_SYNC, A_END }, // S_SEND_CARD
-  { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_TEST_DECK, A_LOAD_CARDLIST, A_SEND_CARD, A_SYNC, A_DETERMINE_CARD, A_READ_STYLE, A_CHECK_RESUME, A_END }, // S_PROCEED_SEND_CARD
+  { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_TEST_DECK, A_LOAD_CARDLIST, A_SEND_CARD, A_SYNC, A_DETERMINE_CARD, A_READ_STYLE, A_CHECK_RESUME, A_DECK_PATH, A_END }, // S_PROCEED_SEND_CARD
   { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_TEST_DECK, A_LOAD_CARDLIST, A_SEARCH, A_END }, // S_SEARCH
   { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST_OLD, A_TEST_CARD, A_GET_CARD, A_UPDATE_QA, A_UPDATE_HTML, A_SYNC_OLD, A_SEARCH, A_END }, // S_SEARCH_SYNCED
   { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST_OLD, A_TEST_CARD, A_GET_CARD, A_UPDATE_QA, A_SYNC_OLD, A_SEARCH, A_END }, // S_SEARCH_SYNC_QA
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST_OLD, A_RANK, A_SYNC_OLD, A_SEARCH, A_END }, // S_SEARCH_SYNC_RANK
   { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_LOAD_CARDLIST_OLD, A_TEST_CARD, A_GET_CARD, A_UPDATE_QA, A_UPDATE_HTML, A_SYNC_OLD, A_PREVIEW, A_READ_STYLE, A_END }, // S_PREVIEW_SYNC
   { A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_LOAD_CARDLIST_OLD, A_TEST_CARD, A_PREVIEW, A_GET_CARD, A_READ_STYLE, A_END }, // S_PREVIEW
-  { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_TEST_DECK, A_LOAD_CARDLIST, A_TEST_CARD, A_GET_CARD, A_UPDATE_QA, A_UPDATE_HTML, A_SYNC, A_DETERMINE_CARD, A_READ_STYLE, A_CHECK_RESUME, A_END }, // S_QUESTION_SYNCED
-  { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_TEST_DECK, A_LOAD_CARDLIST, A_TEST_CARD, A_GET_CARD, A_UPDATE_QA, A_SYNC, A_DETERMINE_CARD, A_READ_STYLE, A_CHECK_RESUME, A_END }, // S_QUESTION_SYNC_QA
-  { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_UPDATE_DECK_FLAGS, A_SYNC, A_DETERMINE_CARD, A_READ_STYLE, A_CHECK_RESUME, A_END }, // S_LEARN
-  { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_DETERMINE_CARD, A_READ_STYLE, A_CHECK_RESUME, A_END }, // S_QUESTION
-  { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RANK, A_SYNC, A_DETERMINE_CARD, A_READ_STYLE, A_CHECK_RESUME, A_END }, // S_QUESTION_RANK
-  { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_DECK, A_LOAD_CARDLIST, A_TEST_CARD, A_SHOW, A_READ_STYLE, A_CHECK_RESUME, A_END }, // S_SHOW
-  { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_DECK, A_LOAD_CARDLIST, A_TEST_CARD, A_REVEAL, A_READ_STYLE, A_CHECK_RESUME, A_END }, // S_REVEAL
-  { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_TEST_DECK, A_LOAD_CARDLIST, A_TEST_CARD, A_GET_CARD, A_UPDATE_QA, A_PROCEED, A_SYNC, A_DETERMINE_CARD, A_READ_STYLE, A_CHECK_RESUME, A_END }, // S_PROCEED_SYNC_QA
-  { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_TEST_DECK, A_LOAD_CARDLIST, A_TEST_CARD, A_GET_CARD, A_UPDATE_QA, A_PROCEED, A_SYNC, A_SELECT_PROCEED_SEND, A_END }, // S_SELECT_PROCEED_SEND
+  { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_TEST_DECK, A_LOAD_CARDLIST, A_TEST_CARD, A_GET_CARD, A_UPDATE_QA, A_UPDATE_HTML, A_SYNC, A_DETERMINE_CARD, A_READ_STYLE, A_CHECK_RESUME, A_DECK_PATH, A_END }, // S_QUESTION_SYNCED
+  { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_TEST_DECK, A_LOAD_CARDLIST, A_TEST_CARD, A_GET_CARD, A_UPDATE_QA, A_SYNC, A_DETERMINE_CARD, A_READ_STYLE, A_CHECK_RESUME, A_DECK_PATH, A_END }, // S_QUESTION_SYNC_QA
+  { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_UPDATE_DECK_FLAGS, A_SYNC, A_DETERMINE_CARD, A_READ_STYLE, A_CHECK_RESUME, A_DECK_PATH, A_END }, // S_LEARN
+  { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_DETERMINE_CARD, A_READ_STYLE, A_CHECK_RESUME, A_DECK_PATH, A_END }, // S_QUESTION
+  { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RANK, A_SYNC, A_DETERMINE_CARD, A_READ_STYLE, A_CHECK_RESUME, A_DECK_PATH, A_END }, // S_QUESTION_RANK
+  { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_DECK, A_LOAD_CARDLIST, A_TEST_CARD, A_SHOW, A_READ_STYLE, A_CHECK_RESUME, A_DECK_PATH, A_END }, // S_SHOW
+  { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_RETRIEVE_MTIME, A_MTIME_TEST, A_TEST_DECK, A_LOAD_CARDLIST, A_TEST_CARD, A_REVEAL, A_READ_STYLE, A_CHECK_RESUME, A_DECK_PATH, A_END }, // S_REVEAL
+  { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_TEST_DECK, A_LOAD_CARDLIST, A_TEST_CARD, A_GET_CARD, A_UPDATE_QA, A_PROCEED, A_SYNC, A_DETERMINE_CARD, A_READ_STYLE, A_CHECK_RESUME, A_DECK_PATH, A_END }, // S_PROCEED_SYNC_QA
+  { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_TEST_DECK, A_LOAD_CARDLIST, A_TEST_CARD, A_GET_CARD, A_UPDATE_QA, A_PROCEED, A_SYNC, A_SELECT_PROCEED_SEND, A_DECK_PATH, A_END }, // S_SELECT_PROCEED_SEND
   { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_TEST_DECK, A_LOAD_CARDLIST, A_TEST_CARD, A_GET_CARD, A_UPDATE_QA, A_SYNC, A_ASK_SUSPEND, A_END }, // S_ASK_SUSPEND
   { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_TEST_DECK, A_LOAD_CARDLIST, A_TEST_CARD, A_SUSPEND, A_SYNC, A_DETERMINE_CARD, A_READ_STYLE, A_CHECK_RESUME, A_END }, // S_SUSPEND
   { A_SLASH, A_GATHER, A_OPEN, A_READ_PASSWD, A_AUTH_TOK, A_GEN_TOK, A_TEST_DECK, A_LOAD_CARDLIST, A_TEST_CARD, A_GET_CARD, A_UPDATE_QA, A_SYNC, A_ASK_RESUME, A_END }, // S_ASK_RESUME
@@ -216,7 +216,7 @@ struct MemorySurfer {
   struct Deck *cat_t; // tree
   int deck_a; // allocated
   int16_t n_first;
-  size_t deck_path_z; // size
+  size_t deck_path_z;
   char *deck_path;
   int deck_i;
   int mov_deck_i; // moved
@@ -2886,9 +2886,6 @@ static int gen_html(struct WebMemorySurfer *wms)
   char el_str[5]; // "100%"
   int bl_i; // block index
   enum SelType sel_type;
-  int16_t n_parent;
-  int16_t n_prev;
-  int16_t *n_path;
   e = 0;
   mtime_str[0] = '\0';
   if (wms->ms.imf_filename != NULL) {
@@ -3848,7 +3845,7 @@ static int gen_html(struct WebMemorySurfer *wms)
       case B_LEARN:
         q_str = sa_get(&wms->ms.card_sa, 0);
         a_str = sa_get(&wms->ms.card_sa, 1);
-        e = q_str == NULL || a_str == NULL || strlen(mtime_str) != 16 || wms->file_title_str == NULL || strlen(wms->tok_str) != 40 ? E_GHTML_4 : 0;
+        e = q_str == NULL || a_str == NULL || strlen(mtime_str) != 16 || wms->file_title_str == NULL || strlen(wms->tok_str) != 40 || wms->ms.deck_path == NULL ? E_GHTML_4 : 0;
         if (e == 0) {
           if (wms->mode == M_ASK) {
             header_str = "Asking";
@@ -4002,55 +3999,6 @@ static int gen_html(struct WebMemorySurfer *wms)
             }
           }
           if (e == 0) {
-            n_parent = -1;
-            size = sizeof(int16_t) * wms->ms.deck_a;
-            n_path = malloc(size);
-            e = n_path == NULL;
-            if (e == 0) {
-              x = wms->ms.deck_i;
-              n = 0;
-              while (x != -1) {
-                n_path[n] = x;
-                n_prev = -1;
-                n_parent = -1;
-                do {
-                  for (i = 0; i < wms->ms.deck_a && n_parent == -1; i++) {
-                    if (wms->ms.cat_t[i].deck_slot_used != 0) {
-                      if ((n_prev == -1 && wms->ms.cat_t[i].n_sibling == x) || (n_prev != -1 && wms->ms.cat_t[i].n_sibling == n_prev)) {
-                        n_prev = i;
-                      }
-                      if (wms->ms.cat_t[i].n_child == x || (n_prev != -1 && wms->ms.cat_t[i].n_child == n_prev)) {
-                        n_parent = i;
-                      }
-                    }
-                  }
-                } while (n_parent == -1 && (wms->ms.n_first != n_prev && n_prev != -1));
-                x = n_parent;
-                n++;
-              }
-              len = 0;
-              while (n-- > 0 && e == 0) {
-                str = sa_get(&wms->ms.deck_sa, n_path[n]);
-                do {
-                  size = 0;
-                  rv = snprintf(wms->ms.deck_path + len, wms->ms.deck_path_z - len, "/%s", str);
-                  e = rv < 0;
-                  if (e == 0) {
-                    if (rv >= wms->ms.deck_path_z - len) {
-                      size = len + rv + 1;
-                      wms->ms.deck_path = realloc(wms->ms.deck_path, size);
-                      e = wms->ms.deck_path == NULL;
-                      if (e == 0) {
-                        wms->ms.deck_path_z = size;
-                      }
-                    } else {
-                      len += rv;
-                    }
-                  }
-                } while (e == 0 && size != 0);
-              }
-              free(n_path);
-            }
             time_diff = wms->ms.timestamp - wms->ms.card_l[wms->ms.card_i].card_time;
             set_time_str(time_diff_str, time_diff);
             rv = printf("\t\t\t<div class=\"msf-btns\"><button class=\"msf\" type=\"submit\" name=\"event\" value=\"Suspend\">Suspend</button>\n"
@@ -4873,6 +4821,7 @@ int main(int argc, char *argv[])
   int deck_a;
   int16_t n_parent;
   int16_t n_prev;
+  int16_t *n_path;
   struct Card card;
   int32_t index;
   struct Card *mov_card_l;
@@ -5560,6 +5509,56 @@ int main(int argc, char *argv[])
                       wms->ms.can_resume = 1;
                     }
                   }
+                }
+                break;
+              case A_DECK_PATH:
+                size = sizeof(int16_t) * wms->ms.deck_a;
+                n_path = malloc(size);
+                e = n_path == NULL;
+                if (e == 0) {
+                  deck_i = wms->ms.deck_i;
+                  j = 0;
+                  while (deck_i != -1) {
+                    n_path[j] = deck_i;
+                    n_prev = -1;
+                    n_parent = -1;
+                    do {
+                      for (i = 0; i < wms->ms.deck_a && n_parent == -1; i++) {
+                        if (wms->ms.cat_t[i].deck_slot_used != 0) {
+                          if ((n_prev == -1 && wms->ms.cat_t[i].n_sibling == deck_i) || (n_prev != -1 && wms->ms.cat_t[i].n_sibling == n_prev)) {
+                            n_prev = i;
+                          }
+                          if (wms->ms.cat_t[i].n_child == deck_i || (n_prev != -1 && wms->ms.cat_t[i].n_child == n_prev)) {
+                            n_parent = i;
+                          }
+                        }
+                      }
+                    } while (n_parent == -1 && (wms->ms.n_first != n_prev && n_prev != -1));
+                    deck_i = n_parent;
+                    j++;
+                  }
+                  len = 0;
+                  while (j-- > 0 && e == 0) {
+                    str = sa_get(&wms->ms.deck_sa, n_path[j]);
+                    do {
+                      size = 0;
+                      rv = snprintf(wms->ms.deck_path + len, wms->ms.deck_path_z - len, "/%s", str);
+                      e = rv < 0;
+                      if (e == 0) {
+                        if (rv >= wms->ms.deck_path_z - len) {
+                          size = len + rv + 1;
+                          wms->ms.deck_path = realloc(wms->ms.deck_path, size);
+                          e = wms->ms.deck_path == NULL;
+                          if (e == 0) {
+                            wms->ms.deck_path_z = size;
+                          }
+                        } else {
+                          len += rv;
+                        }
+                      }
+                    } while (e == 0 && size != 0);
+                  }
+                  free(n_path);
                 }
                 break;
               case A_ASK_REMOVE:
