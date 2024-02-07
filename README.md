@@ -34,7 +34,7 @@ The setup is described
 
 ## Learning Algorithm
 
-The learning algorithm is a simple spaced repetition algorithm, with a interesting variation: A deck with a lower "height" are prioritized. (leaf decks have a height of 0, the root deck has a height of the depth of the hierarchy tree). This allows to place the important cards in the leaf decks, to focus on them, and not get overwhelmed with too many cards to learn. This holds a efficient balance between cards actively remembered and cards which are only distantly remembered.
+The learning algorithm is a simple spaced repetition algorithm, with a interesting variation: A deck with a lower "height" is prioritized. (Leaf decks have a height of 0, the root deck has a height of the depth of the hierarchy tree). This allows to place the important cards in the leaf decks, to focus on them, and not get overwhelmed with too many cards to learn. This holds a efficient balance between cards actively remembered and cards which are only distantly remembered.
 
 ## Requirements
 
